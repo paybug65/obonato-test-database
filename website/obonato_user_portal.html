@@ -122,8 +122,10 @@
         .location-btn { padding: 12px 20px; border: 2px solid var(--border); border-radius: 10px; background: white; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .location-btn:hover { border-color: var(--primary); background: var(--bg); }
         .location-btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
-        .map-container { height: 400px; border-radius: 16px; overflow: hidden; border: 2px solid var(--border); margin-bottom: 24px; }
-        .map-container.small { height: 200px; }
+        .map-container { height: 350px; border-radius: 16px; overflow: hidden; border: 2px solid var(--border); margin-bottom: 24px; background: #e5e7eb; }
+        .map-container.large { height: 500px; }
+        .map-container > div { height: 100% !important; width: 100% !important; }
+        .leaflet-container { height: 100% !important; width: 100% !important; }
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 16px; }
         .checkbox-item { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 12px 16px; border-radius: 10px; border: 2px solid var(--border); cursor: pointer; }
         .checkbox-item:hover { border-color: var(--primary); }
@@ -266,27 +268,25 @@
                 
                 <h4>📍 Home Location (GPS)</h4>
                 <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">Get GPS coordinates from your address above, your device, or enter manually.</p>
+                <div class="location-btn-group">
+                    <button class="location-btn primary" onclick="geocodeHomeAddress()">🏠 From Address</button>
+                    <button class="location-btn" onclick="captureHomeGPS()">📍 Device GPS</button>
+                    <button class="location-btn" onclick="toggleManualEntry('home')">✏️ Manual</button>
+                </div>
+                <div id="homeManualEntry" class="hidden" style="margin-bottom: 16px;">
+                    <div class="grid-2"><input type="text" class="form-control" id="profileHomeLat" placeholder="Latitude (e.g. -36.8485)" onchange="updateGPSDisplay('home')"><input type="text" class="form-control" id="profileHomeLng" placeholder="Longitude (e.g. 174.7633)" onchange="updateGPSDisplay('home')"></div>
+                </div>
                 <div class="grid-2">
-                    <div>
-                        <div class="location-btn-group">
-                            <button class="location-btn primary" onclick="geocodeHomeAddress()">🏠 From Address</button>
-                            <button class="location-btn" onclick="captureHomeGPS()">📍 Device GPS</button>
-                            <button class="location-btn" onclick="toggleManualEntry('home')">✏️ Manual</button>
+                    <div id="homeGPSDisplay" class="gps-display-box hidden">
+                        <div class="gps-format-tabs">
+                            <button class="gps-format-tab active" onclick="setGPSFormat('home','dd')">DD</button>
+                            <button class="gps-format-tab" onclick="setGPSFormat('home','dms')">DMS</button>
+                            <button class="gps-format-tab" onclick="setGPSFormat('home','ddm')">DDM</button>
                         </div>
-                        <div id="homeManualEntry" class="hidden" style="margin-bottom: 16px; margin-top: 16px;">
-                            <div class="grid-2"><input type="text" class="form-control" id="profileHomeLat" placeholder="Latitude (e.g. -36.8485)" onchange="updateGPSDisplay('home')"><input type="text" class="form-control" id="profileHomeLng" placeholder="Longitude (e.g. 174.7633)" onchange="updateGPSDisplay('home')"></div>
-                        </div>
-                        <div id="homeGPSDisplay" class="gps-display-box hidden">
-                            <div class="gps-format-tabs">
-                                <button class="gps-format-tab active" onclick="setGPSFormat('home','dd')">DD</button>
-                                <button class="gps-format-tab" onclick="setGPSFormat('home','dms')">DMS</button>
-                                <button class="gps-format-tab" onclick="setGPSFormat('home','ddm')">DDM</button>
-                            </div>
-                            <div id="homeGPSValues"></div>
-                            <div id="homeW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="homeW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('homeW3WValue',this)">Copy</button></div>
-                        </div>
+                        <div id="homeGPSValues"></div>
+                        <div id="homeW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="homeW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('homeW3WValue',this)">Copy</button></div>
                     </div>
-                    <div class="map-container small"><div id="homeMap"></div></div>
+                    <div class="map-container"><div id="homeMap"></div></div>
                 </div>
                 
                 <h4>🚗 Traveler Type</h4>
@@ -329,28 +329,26 @@
                 <div class="checkbox-item" style="background: var(--success-light); border-color: var(--success); margin-bottom: 24px;"><input type="checkbox" id="availActive" checked><label for="availActive" style="font-weight: 700; color: #065f46;">I am available to help others</label></div>
                 
                 <h4>📍 Current Location</h4>
+                <div class="location-btn-group">
+                    <button class="location-btn primary" onclick="getLocation('avail','gps')">📍 Device GPS</button>
+                    <button class="location-btn" onclick="getLocation('avail','home')">🏠 Use Home</button>
+                    <button class="location-btn" onclick="toggleManualEntry('avail')">✏️ Manual</button>
+                </div>
+                <div id="availManualEntry" class="hidden" style="margin-bottom: 16px;">
+                    <div class="grid-2"><input type="text" class="form-control" id="availLat" placeholder="Latitude" onchange="updateGPSDisplay('avail')"><input type="text" class="form-control" id="availLng" placeholder="Longitude" onchange="updateGPSDisplay('avail')"></div>
+                </div>
+                <div class="form-group"><label>Location Name</label><input type="text" class="form-control" id="availLocation" placeholder="Auckland CBD"></div>
                 <div class="grid-2">
-                    <div>
-                        <div class="location-btn-group">
-                            <button class="location-btn primary" onclick="getLocation('avail','gps')">📍 Device GPS</button>
-                            <button class="location-btn" onclick="getLocation('avail','home')">🏠 Use Home</button>
-                            <button class="location-btn" onclick="toggleManualEntry('avail')">✏️ Manual</button>
+                    <div id="availGPSDisplay" class="gps-display-box hidden">
+                        <div class="gps-format-tabs">
+                            <button class="gps-format-tab active" onclick="setGPSFormat('avail','dd')">DD</button>
+                            <button class="gps-format-tab" onclick="setGPSFormat('avail','dms')">DMS</button>
+                            <button class="gps-format-tab" onclick="setGPSFormat('avail','ddm')">DDM</button>
                         </div>
-                        <div id="availManualEntry" class="hidden" style="margin-bottom: 16px;">
-                            <div class="grid-2"><input type="text" class="form-control" id="availLat" placeholder="Latitude" onchange="updateGPSDisplay('avail')"><input type="text" class="form-control" id="availLng" placeholder="Longitude" onchange="updateGPSDisplay('avail')"></div>
-                        </div>
-                        <div class="form-group"><label>Location Name</label><input type="text" class="form-control" id="availLocation" placeholder="Auckland CBD"></div>
-                        <div id="availGPSDisplay" class="gps-display-box hidden">
-                            <div class="gps-format-tabs">
-                                <button class="gps-format-tab active" onclick="setGPSFormat('avail','dd')">DD</button>
-                                <button class="gps-format-tab" onclick="setGPSFormat('avail','dms')">DMS</button>
-                                <button class="gps-format-tab" onclick="setGPSFormat('avail','ddm')">DDM</button>
-                            </div>
-                            <div id="availGPSValues"></div>
-                            <div id="availW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="availW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('availW3WValue',this)">Copy</button></div>
-                        </div>
+                        <div id="availGPSValues"></div>
+                        <div id="availW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="availW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('availW3WValue',this)">Copy</button></div>
                     </div>
-                    <div class="map-container small"><div id="availMap"></div></div>
+                    <div class="map-container"><div id="availMap"></div></div>
                 </div>
                 
                 <h4>🤝 Services You Offer</h4>
@@ -373,15 +371,26 @@
         <div id="helpers" class="tab-content">
             <div class="card">
                 <h3>🗺️ Find Nearby Helpers</h3>
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">Set your search location using GPS, your home address, or enter coordinates manually.</p>
+                <div class="location-btn-group">
+                    <button class="location-btn primary" onclick="getLocation('search','gps')">📍 Device GPS</button>
+                    <button class="location-btn" onclick="getLocation('search','home')">🏠 Use Home</button>
+                    <button class="location-btn" onclick="toggleManualEntry('search')">✏️ Manual</button>
+                </div>
+                <div id="searchManualEntry" class="hidden" style="margin-bottom: 16px;">
+                    <div class="grid-2"><input type="text" class="form-control" id="searchLat" placeholder="Latitude" onchange="updateGPSDisplay('search')"><input type="text" class="form-control" id="searchLng" placeholder="Longitude" onchange="updateGPSDisplay('search')"></div>
+                </div>
                 <div class="grid-2" style="margin-bottom: 24px;">
-                    <div>
-                        <div class="location-btn-group">
-                            <button class="location-btn primary" onclick="getLocation('search','gps')">📍 Current GPS</button>
-                            <button class="location-btn" onclick="getLocation('search','home')">🏠 Use Home</button>
+                    <div id="searchGPSDisplay" class="gps-display-box hidden">
+                        <div class="gps-format-tabs">
+                            <button class="gps-format-tab active" onclick="setGPSFormat('search','dd')">DD</button>
+                            <button class="gps-format-tab" onclick="setGPSFormat('search','dms')">DMS</button>
+                            <button class="gps-format-tab" onclick="setGPSFormat('search','ddm')">DDM</button>
                         </div>
-                        <div class="grid-2"><input type="text" class="form-control" id="searchLat" placeholder="Latitude"><input type="text" class="form-control" id="searchLng" placeholder="Longitude"></div>
+                        <div id="searchGPSValues"></div>
+                        <div id="searchW3W" class="w3w-row" style="margin-top: 12px;"><div class="w3w-logo">///</div><span class="value" id="searchW3WValue">loading...</span><button class="copy-btn" onclick="copyValue('searchW3WValue',this)">Copy</button></div>
                     </div>
-                    <div class="form-group"><label>Radius (km)</label><input type="number" class="form-control" id="searchRadius" value="50"></div>
+                    <div class="form-group"><label>Search Radius (km)</label><input type="number" class="form-control" id="searchRadius" value="50"></div>
                 </div>
                 <div class="checkbox-group" style="margin-bottom: 24px;">
                     <div class="checkbox-item"><input type="checkbox" id="needPickup"><label>🚗 Pickup</label></div>
@@ -389,9 +398,9 @@
                     <div class="checkbox-item"><input type="checkbox" id="needStay"><label>🏠 Stay</label></div>
                     <div class="checkbox-item"><input type="checkbox" id="needMeet"><label>🍺 Meetup</label></div>
                 </div>
-                <button class="btn btn-primary" onclick="handleSearchHelpers()">🔍 Search</button>
+                <button class="btn btn-primary" onclick="handleSearchHelpers()">🔍 Search Helpers</button>
             </div>
-            <div class="map-container"><div id="helpersMap"></div></div>
+            <div class="map-container large"><div id="helpersMap"></div></div>
             <div id="helperResults" style="margin-top: 24px;"><p class="loading">Enter location to find helpers...</p></div>
         </div>
         
@@ -512,7 +521,7 @@
         let db=null,currentUser=null,userProfile=null,helpersMap=null,homeMap=null,availMap=null,dashboardMap=null;
         let markers=[],currentHelpers=[],selectedHelper=null,currentInteractionId=null,selectedRating=null;
         let homeMarker=null,availMarker=null,userVehicles=[],sosTimer=null,sosStartTime=null,currentRespondRequest=null;
-        let gpsFormats={home:'dd',avail:'dd',sos:'dd'},gpsCoords={home:null,avail:null,sos:null};
+        let gpsFormats={home:'dd',avail:'dd',sos:'dd',search:'dd'},gpsCoords={home:null,avail:null,sos:null,search:null};
         
         const ADJECTIVES=['Swift','Brave','Clever','Dusty','Epic','Fierce','Golden','Happy','Iron','Jolly','Keen','Lucky','Mighty','Noble','Ocean','Proud','Quick','Rusty','Shadow','Thunder','Urban','Velvet','Wild','Alpine','Blazing','Coastal','Desert','Eastern','Forest','Glacier','Harbor','Island','Jungle','Lunar','Misty','Nordic','Outback','Prairie','River','Solar','Tropic','Valley','Western','Azure','Crimson','Emerald'];
         const NOUNS=['Rider','Nomad','Voyager','Wanderer','Explorer','Traveler','Pioneer','Ranger','Scout','Drifter','Adventurer','Roamer','Trekker','Cruiser','Rambler','Wayfarer','Pilgrim','Pathfinder','Navigator','Hawk','Wolf','Bear','Eagle','Fox','Lion','Tiger','Falcon','Raven','Phoenix','Dragon','Panther','Cobra','Viper','Shark','Stallion','Mustang','Thunder','Storm','Blaze','Frost','Shadow','Phantom','Ghost','Knight','Warrior','Hunter','Seeker','Guardian'];
@@ -570,10 +579,33 @@
         function updateGPSDisplay(target){const lat=parseFloat(document.getElementById(target==='home'?'profileHomeLat':`${target}Lat`).value),lng=parseFloat(document.getElementById(target==='home'?'profileHomeLng':`${target}Lng`).value);if(!isNaN(lat)&&!isNaN(lng))renderGPSDisplay(target,lat,lng)}
         
         // Initialization
-        window.onload=function(){initDatabase();checkURLParams();setTimeout(initMaps,100)};
+        window.onload=function(){initDatabase();checkURLParams();setTimeout(initMaps,200)};
         function checkURLParams(){if(new URLSearchParams(window.location.search).get('mode')==='signup')showSignUp();else showSignIn()}
         function initDatabase(){try{db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);updateConnectionStatus(true);checkAuth()}catch(e){updateConnectionStatus(false)}}
-        function initMaps(){const v=[-36.8485,174.7633];helpersMap=L.map('helpersMap').setView(v,10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(helpersMap);homeMap=L.map('homeMap').setView(v,10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(homeMap);availMap=L.map('availMap').setView(v,10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(availMap);dashboardMap=L.map('dashboardMap').setView(v,10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(dashboardMap)}
+        function initMaps(){
+            const v=[-36.8485,174.7633];
+            try{
+                helpersMap=L.map('helpersMap',{scrollWheelZoom:true}).setView(v,10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(helpersMap);
+                
+                homeMap=L.map('homeMap',{scrollWheelZoom:true}).setView(v,10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(homeMap);
+                
+                availMap=L.map('availMap',{scrollWheelZoom:true}).setView(v,10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(availMap);
+                
+                dashboardMap=L.map('dashboardMap',{scrollWheelZoom:true}).setView(v,10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(dashboardMap);
+                
+                // Force invalidate all maps after short delay
+                setTimeout(()=>{
+                    if(helpersMap)helpersMap.invalidateSize();
+                    if(homeMap)homeMap.invalidateSize();
+                    if(availMap)availMap.invalidateSize();
+                    if(dashboardMap)dashboardMap.invalidateSize();
+                },300);
+            }catch(e){console.error('Map init error:',e)}
+        }
         function updateConnectionStatus(c){const b=document.getElementById('connectionStatus');b.textContent=c?'Connected':'Disconnected';b.className='status-badge '+(c?'status-connected':'status-disconnected')}
         
         // Anonymous Name
@@ -584,7 +616,21 @@
         // Auth
         function showSignIn(){document.getElementById('signInCard').classList.remove('hidden');document.getElementById('signUpCard').classList.add('hidden')}
         function showSignUp(){document.getElementById('signInCard').classList.add('hidden');document.getElementById('signUpCard').classList.remove('hidden')}
-        function showTab(tabId,btn){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(tabId).classList.add('active');btn.classList.add('active');setTimeout(()=>{if(tabId==='helpers'&&helpersMap)helpersMap.invalidateSize();if(tabId==='profile'&&homeMap)homeMap.invalidateSize();if(tabId==='availability'&&availMap)availMap.invalidateSize();if(tabId==='dashboard'&&dashboardMap)dashboardMap.invalidateSize()},100);if(tabId==='activity')loadActivity();if(tabId==='dashboard')loadDashboard()}
+        function showTab(tabId,btn){
+            document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+            // Refresh maps with longer delay to ensure container is visible
+            setTimeout(()=>{
+                if(tabId==='helpers'&&helpersMap){helpersMap.invalidateSize();helpersMap.setView(helpersMap.getCenter(),helpersMap.getZoom());}
+                if(tabId==='profile'&&homeMap){homeMap.invalidateSize();homeMap.setView(homeMap.getCenter(),homeMap.getZoom());}
+                if(tabId==='availability'&&availMap){availMap.invalidateSize();availMap.setView(availMap.getCenter(),availMap.getZoom());}
+                if(tabId==='dashboard'&&dashboardMap){dashboardMap.invalidateSize();dashboardMap.setView(dashboardMap.getCenter(),dashboardMap.getZoom());}
+            },150);
+            if(tabId==='activity')loadActivity();
+            if(tabId==='dashboard')loadDashboard();
+        }
         function showLoggedInTabs(){document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.remove('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.add('hidden')}
         async function checkAuth(){if(!db)return;const{data}=await db.auth.getUser();if(data&&data.user){currentUser=data.user;await onUserLoggedIn()}}
         async function onUserLoggedIn(){const dn=generateAnonymousName(currentUser.email);document.getElementById('userArea').classList.remove('hidden');document.getElementById('userDisplayName').textContent=dn;renderAvatar(currentUser.email,document.getElementById('userAvatar'));document.getElementById('profileDisplayName').textContent=dn;renderAvatar(currentUser.email,document.getElementById('profileAvatar'));showLoggedInTabs();showTab('dashboard',document.querySelector('[data-tab="dashboard"]'));await loadProfile();await loadAvailability();await loadVehicles();await checkPendingFeedback();await loadDashboard()}
@@ -641,13 +687,13 @@
             if(source==='home'&&userProfile&&userProfile.home_latitude){
                 const lat=userProfile.home_latitude,lng=userProfile.home_longitude;
                 if(target==='avail'){document.getElementById('availLat').value=lat;document.getElementById('availLng').value=lng;document.getElementById('availLocation').value=`${userProfile.suburb||''}, ${userProfile.city||''}`.replace(/^,|,$/g,'').trim();renderGPSDisplay('avail',lat,lng);availMap.setView([lat,lng],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([lat,lng]).addTo(availMap)}
-                else if(target==='search'){document.getElementById('searchLat').value=lat;document.getElementById('searchLng').value=lng;helpersMap.setView([lat,lng],11)}
+                else if(target==='search'){document.getElementById('searchLat').value=lat;document.getElementById('searchLng').value=lng;document.getElementById('searchManualEntry').classList.remove('hidden');renderGPSDisplay('search',lat,lng);helpersMap.setView([lat,lng],11)}
                 else if(target==='sos'){document.getElementById('sosLat').value=lat;document.getElementById('sosLng').value=lng;renderGPSDisplay('sos',lat,lng)}
             }else if(source==='gps'&&navigator.geolocation){
-                navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude.toFixed(6),lng=p.coords.longitude.toFixed(6);
-                    if(target==='avail'){document.getElementById('availLat').value=lat;document.getElementById('availLng').value=lng;renderGPSDisplay('avail',parseFloat(lat),parseFloat(lng));availMap.setView([lat,lng],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([lat,lng]).addTo(availMap)}
-                    else if(target==='search'){document.getElementById('searchLat').value=lat;document.getElementById('searchLng').value=lng;helpersMap.setView([lat,lng],11)}
-                    else if(target==='sos'){document.getElementById('sosLat').value=lat;document.getElementById('sosLng').value=lng;renderGPSDisplay('sos',parseFloat(lat),parseFloat(lng))}
+                navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lng=p.coords.longitude;
+                    if(target==='avail'){document.getElementById('availLat').value=lat.toFixed(6);document.getElementById('availLng').value=lng.toFixed(6);renderGPSDisplay('avail',lat,lng);availMap.setView([lat,lng],12);if(availMarker)availMap.removeLayer(availMarker);availMarker=L.marker([lat,lng]).addTo(availMap)}
+                    else if(target==='search'){document.getElementById('searchLat').value=lat.toFixed(6);document.getElementById('searchLng').value=lng.toFixed(6);document.getElementById('searchManualEntry').classList.remove('hidden');renderGPSDisplay('search',lat,lng);helpersMap.setView([lat,lng],11)}
+                    else if(target==='sos'){document.getElementById('sosLat').value=lat.toFixed(6);document.getElementById('sosLng').value=lng.toFixed(6);renderGPSDisplay('sos',lat,lng)}
                 },e=>alert('Error: '+e.message),{enableHighAccuracy:true})
             }
         }
