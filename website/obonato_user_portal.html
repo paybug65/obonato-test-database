@@ -280,7 +280,7 @@
                 <span>I exist because you exist</span>
             </div>
             <div class="header-right">
-                <span id="connectionStatus" class="status-badge status-disconnected">Not Connected</span>
+                <span id="connectionStatus" class="status-badge status-disconnected">Connecting...</span>
                 <div id="userArea" class="hidden">
                     <span class="user-info" id="userEmail"></span>
                     <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
@@ -291,55 +291,15 @@
     
     <div class="container">
         <div class="tabs">
-            <button class="tab active" onclick="showTab('settings', this)">⚙️ Settings</button>
-            <button class="tab" onclick="showTab('auth', this)">🔐 Sign In</button>
+            <button class="tab active" onclick="showTab('auth', this)">🔐 Sign In</button>
             <button class="tab" onclick="showTab('profile', this)">👤 Profile</button>
             <button class="tab" onclick="showTab('availability', this)">📍 Availability</button>
             <button class="tab" onclick="showTab('helpers', this)">🔍 Find Helpers</button>
             <button class="tab" onclick="showTab('sos', this)">🚨 SOS</button>
         </div>
         
-        <!-- Settings Tab -->
-        <div id="settings" class="tab-content active">
-            <div class="card">
-                <h3>⚙️ Database Connection</h3>
-                <div class="alert alert-info">
-                    <strong>Setup Instructions:</strong><br>
-                    1. Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → Your Project<br>
-                    2. Click <strong>Settings</strong> → <strong>API</strong><br>
-                    3. Copy the <strong>Project URL</strong> and <strong>anon public key</strong>
-                </div>
-                
-                <div class="form-group">
-                    <label>Supabase Project URL</label>
-                    <input type="text" class="form-control" id="supabaseUrl" placeholder="https://xxxxx.supabase.co">
-                </div>
-                
-                <div class="form-group">
-                    <label>Supabase Anon Key</label>
-                    <input type="password" class="form-control" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                    <div class="form-hint">This is the "anon" public key - safe to use in browsers</div>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-primary" onclick="handleTestConnection()">🔍 Test Connection</button>
-                    <button class="btn btn-success" onclick="handleSaveConnection()">💾 Save & Connect</button>
-                    <button class="btn btn-secondary" onclick="handleClearConnection()">🗑️ Clear Saved</button>
-                </div>
-                
-                <div id="connectionResult" style="margin-top: 20px;"></div>
-            </div>
-            
-            <div class="card">
-                <h3>📊 Database Status</h3>
-                <div id="dbStatus">
-                    <p class="loading">Connect to database to see status...</p>
-                </div>
-            </div>
-        </div>
-        
         <!-- Auth Tab -->
-        <div id="auth" class="tab-content">
+        <div id="auth" class="tab-content active">
             <div class="grid-2">
                 <div class="card">
                     <h3>🔐 Sign In</h3>
@@ -638,144 +598,52 @@
     </div>
 
     <script>
+        // =====================================================
+        // DATABASE CONFIGURATION - AUTO CONNECT
+        // =====================================================
+        var SUPABASE_URL = 'https://mozbpccxzfcoswvxjuym.supabase.co';
+        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODY4NTQsImV4cCI6MjA4NDY2Mjg1NH0.lfOM5ojN2B1MV6wMsntGWmI7OWL7fhUJV5E8b6I48N0';
+        
         // Global variables
-        let db = null;
-        let currentUser = null;
-        let sosTimer = null;
-        let sosStartTime = null;
+        var db = null;
+        var currentUser = null;
+        var sosTimer = null;
+        var sosStartTime = null;
         
         // Tab navigation
         function showTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
             document.getElementById(tabId).classList.add('active');
             btn.classList.add('active');
         }
         
-        // Load saved credentials on page load
+        // Auto-connect on page load
         window.onload = function() {
-            const savedUrl = localStorage.getItem('obonato_supabase_url');
-            const savedKey = localStorage.getItem('obonato_supabase_key');
-            
-            if (savedUrl && savedKey) {
-                document.getElementById('supabaseUrl').value = savedUrl;
-                document.getElementById('supabaseKey').value = savedKey;
-                initDatabase(savedUrl, savedKey);
-            }
+            initDatabase();
         };
         
         // Initialize database connection
-        function initDatabase(url, key) {
+        function initDatabase() {
             try {
-                db = window.supabase.createClient(url, key);
+                db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 updateConnectionStatus(true);
                 checkAuth();
-                loadDatabaseStatus();
-                return true;
             } catch (error) {
-                console.error('Database init error:', error);
+                console.error('Database connection error:', error);
                 updateConnectionStatus(false);
-                return false;
             }
-        }
-        
-        // Test connection
-        async function handleTestConnection() {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
-            const resultDiv = document.getElementById('connectionResult');
-            
-            if (!url || !key) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">Please enter both URL and Key</div>';
-                return;
-            }
-            
-            resultDiv.innerHTML = '<div class="alert alert-info">Testing connection...</div>';
-            
-            try {
-                const testClient = window.supabase.createClient(url, key);
-                const { data, error } = await testClient.from('profiles').select('count', { count: 'exact', head: true });
-                
-                if (error && !error.message.includes('does not exist')) {
-                    throw error;
-                }
-                
-                resultDiv.innerHTML = '<div class="alert alert-success">✅ Connection successful! Click "Save & Connect" to continue.</div>';
-            } catch (error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ Connection failed: ' + error.message + '</div>';
-            }
-        }
-        
-        // Save connection
-        function handleSaveConnection() {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
-            const resultDiv = document.getElementById('connectionResult');
-            
-            if (!url || !key) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">Please enter both URL and Key</div>';
-                return;
-            }
-            
-            localStorage.setItem('obonato_supabase_url', url);
-            localStorage.setItem('obonato_supabase_key', key);
-            
-            if (initDatabase(url, key)) {
-                resultDiv.innerHTML = '<div class="alert alert-success">✅ Connected and saved! You can now sign in.</div>';
-            }
-        }
-        
-        // Clear connection
-        function handleClearConnection() {
-            localStorage.removeItem('obonato_supabase_url');
-            localStorage.removeItem('obonato_supabase_key');
-            document.getElementById('supabaseUrl').value = '';
-            document.getElementById('supabaseKey').value = '';
-            db = null;
-            updateConnectionStatus(false);
-            document.getElementById('connectionResult').innerHTML = '<div class="alert alert-info">Credentials cleared.</div>';
         }
         
         // Update connection status
         function updateConnectionStatus(connected) {
-            const badge = document.getElementById('connectionStatus');
+            var badge = document.getElementById('connectionStatus');
             if (connected) {
                 badge.textContent = 'Connected';
                 badge.className = 'status-badge status-connected';
             } else {
-                badge.textContent = 'Not Connected';
+                badge.textContent = 'Connection Error';
                 badge.className = 'status-badge status-disconnected';
-            }
-        }
-        
-        // Load database status
-        async function loadDatabaseStatus() {
-            if (!db) return;
-            
-            const statusDiv = document.getElementById('dbStatus');
-            statusDiv.innerHTML = '<p class="loading">Loading database status...</p>';
-            
-            try {
-                const tables = ['profiles', 'user_availability', 'sos_alerts', 'messages', 'feedback'];
-                let html = '<table><tr><th>Table</th><th>Status</th><th>Records</th></tr>';
-                
-                for (const table of tables) {
-                    try {
-                        const { count, error } = await db.from(table).select('*', { count: 'exact', head: true });
-                        if (error) {
-                            html += '<tr><td>' + table + '</td><td>❌ Error</td><td>-</td></tr>';
-                        } else {
-                            html += '<tr><td>' + table + '</td><td>✅ OK</td><td>' + (count || 0) + '</td></tr>';
-                        }
-                    } catch (e) {
-                        html += '<tr><td>' + table + '</td><td>❌ Not Found</td><td>-</td></tr>';
-                    }
-                }
-                
-                html += '</table>';
-                statusDiv.innerHTML = html;
-            } catch (error) {
-                statusDiv.innerHTML = '<div class="alert alert-danger">Error loading status: ' + error.message + '</div>';
             }
         }
         
@@ -783,12 +651,12 @@
         async function checkAuth() {
             if (!db) return;
             
-            const { data: { user } } = await db.auth.getUser();
-            if (user) {
-                currentUser = user;
+            var response = await db.auth.getUser();
+            if (response.data && response.data.user) {
+                currentUser = response.data.user;
                 document.getElementById('userArea').classList.remove('hidden');
-                document.getElementById('userEmail').textContent = user.email;
-                document.getElementById('profileEmail').value = user.email;
+                document.getElementById('userEmail').textContent = currentUser.email;
+                document.getElementById('profileEmail').value = currentUser.email;
                 loadProfile();
                 loadAvailability();
             }
@@ -797,25 +665,30 @@
         // Sign In
         async function handleSignIn() {
             if (!db) {
-                alert('Please connect to database first');
+                alert('Database not connected. Please refresh the page.');
                 return;
             }
             
-            const email = document.getElementById('signInEmail').value;
-            const password = document.getElementById('signInPassword').value;
-            const resultDiv = document.getElementById('signInResult');
+            var email = document.getElementById('signInEmail').value;
+            var password = document.getElementById('signInPassword').value;
+            var resultDiv = document.getElementById('signInResult');
+            
+            if (!email || !password) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Please enter email and password</div>';
+                return;
+            }
             
             resultDiv.innerHTML = '<div class="alert alert-info">Signing in...</div>';
             
-            const { data, error } = await db.auth.signInWithPassword({ email, password });
+            var response = await db.auth.signInWithPassword({ email: email, password: password });
             
-            if (error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
+            if (response.error) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
             } else {
-                currentUser = data.user;
+                currentUser = response.data.user;
                 document.getElementById('userArea').classList.remove('hidden');
-                document.getElementById('userEmail').textContent = data.user.email;
-                document.getElementById('profileEmail').value = data.user.email;
+                document.getElementById('userEmail').textContent = currentUser.email;
+                document.getElementById('profileEmail').value = currentUser.email;
                 resultDiv.innerHTML = '<div class="alert alert-success">✅ Signed in successfully!</div>';
                 loadProfile();
                 loadAvailability();
@@ -825,27 +698,32 @@
         // Sign Up
         async function handleSignUp() {
             if (!db) {
-                alert('Please connect to database first');
+                alert('Database not connected. Please refresh the page.');
                 return;
             }
             
-            const email = document.getElementById('signUpEmail').value;
-            const password = document.getElementById('signUpPassword').value;
-            const displayName = document.getElementById('signUpName').value;
-            const resultDiv = document.getElementById('signUpResult');
+            var email = document.getElementById('signUpEmail').value;
+            var password = document.getElementById('signUpPassword').value;
+            var displayName = document.getElementById('signUpName').value;
+            var resultDiv = document.getElementById('signUpResult');
+            
+            if (!email || !password) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Please enter email and password</div>';
+                return;
+            }
             
             resultDiv.innerHTML = '<div class="alert alert-info">Creating account...</div>';
             
-            const { data, error } = await db.auth.signUp({
-                email,
-                password,
+            var response = await db.auth.signUp({
+                email: email,
+                password: password,
                 options: {
                     data: { display_name: displayName }
                 }
             });
             
-            if (error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
+            if (response.error) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
             } else {
                 resultDiv.innerHTML = '<div class="alert alert-success">✅ Account created! Check your email for verification link, then sign in.</div>';
             }
@@ -903,13 +781,14 @@
         async function loadProfile() {
             if (!db || !currentUser) return;
             
-            const { data, error } = await db
+            var response = await db
                 .from('profiles')
                 .select('*')
                 .eq('id', currentUser.id)
                 .single();
             
-            if (data) {
+            if (response.data) {
+                var data = response.data;
                 document.getElementById('profileFirstName').value = data.first_name || '';
                 document.getElementById('profileSurname').value = data.last_name || '';
                 document.getElementById('profileKnownAs').value = data.display_name || '';
@@ -927,10 +806,10 @@
                 return;
             }
             
-            const resultDiv = document.getElementById('profileResult');
+            var resultDiv = document.getElementById('profileResult');
             resultDiv.innerHTML = '<div class="alert alert-info">Saving...</div>';
             
-            const profileData = {
+            var profileData = {
                 id: currentUser.id,
                 first_name: document.getElementById('profileFirstName').value,
                 last_name: document.getElementById('profileSurname').value,
@@ -942,10 +821,10 @@
                 updated_at: new Date().toISOString()
             };
             
-            const { error } = await db.from('profiles').upsert(profileData);
+            var response = await db.from('profiles').upsert(profileData);
             
-            if (error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
+            if (response.error) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
             } else {
                 resultDiv.innerHTML = '<div class="alert alert-success">✅ Profile saved!</div>';
             }
@@ -955,13 +834,14 @@
         async function loadAvailability() {
             if (!db || !currentUser) return;
             
-            const { data, error } = await db
+            var response = await db
                 .from('user_availability')
                 .select('*')
                 .eq('user_id', currentUser.id)
                 .single();
             
-            if (data) {
+            if (response.data) {
+                var data = response.data;
                 document.getElementById('availActive').checked = data.is_available;
                 document.getElementById('availLocation').value = data.current_location_name || '';
                 document.getElementById('availRadius').value = data.max_help_radius_km || 50;
@@ -981,13 +861,13 @@
                 return;
             }
             
-            const resultDiv = document.getElementById('availResult');
+            var resultDiv = document.getElementById('availResult');
             resultDiv.innerHTML = '<div class="alert alert-info">Saving...</div>';
             
-            const lat = parseFloat(document.getElementById('availLat').value);
-            const lng = parseFloat(document.getElementById('availLng').value);
+            var lat = parseFloat(document.getElementById('availLat').value);
+            var lng = parseFloat(document.getElementById('availLng').value);
             
-            const availData = {
+            var availData = {
                 user_id: currentUser.id,
                 is_available: document.getElementById('availActive').checked,
                 current_location_name: document.getElementById('availLocation').value,
@@ -1003,10 +883,10 @@
                 updated_at: new Date().toISOString()
             };
             
-            const { error } = await db.from('user_availability').upsert(availData, { onConflict: 'user_id' });
+            var response = await db.from('user_availability').upsert(availData, { onConflict: 'user_id' });
             
-            if (error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
+            if (response.error) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
             } else {
                 resultDiv.innerHTML = '<div class="alert alert-success">✅ Availability updated!</div>';
             }
@@ -1015,16 +895,16 @@
         // Search helpers
         async function handleSearchHelpers() {
             if (!db) {
-                alert('Please connect to database first');
+                alert('Database not connected');
                 return;
             }
             
-            const resultsDiv = document.getElementById('helperResults');
+            var resultsDiv = document.getElementById('helperResults');
             resultsDiv.innerHTML = '<p class="loading">Searching...</p>';
             
-            const lat = parseFloat(document.getElementById('searchLat').value);
-            const lng = parseFloat(document.getElementById('searchLng').value);
-            const radius = parseInt(document.getElementById('searchRadius').value) || 50;
+            var lat = parseFloat(document.getElementById('searchLat').value);
+            var lng = parseFloat(document.getElementById('searchLng').value);
+            var radius = parseInt(document.getElementById('searchRadius').value) || 50;
             
             if (isNaN(lat) || isNaN(lng)) {
                 resultsDiv.innerHTML = '<div class="alert alert-danger">Please enter your location first</div>';
@@ -1032,7 +912,7 @@
             }
             
             try {
-                let query = db
+                var query = db
                     .from('user_availability')
                     .select('*, profiles (display_name, first_name)')
                     .eq('is_available', true);
@@ -1042,18 +922,19 @@
                 if (document.getElementById('needStay').checked) query = query.eq('can_provide_accommodation', true);
                 if (document.getElementById('needMeet').checked) query = query.eq('can_meet_for_drinks', true);
                 
-                const { data, error } = await query;
+                var response = await query;
                 
-                if (error) throw error;
+                if (response.error) throw response.error;
                 
+                var data = response.data;
                 if (!data || data.length === 0) {
                     resultsDiv.innerHTML = '<div class="alert alert-info">No helpers found. Try increasing the search radius.</div>';
                     return;
                 }
                 
-                const helpersInRange = data.filter(function(h) {
+                var helpersInRange = data.filter(function(h) {
                     if (!h.latitude || !h.longitude) return false;
-                    const dist = getDistance(lat, lng, h.latitude, h.longitude);
+                    var dist = getDistance(lat, lng, h.latitude, h.longitude);
                     h.distance = dist;
                     return dist <= radius;
                 }).sort(function(a, b) { return a.distance - b.distance; });
@@ -1063,10 +944,10 @@
                     return;
                 }
                 
-                let html = '';
+                var html = '';
                 helpersInRange.forEach(function(h) {
-                    const name = (h.profiles && h.profiles.display_name) || (h.profiles && h.profiles.first_name) || 'Anonymous Helper';
-                    const services = [];
+                    var name = (h.profiles && h.profiles.display_name) || (h.profiles && h.profiles.first_name) || 'Anonymous Helper';
+                    var services = [];
                     if (h.can_pickup) services.push('🚗 Pickup');
                     if (h.can_provide_garage) services.push('🔧 Garage');
                     if (h.can_provide_accommodation) services.push('🏠 Stay');
@@ -1091,29 +972,29 @@
         
         // Calculate distance
         function getDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLng/2) * Math.sin(dLng/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            var R = 6371;
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLng = (lng2 - lng1) * Math.PI / 180;
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng/2) * Math.sin(dLng/2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             return R * c;
         }
         
         // SOS Functions
         function startSOS() {
-            const btn = document.getElementById('sosButton');
-            const progress = document.getElementById('sosProgress');
-            const status = document.getElementById('sosStatus');
+            var btn = document.getElementById('sosButton');
+            var progress = document.getElementById('sosProgress');
+            var status = document.getElementById('sosStatus');
             
             btn.classList.add('holding');
             sosStartTime = Date.now();
             status.textContent = 'Hold for 3 seconds to send SOS...';
             
             sosTimer = setInterval(function() {
-                const elapsed = Date.now() - sosStartTime;
-                const percent = Math.min((elapsed / 3000) * 100, 100);
+                var elapsed = Date.now() - sosStartTime;
+                var percent = Math.min((elapsed / 3000) * 100, 100);
                 progress.style.width = percent + '%';
                 
                 if (elapsed >= 3000) {
@@ -1124,9 +1005,9 @@
         }
         
         function cancelSOS() {
-            const btn = document.getElementById('sosButton');
-            const progress = document.getElementById('sosProgress');
-            const status = document.getElementById('sosStatus');
+            var btn = document.getElementById('sosButton');
+            var progress = document.getElementById('sosProgress');
+            var status = document.getElementById('sosStatus');
             
             btn.classList.remove('holding');
             progress.style.width = '0%';
@@ -1139,7 +1020,7 @@
         }
         
         function triggerSOS() {
-            const status = document.getElementById('sosStatus');
+            var status = document.getElementById('sosStatus');
             status.textContent = '🚨 SOS TRIGGERED! Alerting nearby helpers...';
             status.style.color = 'var(--danger)';
             status.style.fontWeight = 'bold';
@@ -1155,11 +1036,11 @@
         
         async function createSOSFromButton(lat, lng) {
             if (!db || !currentUser) {
-                alert('Please sign in first');
+                document.getElementById('sosStatus').textContent = '⚠️ Please sign in first';
                 return;
             }
             
-            const { error } = await db.from('sos_alerts').insert({
+            var response = await db.from('sos_alerts').insert({
                 user_id: currentUser.id,
                 alert_type: 'emergency',
                 severity: 'critical',
@@ -1170,8 +1051,8 @@
                 created_at: new Date().toISOString()
             });
             
-            if (error) {
-                document.getElementById('sosStatus').textContent = '❌ Error sending SOS: ' + error.message;
+            if (response.error) {
+                document.getElementById('sosStatus').textContent = '❌ Error: ' + response.error.message;
             } else {
                 document.getElementById('sosStatus').textContent = '✅ SOS sent! Nearby helpers have been notified.';
             }
@@ -1183,10 +1064,10 @@
                 return;
             }
             
-            const resultDiv = document.getElementById('sosResult');
+            var resultDiv = document.getElementById('sosResult');
             resultDiv.innerHTML = '<div class="alert alert-info">Sending alert...</div>';
             
-            const { error } = await db.from('sos_alerts').insert({
+            var response = await db.from('sos_alerts').insert({
                 user_id: currentUser.id,
                 alert_type: document.getElementById('sosType').value,
                 severity: document.getElementById('sosSeverity').value,
@@ -1197,8 +1078,8 @@
                 created_at: new Date().toISOString()
             });
             
-            if (error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
+            if (response.error) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
             } else {
                 resultDiv.innerHTML = '<div class="alert alert-success">✅ Help request sent!</div>';
                 document.getElementById('sosDescription').value = '';
