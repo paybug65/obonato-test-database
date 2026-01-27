@@ -30,7 +30,6 @@
             min-height: 100vh;
         }
         
-        /* Header */
         header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             padding: 0 20px;
@@ -48,8 +47,8 @@
             height: 64px;
         }
         
-        .logo h1 { font-size: 22px; font-weight: 700; }
-        .logo span { font-size: 11px; opacity: 0.8; }
+        .logo h1 { font-size: 22px; font-weight: 700; color: white; }
+        .logo span { font-size: 11px; opacity: 0.8; color: white; }
         
         .header-right { display: flex; align-items: center; gap: 16px; }
         
@@ -58,18 +57,17 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            color: white;
         }
         .status-connected { background: var(--success); }
         .status-disconnected { background: var(--danger); }
         
-        /* Container */
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
         
-        /* Tabs */
         .tabs {
             display: flex;
             background: var(--bg-card);
@@ -96,7 +94,6 @@
             border-bottom-color: var(--accent);
         }
         
-        /* Tab Content */
         .tab-content {
             display: none;
             background: var(--bg-card);
@@ -106,7 +103,6 @@
         }
         .tab-content.active { display: block; }
         
-        /* Cards */
         .card {
             background: var(--bg);
             border: 1px solid var(--border);
@@ -120,7 +116,6 @@
             color: var(--accent);
         }
         
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -145,7 +140,6 @@
             margin-top: 8px;
         }
         
-        /* Forms */
         .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
@@ -174,7 +168,6 @@
             margin-top: 6px;
         }
         
-        /* Buttons */
         .btn {
             padding: 10px 20px;
             border: none;
@@ -197,7 +190,6 @@
         
         .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
         
-        /* Alerts */
         .alert {
             padding: 16px;
             border-radius: 8px;
@@ -208,19 +200,13 @@
         .alert-warning { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
         .alert-info { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
         
-        /* Tables */
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: var(--bg-hover); font-weight: 600; font-size: 13px; color: var(--text-light); }
         tr:hover { background: var(--bg-hover); }
         
-        /* Grid */
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        
-        /* Loading */
         .loading { text-align: center; padding: 40px; color: var(--text-light); }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .tabs { flex-wrap: nowrap; }
             .tab { padding: 12px 16px; font-size: 13px; }
@@ -242,15 +228,13 @@
     </header>
     
     <div class="container">
-        <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" onclick="showTab('settings')">⚙️ Settings</button>
-            <button class="tab" onclick="showTab('dashboard')">📊 Dashboard</button>
-            <button class="tab" onclick="showTab('users')">👥 Users</button>
-            <button class="tab" onclick="showTab('helpers')">🤝 Helpers</button>
-            <button class="tab" onclick="showTab('sos')">🚨 SOS Alerts</button>
-            <button class="tab" onclick="showTab('feedback')">⭐ Feedback</button>
-            <button class="tab" onclick="showTab('sql')">💻 SQL Console</button>
+            <button class="tab active" onclick="showTab('settings', this)">⚙️ Settings</button>
+            <button class="tab" onclick="showTab('dashboard', this)">📊 Dashboard</button>
+            <button class="tab" onclick="showTab('users', this)">👥 Users</button>
+            <button class="tab" onclick="showTab('helpers', this)">🤝 Helpers</button>
+            <button class="tab" onclick="showTab('sos', this)">🚨 SOS Alerts</button>
+            <button class="tab" onclick="showTab('feedback', this)">⭐ Feedback</button>
         </div>
         
         <!-- Settings Tab -->
@@ -273,9 +257,9 @@
                 </div>
                 
                 <div class="btn-group">
-                    <button class="btn btn-primary" onclick="testConnection()">🔍 Test Connection</button>
-                    <button class="btn btn-success" onclick="saveConnection()">💾 Save & Connect</button>
-                    <button class="btn btn-secondary" onclick="clearConnection()">🗑️ Clear</button>
+                    <button class="btn btn-primary" onclick="handleTestConnection()">🔍 Test Connection</button>
+                    <button class="btn btn-success" onclick="handleSaveConnection()">💾 Save & Connect</button>
+                    <button class="btn btn-secondary" onclick="handleClearConnection()">🗑️ Clear</button>
                 </div>
                 
                 <div id="connectionResult" style="margin-top: 20px;"></div>
@@ -291,7 +275,7 @@
         
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content">
-            <div class="stats-grid" id="statsGrid">
+            <div class="stats-grid">
                 <div class="stat-card">
                     <div class="number" id="statUsers">-</div>
                     <div class="label">Total Users</div>
@@ -324,7 +308,6 @@
                 <h3>👥 User Management</h3>
                 <div class="btn-group" style="margin-bottom: 20px;">
                     <button class="btn btn-primary" onclick="loadUsers()">🔄 Refresh Users</button>
-                    <button class="btn btn-success" onclick="showAddUser()">➕ Add Test User</button>
                 </div>
                 <div id="usersList">
                     <p class="loading">Click refresh to load users...</p>
@@ -371,69 +354,37 @@
                 </div>
             </div>
         </div>
-        
-        <!-- SQL Console Tab -->
-        <div id="sql" class="tab-content">
-            <div class="card">
-                <h3>💻 SQL Console</h3>
-                <div class="alert alert-warning">
-                    ⚠️ Be careful! These queries run directly against your database.
-                </div>
-                
-                <div class="form-group">
-                    <label>SQL Query</label>
-                    <textarea class="form-control" id="sqlQuery" rows="6" placeholder="SELECT * FROM profiles LIMIT 10;"></textarea>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-primary" onclick="runSQL()">▶️ Run Query</button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('sqlQuery').value = ''">🗑️ Clear</button>
-                </div>
-                
-                <h4 style="margin: 24px 0 12px; color: var(--text-light);">Quick Queries</h4>
-                <div class="btn-group" style="flex-wrap: wrap;">
-                    <button class="btn btn-sm btn-secondary" onclick="setQuery('SELECT * FROM profiles LIMIT 20')">All Profiles</button>
-                    <button class="btn btn-sm btn-secondary" onclick="setQuery('SELECT * FROM user_availability WHERE is_available = true')">Active Helpers</button>
-                    <button class="btn btn-sm btn-secondary" onclick="setQuery('SELECT * FROM sos_alerts ORDER BY created_at DESC LIMIT 20')">Recent SOS</button>
-                    <button class="btn btn-sm btn-secondary" onclick="setQuery('SELECT * FROM feedback ORDER BY created_at DESC LIMIT 20')">Recent Feedback</button>
-                    <button class="btn btn-sm btn-secondary" onclick="setQuery('SELECT * FROM messages ORDER BY created_at DESC LIMIT 20')">Recent Messages</button>
-                </div>
-                
-                <div id="sqlResult" style="margin-top: 24px;"></div>
-            </div>
-        </div>
     </div>
 
     <script>
-        let supabase = null;
+        let db = null;
         
         // Tab navigation
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        function showTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
             document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
+            btn.classList.add('active');
             
-            // Load data for specific tabs
             if (tabId === 'dashboard') loadDashboard();
         }
         
         // Load saved credentials
         window.onload = function() {
-            const savedUrl = localStorage.getItem('obonato_admin_url');
-            const savedKey = localStorage.getItem('obonato_admin_key');
+            var savedUrl = localStorage.getItem('obonato_admin_url');
+            var savedKey = localStorage.getItem('obonato_admin_key');
             
             if (savedUrl && savedKey) {
                 document.getElementById('supabaseUrl').value = savedUrl;
                 document.getElementById('supabaseKey').value = savedKey;
-                initSupabase(savedUrl, savedKey);
+                initDatabase(savedUrl, savedKey);
             }
         };
         
-        // Initialize Supabase
-        function initSupabase(url, key) {
+        // Initialize database
+        function initDatabase(url, key) {
             try {
-                supabase = window.supabase.createClient(url, key);
+                db = window.supabase.createClient(url, key);
                 updateStatus(true);
                 loadTableStatus();
                 return true;
@@ -445,10 +396,10 @@
         }
         
         // Test connection
-        async function testConnection() {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
-            const result = document.getElementById('connectionResult');
+        async function handleTestConnection() {
+            var url = document.getElementById('supabaseUrl').value.trim();
+            var key = document.getElementById('supabaseKey').value.trim();
+            var result = document.getElementById('connectionResult');
             
             if (!url || !key) {
                 result.innerHTML = '<div class="alert alert-danger">Enter both URL and Key</div>';
@@ -458,63 +409,70 @@
             result.innerHTML = '<div class="alert alert-info">Testing...</div>';
             
             try {
-                const testClient = window.supabase.createClient(url, key);
-                const { data, error } = await testClient.from('profiles').select('count', { count: 'exact', head: true });
+                var testClient = window.supabase.createClient(url, key);
+                var response = await testClient.from('profiles').select('count', { count: 'exact', head: true });
                 
-                if (error && !error.message.includes('does not exist')) throw error;
+                if (response.error && !response.error.message.includes('does not exist')) {
+                    throw response.error;
+                }
                 
                 result.innerHTML = '<div class="alert alert-success">✅ Connected! Click Save to continue.</div>';
             } catch (error) {
-                result.innerHTML = `<div class="alert alert-danger">❌ ${error.message}</div>`;
+                result.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
             }
         }
         
         // Save connection
-        function saveConnection() {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
+        function handleSaveConnection() {
+            var url = document.getElementById('supabaseUrl').value.trim();
+            var key = document.getElementById('supabaseKey').value.trim();
             
             localStorage.setItem('obonato_admin_url', url);
             localStorage.setItem('obonato_admin_key', key);
             
-            if (initSupabase(url, key)) {
+            if (initDatabase(url, key)) {
                 document.getElementById('connectionResult').innerHTML = '<div class="alert alert-success">✅ Connected and saved!</div>';
             }
         }
         
         // Clear connection
-        function clearConnection() {
+        function handleClearConnection() {
             localStorage.removeItem('obonato_admin_url');
             localStorage.removeItem('obonato_admin_key');
             document.getElementById('supabaseUrl').value = '';
             document.getElementById('supabaseKey').value = '';
-            supabase = null;
+            db = null;
             updateStatus(false);
         }
         
         // Update status badge
         function updateStatus(connected) {
-            const badge = document.getElementById('connectionStatus');
+            var badge = document.getElementById('connectionStatus');
             badge.textContent = connected ? 'Connected' : 'Not Connected';
             badge.className = 'status-badge ' + (connected ? 'status-connected' : 'status-disconnected');
         }
         
         // Load table status
         async function loadTableStatus() {
-            if (!supabase) return;
+            if (!db) return;
             
-            const div = document.getElementById('tableStatus');
+            var div = document.getElementById('tableStatus');
             div.innerHTML = '<p class="loading">Loading...</p>';
             
-            const tables = ['profiles', 'user_availability', 'sos_alerts', 'messages', 'feedback', 'user_traveler_types', 'user_interests'];
-            let html = '<table><tr><th>Table</th><th>Status</th><th>Records</th></tr>';
+            var tables = ['profiles', 'user_availability', 'sos_alerts', 'messages', 'feedback'];
+            var html = '<table><tr><th>Table</th><th>Status</th><th>Records</th></tr>';
             
-            for (const table of tables) {
+            for (var i = 0; i < tables.length; i++) {
+                var table = tables[i];
                 try {
-                    const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
-                    html += `<tr><td>${table}</td><td>${error ? '❌' : '✅'}</td><td>${error ? '-' : count}</td></tr>`;
+                    var response = await db.from(table).select('*', { count: 'exact', head: true });
+                    if (response.error) {
+                        html += '<tr><td>' + table + '</td><td>❌</td><td>-</td></tr>';
+                    } else {
+                        html += '<tr><td>' + table + '</td><td>✅</td><td>' + (response.count || 0) + '</td></tr>';
+                    }
                 } catch (e) {
-                    html += `<tr><td>${table}</td><td>❌</td><td>-</td></tr>`;
+                    html += '<tr><td>' + table + '</td><td>❌</td><td>-</td></tr>';
                 }
             }
             
@@ -524,38 +482,30 @@
         
         // Load dashboard
         async function loadDashboard() {
-            if (!supabase) return;
+            if (!db) return;
             
             try {
-                // Get counts
-                const [users, helpers, sos, feedback] = await Promise.all([
-                    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-                    supabase.from('user_availability').select('*', { count: 'exact', head: true }).eq('is_available', true),
-                    supabase.from('sos_alerts').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-                    supabase.from('feedback').select('*', { count: 'exact', head: true })
-                ]);
+                var usersRes = await db.from('profiles').select('*', { count: 'exact', head: true });
+                var helpersRes = await db.from('user_availability').select('*', { count: 'exact', head: true }).eq('is_available', true);
+                var sosRes = await db.from('sos_alerts').select('*', { count: 'exact', head: true }).eq('status', 'active');
+                var feedbackRes = await db.from('feedback').select('*', { count: 'exact', head: true });
                 
-                document.getElementById('statUsers').textContent = users.count || 0;
-                document.getElementById('statHelpers').textContent = helpers.count || 0;
-                document.getElementById('statSOS').textContent = sos.count || 0;
-                document.getElementById('statFeedback').textContent = feedback.count || 0;
+                document.getElementById('statUsers').textContent = usersRes.count || 0;
+                document.getElementById('statHelpers').textContent = helpersRes.count || 0;
+                document.getElementById('statSOS').textContent = sosRes.count || 0;
+                document.getElementById('statFeedback').textContent = feedbackRes.count || 0;
                 
-                // Recent activity
-                const { data: recent } = await supabase
+                var recentRes = await db
                     .from('sos_alerts')
                     .select('*, profiles(display_name)')
                     .order('created_at', { ascending: false })
                     .limit(5);
                 
-                let html = '<table><tr><th>Time</th><th>Type</th><th>User</th><th>Status</th></tr>';
-                if (recent && recent.length) {
-                    recent.forEach(a => {
-                        html += `<tr>
-                            <td>${new Date(a.created_at).toLocaleString()}</td>
-                            <td>${a.alert_type}</td>
-                            <td>${a.profiles?.display_name || 'Unknown'}</td>
-                            <td>${a.status}</td>
-                        </tr>`;
+                var html = '<table><tr><th>Time</th><th>Type</th><th>User</th><th>Status</th></tr>';
+                if (recentRes.data && recentRes.data.length) {
+                    recentRes.data.forEach(function(a) {
+                        var userName = (a.profiles && a.profiles.display_name) || 'Unknown';
+                        html += '<tr><td>' + new Date(a.created_at).toLocaleString() + '</td><td>' + a.alert_type + '</td><td>' + userName + '</td><td>' + a.status + '</td></tr>';
                     });
                 } else {
                     html += '<tr><td colspan="4">No recent activity</td></tr>';
@@ -570,287 +520,205 @@
         
         // Load users
         async function loadUsers() {
-            if (!supabase) {
+            if (!db) {
                 alert('Connect to database first');
                 return;
             }
             
-            const div = document.getElementById('usersList');
+            var div = document.getElementById('usersList');
             div.innerHTML = '<p class="loading">Loading...</p>';
             
             try {
-                const { data, error } = await supabase
+                var response = await db
                     .from('profiles')
                     .select('*')
                     .order('created_at', { ascending: false });
                 
-                if (error) throw error;
+                if (response.error) throw response.error;
                 
+                var data = response.data;
                 if (!data || data.length === 0) {
                     div.innerHTML = '<div class="alert alert-info">No users found.</div>';
                     return;
                 }
                 
-                let html = '<table><tr><th>Name</th><th>Email</th><th>Phone</th><th>Country</th><th>Created</th><th>Actions</th></tr>';
-                data.forEach(u => {
-                    html += `<tr>
-                        <td>${u.display_name || u.first_name || '-'}</td>
-                        <td>${u.email || '-'}</td>
-                        <td>${u.phone || '-'}</td>
-                        <td>${u.country || '-'}</td>
-                        <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-secondary" onclick="viewUser('${u.id}')">👁️</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')">🗑️</button>
-                        </td>
-                    </tr>`;
+                var html = '<table><tr><th>Name</th><th>Email</th><th>Phone</th><th>Country</th><th>Created</th><th>Actions</th></tr>';
+                data.forEach(function(u) {
+                    html += '<tr>';
+                    html += '<td>' + (u.display_name || u.first_name || '-') + '</td>';
+                    html += '<td>' + (u.email || '-') + '</td>';
+                    html += '<td>' + (u.phone || '-') + '</td>';
+                    html += '<td>' + (u.country || '-') + '</td>';
+                    html += '<td>' + (u.created_at ? new Date(u.created_at).toLocaleDateString() : '-') + '</td>';
+                    html += '<td><button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + u.id + '\')">🗑️</button></td>';
+                    html += '</tr>';
                 });
                 html += '</table>';
                 div.innerHTML = html;
             } catch (error) {
-                div.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                div.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
             }
         }
         
         // Load helpers
         async function loadHelpers() {
-            if (!supabase) return;
+            if (!db) return;
             
-            const div = document.getElementById('helpersList');
+            var div = document.getElementById('helpersList');
             div.innerHTML = '<p class="loading">Loading...</p>';
             
             try {
-                const { data, error } = await supabase
+                var response = await db
                     .from('user_availability')
                     .select('*, profiles(display_name, first_name)')
                     .order('updated_at', { ascending: false });
                 
-                if (error) throw error;
+                if (response.error) throw response.error;
                 
+                var data = response.data;
                 if (!data || data.length === 0) {
-                    div.innerHTML = '<div class="alert alert-info">No helper availability records.</div>';
+                    div.innerHTML = '<div class="alert alert-info">No helper records.</div>';
                     return;
                 }
                 
-                let html = '<table><tr><th>User</th><th>Location</th><th>Available</th><th>Services</th><th>Radius</th></tr>';
-                data.forEach(h => {
-                    const services = [];
+                var html = '<table><tr><th>User</th><th>Location</th><th>Available</th><th>Services</th><th>Radius</th></tr>';
+                data.forEach(function(h) {
+                    var services = [];
                     if (h.can_pickup) services.push('🚗');
                     if (h.can_provide_garage) services.push('🔧');
                     if (h.can_provide_accommodation) services.push('🏠');
                     if (h.can_meet_for_drinks) services.push('🍺');
                     if (h.can_provide_local_advice) services.push('💡');
                     
-                    html += `<tr>
-                        <td>${h.profiles?.display_name || h.profiles?.first_name || '-'}</td>
-                        <td>${h.current_location_name || '-'}</td>
-                        <td>${h.is_available ? '✅' : '❌'}</td>
-                        <td>${services.join(' ') || '-'}</td>
-                        <td>${h.max_help_radius_km || '-'} km</td>
-                    </tr>`;
+                    var userName = (h.profiles && h.profiles.display_name) || (h.profiles && h.profiles.first_name) || '-';
+                    
+                    html += '<tr>';
+                    html += '<td>' + userName + '</td>';
+                    html += '<td>' + (h.current_location_name || '-') + '</td>';
+                    html += '<td>' + (h.is_available ? '✅' : '❌') + '</td>';
+                    html += '<td>' + (services.join(' ') || '-') + '</td>';
+                    html += '<td>' + (h.max_help_radius_km || '-') + ' km</td>';
+                    html += '</tr>';
                 });
                 html += '</table>';
                 div.innerHTML = html;
             } catch (error) {
-                div.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                div.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
             }
         }
         
         // Load SOS alerts
         async function loadSOSAlerts() {
-            if (!supabase) return;
+            if (!db) return;
             
-            const div = document.getElementById('sosList');
+            var div = document.getElementById('sosList');
             div.innerHTML = '<p class="loading">Loading...</p>';
             
             try {
-                const { data, error } = await supabase
+                var response = await db
                     .from('sos_alerts')
                     .select('*, profiles(display_name)')
                     .order('created_at', { ascending: false });
                 
-                if (error) throw error;
+                if (response.error) throw response.error;
                 
+                var data = response.data;
                 if (!data || data.length === 0) {
                     div.innerHTML = '<div class="alert alert-info">No SOS alerts.</div>';
                     return;
                 }
                 
-                let html = '<table><tr><th>Time</th><th>User</th><th>Type</th><th>Severity</th><th>Status</th><th>Actions</th></tr>';
-                data.forEach(a => {
-                    const sevColor = a.severity === 'critical' ? 'var(--danger)' : (a.severity === 'high' ? 'var(--warning)' : 'inherit');
-                    html += `<tr>
-                        <td>${new Date(a.created_at).toLocaleString()}</td>
-                        <td>${a.profiles?.display_name || '-'}</td>
-                        <td>${a.alert_type}</td>
-                        <td style="color: ${sevColor}">${a.severity}</td>
-                        <td>${a.status}</td>
-                        <td>
-                            <button class="btn btn-sm btn-success" onclick="resolveAlert('${a.id}')">✅ Resolve</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteAlert('${a.id}')">🗑️</button>
-                        </td>
-                    </tr>`;
+                var html = '<table><tr><th>Time</th><th>User</th><th>Type</th><th>Severity</th><th>Status</th><th>Actions</th></tr>';
+                data.forEach(function(a) {
+                    var sevColor = a.severity === 'critical' ? 'var(--danger)' : (a.severity === 'high' ? 'var(--warning)' : 'inherit');
+                    var userName = (a.profiles && a.profiles.display_name) || '-';
+                    
+                    html += '<tr>';
+                    html += '<td>' + new Date(a.created_at).toLocaleString() + '</td>';
+                    html += '<td>' + userName + '</td>';
+                    html += '<td>' + a.alert_type + '</td>';
+                    html += '<td style="color: ' + sevColor + '">' + a.severity + '</td>';
+                    html += '<td>' + a.status + '</td>';
+                    html += '<td>';
+                    html += '<button class="btn btn-sm btn-success" onclick="resolveAlert(\'' + a.id + '\')">✅</button> ';
+                    html += '<button class="btn btn-sm btn-danger" onclick="deleteAlert(\'' + a.id + '\')">🗑️</button>';
+                    html += '</td>';
+                    html += '</tr>';
                 });
                 html += '</table>';
                 div.innerHTML = html;
             } catch (error) {
-                div.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                div.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
             }
         }
         
         // Load feedback
         async function loadFeedback() {
-            if (!supabase) return;
+            if (!db) return;
             
-            const div = document.getElementById('feedbackList');
+            var div = document.getElementById('feedbackList');
             div.innerHTML = '<p class="loading">Loading...</p>';
             
             try {
-                const { data, error } = await supabase
+                var response = await db
                     .from('feedback')
                     .select('*')
                     .order('created_at', { ascending: false });
                 
-                if (error) throw error;
+                if (response.error) throw response.error;
                 
+                var data = response.data;
                 if (!data || data.length === 0) {
                     div.innerHTML = '<div class="alert alert-info">No feedback yet.</div>';
                     return;
                 }
                 
-                let html = '<table><tr><th>Time</th><th>Rating</th><th>Comment</th></tr>';
-                data.forEach(f => {
-                    const stars = '⭐'.repeat(f.rating || 0);
-                    html += `<tr>
-                        <td>${new Date(f.created_at).toLocaleString()}</td>
-                        <td>${stars || '-'}</td>
-                        <td>${f.comment || '-'}</td>
-                    </tr>`;
+                var html = '<table><tr><th>Time</th><th>Rating</th><th>Comment</th></tr>';
+                data.forEach(function(f) {
+                    var stars = '';
+                    for (var i = 0; i < (f.rating || 0); i++) stars += '⭐';
+                    
+                    html += '<tr>';
+                    html += '<td>' + new Date(f.created_at).toLocaleString() + '</td>';
+                    html += '<td>' + (stars || '-') + '</td>';
+                    html += '<td>' + (f.comment || '-') + '</td>';
+                    html += '</tr>';
                 });
                 html += '</table>';
                 div.innerHTML = html;
             } catch (error) {
-                div.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                div.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
             }
         }
         
-        // SQL Console
-        function setQuery(query) {
-            document.getElementById('sqlQuery').value = query;
-        }
-        
-        async function runSQL() {
-            if (!supabase) {
-                alert('Connect to database first');
-                return;
-            }
-            
-            const query = document.getElementById('sqlQuery').value.trim();
-            const div = document.getElementById('sqlResult');
-            
-            if (!query) {
-                div.innerHTML = '<div class="alert alert-warning">Enter a query</div>';
-                return;
-            }
-            
-            div.innerHTML = '<p class="loading">Running query...</p>';
-            
-            try {
-                // Parse simple SELECT queries
-                const match = query.match(/SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+(.*))?/i);
-                
-                if (!match) {
-                    div.innerHTML = '<div class="alert alert-danger">Only SELECT queries are supported in this console. Use Supabase dashboard for other operations.</div>';
-                    return;
-                }
-                
-                const [, columns, table, rest] = match;
-                let queryBuilder = supabase.from(table).select(columns === '*' ? '*' : columns);
-                
-                // Parse WHERE clause (basic)
-                if (rest) {
-                    const whereMatch = rest.match(/WHERE\s+(\w+)\s*=\s*['"]?([^'"]+)['"]?/i);
-                    if (whereMatch) {
-                        queryBuilder = queryBuilder.eq(whereMatch[1], whereMatch[2]);
-                    }
-                }
-                
-                // Parse LIMIT
-                const limitMatch = rest?.match(/LIMIT\s+(\d+)/i);
-                if (limitMatch) {
-                    queryBuilder = queryBuilder.limit(parseInt(limitMatch[1]));
-                }
-                
-                // Parse ORDER BY
-                const orderMatch = rest?.match(/ORDER\s+BY\s+(\w+)(?:\s+(ASC|DESC))?/i);
-                if (orderMatch) {
-                    queryBuilder = queryBuilder.order(orderMatch[1], { ascending: orderMatch[2]?.toUpperCase() !== 'DESC' });
-                }
-                
-                const { data, error } = await queryBuilder;
-                
-                if (error) throw error;
-                
-                if (!data || data.length === 0) {
-                    div.innerHTML = '<div class="alert alert-info">No results</div>';
-                    return;
-                }
-                
-                // Build table from results
-                const cols = Object.keys(data[0]);
-                let html = `<p style="margin-bottom: 12px; color: var(--text-light);">${data.length} rows returned</p>`;
-                html += '<div style="overflow-x: auto;"><table><tr>';
-                cols.forEach(c => html += `<th>${c}</th>`);
-                html += '</tr>';
-                
-                data.forEach(row => {
-                    html += '<tr>';
-                    cols.forEach(c => {
-                        let val = row[c];
-                        if (val === null) val = '<span style="color: var(--text-light)">null</span>';
-                        else if (typeof val === 'object') val = JSON.stringify(val).substring(0, 50);
-                        else if (typeof val === 'string' && val.length > 50) val = val.substring(0, 50) + '...';
-                        html += `<td>${val}</td>`;
-                    });
-                    html += '</tr>';
-                });
-                html += '</table></div>';
-                div.innerHTML = html;
-                
-            } catch (error) {
-                div.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-            }
-        }
-        
-        // Helper functions
-        function viewUser(id) {
-            alert('View user: ' + id);
-        }
-        
+        // Delete user
         async function deleteUser(id) {
             if (!confirm('Delete this user?')) return;
-            const { error } = await supabase.from('profiles').delete().eq('id', id);
-            if (error) alert('Error: ' + error.message);
+            var response = await db.from('profiles').delete().eq('id', id);
+            if (response.error) alert('Error: ' + response.error.message);
             else loadUsers();
         }
         
+        // Resolve alert
         async function resolveAlert(id) {
-            const { error } = await supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', id);
-            if (error) alert('Error: ' + error.message);
+            var response = await db.from('sos_alerts').update({ status: 'resolved' }).eq('id', id);
+            if (response.error) alert('Error: ' + response.error.message);
             else loadSOSAlerts();
         }
         
+        // Delete alert
         async function deleteAlert(id) {
             if (!confirm('Delete this alert?')) return;
-            const { error } = await supabase.from('sos_alerts').delete().eq('id', id);
-            if (error) alert('Error: ' + error.message);
+            var response = await db.from('sos_alerts').delete().eq('id', id);
+            if (response.error) alert('Error: ' + response.error.message);
             else loadSOSAlerts();
         }
         
+        // Create test SOS
         async function createTestSOS() {
-            if (!supabase) return;
+            if (!db) return;
             
-            const { error } = await supabase.from('sos_alerts').insert({
+            var response = await db.from('sos_alerts').insert({
                 alert_type: 'breakdown',
                 severity: 'medium',
                 description: 'Test SOS alert - please ignore',
@@ -860,15 +728,12 @@
                 created_at: new Date().toISOString()
             });
             
-            if (error) alert('Error: ' + error.message);
-            else {
+            if (response.error) {
+                alert('Error: ' + response.error.message);
+            } else {
                 alert('Test SOS created!');
                 loadSOSAlerts();
             }
-        }
-        
-        function showAddUser() {
-            alert('To add users:\n\n1. Go to the User Portal\n2. Use the Sign Up form\n\nOr use the Supabase dashboard to create users directly.');
         }
     </script>
 </body>
