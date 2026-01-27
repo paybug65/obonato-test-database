@@ -195,6 +195,7 @@
             <button class="tab hidden" data-tab="dashboard" onclick="showTab('dashboard', this)">📊 Dashboard</button>
             <button class="tab hidden" data-tab="profile" onclick="showTab('profile', this)">👤 Profile</button>
             <button class="tab hidden" data-tab="availability" onclick="showTab('availability', this)">📍 Availability</button>
+            <button class="tab hidden" data-tab="travel" onclick="showTab('travel', this)">🚗 Travel</button>
             <button class="tab hidden" data-tab="helpers" onclick="showTab('helpers', this)">🗺️ Find Helpers</button>
             <button class="tab hidden" data-tab="activity" onclick="showTab('activity', this)">📋 Activity</button>
             <button class="tab hidden" data-tab="sos" onclick="showTab('sos', this)">🚨 SOS</button>
@@ -255,6 +256,50 @@
                     <div class="form-group"><label>Surname</label><input type="text" class="form-control" id="profileSurname"></div>
                     <div class="form-group"><label>Mobile</label><input type="tel" class="form-control" id="profileMobile"></div>
                 </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select class="form-control" id="profileGender">
+                            <option value="">-- Select --</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="non-binary">Non-binary</option>
+                            <option value="prefer-not-to-say">Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <h4>👥 Gender Preferences</h4>
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">Set your preferences for who you're comfortable interacting with. These help filter matches but don't guarantee outcomes.</p>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>🍺 Meetups/Catchups</label>
+                        <select class="form-control" id="prefMeetupGender">
+                            <option value="any">Any gender</option>
+                            <option value="same">Same gender only</option>
+                            <option value="male">Male only</option>
+                            <option value="female">Female only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🆘 SOS/Emergency Help</label>
+                        <select class="form-control" id="prefSOSGender">
+                            <option value="any">Any gender</option>
+                            <option value="same">Same gender preferred</option>
+                            <option value="male">Male only</option>
+                            <option value="female">Female only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🚗 Hitchhiking/Rides</label>
+                        <select class="form-control" id="prefHitchGender">
+                            <option value="any">Any gender</option>
+                            <option value="same">Same gender only</option>
+                            <option value="male">Male only</option>
+                            <option value="female">Female only</option>
+                        </select>
+                    </div>
+                </div>
                 
                 <h4>🏠 Home Address</h4>
                 <div class="grid-2">
@@ -298,6 +343,8 @@
                     <div class="checkbox-item"><input type="checkbox" id="typeHiker"><label for="typeHiker">🥾 Hiker</label></div>
                     <div class="checkbox-item"><input type="checkbox" id="typeTrucker"><label for="typeTrucker">🚛 Trucker</label></div>
                     <div class="checkbox-item"><input type="checkbox" id="typeRV"><label for="typeRV">🚐 RV</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeHitchhiker"><label for="typeHitchhiker">👍 Hitchhiker</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeBackpacker"><label for="typeBackpacker">🎒 Backpacker</label></div>
                 </div>
                 
                 <h4>🚙 My Vehicles</h4>
@@ -364,6 +411,164 @@
                 <div class="form-group" style="margin-top: 24px; max-width: 200px;"><label>Max Radius (km)</label><input type="number" class="form-control" id="availRadius" value="50"></div>
                 <button class="btn btn-primary" onclick="handleSaveAvailability()">💾 Save</button>
                 <div id="availResult" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+        
+        <!-- Travel/Hitchhiking Tab -->
+        <div id="travel" class="tab-content">
+            <div class="card">
+                <h3>🚗 Travel Plans & Ride Sharing</h3>
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">Share your travel plans to find companions or offer/request rides. Connect with others traveling the same route!</p>
+                
+                <div class="radio-group" style="margin-bottom: 24px;">
+                    <div class="radio-item selected" onclick="setTravelMode('offering')">
+                        <input type="radio" name="travelMode" value="offering" id="modeOffering" checked>
+                        <label for="modeOffering">🚗 I can offer a ride</label>
+                    </div>
+                    <div class="radio-item" onclick="setTravelMode('seeking')">
+                        <input type="radio" name="travelMode" value="seeking" id="modeSeeking">
+                        <label for="modeSeeking">👍 I'm looking for a ride</label>
+                    </div>
+                    <div class="radio-item" onclick="setTravelMode('companion')">
+                        <input type="radio" name="travelMode" value="companion" id="modeCompanion">
+                        <label for="modeCompanion">🤝 Looking for travel companion</label>
+                    </div>
+                </div>
+                
+                <h4>📍 Route</h4>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>🅰️ From (Origin)</label>
+                        <input type="text" class="form-control" id="travelFrom" placeholder="City, Town or Location name">
+                        <div class="location-btn-group" style="margin-top: 8px;">
+                            <button class="location-btn btn-sm" onclick="getTravelLocation('from','gps')">📍 GPS</button>
+                            <button class="location-btn btn-sm" onclick="getTravelLocation('from','home')">🏠 Home</button>
+                        </div>
+                        <div class="grid-2" style="margin-top: 8px;">
+                            <input type="text" class="form-control" id="travelFromLat" placeholder="Latitude" style="font-size: 12px;">
+                            <input type="text" class="form-control" id="travelFromLng" placeholder="Longitude" style="font-size: 12px;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>🅱️ To (Destination)</label>
+                        <input type="text" class="form-control" id="travelTo" placeholder="City, Town or Location name">
+                        <div class="location-btn-group" style="margin-top: 8px;">
+                            <button class="location-btn btn-sm" onclick="getTravelLocation('to','gps')">📍 GPS</button>
+                            <button class="location-btn btn-sm" onclick="geocodeTravelLocation('to')">🔍 Lookup</button>
+                        </div>
+                        <div class="grid-2" style="margin-top: 8px;">
+                            <input type="text" class="form-control" id="travelToLat" placeholder="Latitude" style="font-size: 12px;">
+                            <input type="text" class="form-control" id="travelToLng" placeholder="Longitude" style="font-size: 12px;">
+                        </div>
+                    </div>
+                </div>
+                
+                <h4>📅 When</h4>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" class="form-control" id="travelDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Time (approx)</label>
+                        <input type="time" class="form-control" id="travelTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Flexibility (± hours)</label>
+                        <select class="form-control" id="travelFlex">
+                            <option value="0">Exact time</option>
+                            <option value="1">± 1 hour</option>
+                            <option value="2" selected>± 2 hours</option>
+                            <option value="4">± 4 hours</option>
+                            <option value="8">± 8 hours (half day)</option>
+                            <option value="24">± 1 day</option>
+                            <option value="48">± 2 days</option>
+                            <option value="168">± 1 week</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="travelOfferingDetails">
+                    <h4>🚗 Ride Details (for drivers)</h4>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Available Seats</label>
+                            <select class="form-control" id="travelSeats">
+                                <option value="1">1 passenger</option>
+                                <option value="2">2 passengers</option>
+                                <option value="3">3 passengers</option>
+                                <option value="4">4+ passengers</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Luggage Space</label>
+                            <select class="form-control" id="travelLuggage">
+                                <option value="small">Small (backpack)</option>
+                                <option value="medium">Medium (suitcase)</option>
+                                <option value="large">Large (multiple bags)</option>
+                                <option value="bike">Can carry bicycle</option>
+                                <option value="none">No luggage space</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cost Sharing</label>
+                            <select class="form-control" id="travelCost">
+                                <option value="free">Free ride</option>
+                                <option value="share">Share fuel costs</option>
+                                <option value="negotiable">Negotiable</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea class="form-control" id="travelNotes" rows="3" placeholder="Any additional info: stops along the way, pet-friendly, smoking/non-smoking, music preferences, etc."></textarea>
+                </div>
+                
+                <div class="checkbox-group" style="margin-bottom: 24px;">
+                    <div class="checkbox-item"><input type="checkbox" id="travelRecurring"><label for="travelRecurring">🔄 This is a recurring trip</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="travelWaypoints"><label for="travelWaypoints">📍 Open to detours/waypoints</label></div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="handleSaveTravel()">📝 Post Travel Plan</button>
+                <div id="travelResult" style="margin-top: 16px;"></div>
+            </div>
+            
+            <div class="card" style="margin-top: 24px;">
+                <h3>🔍 Find Matching Travelers</h3>
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">Search for others with similar travel plans or routes.</p>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Search Near</label>
+                        <input type="text" class="form-control" id="searchTravelLocation" placeholder="City or location">
+                    </div>
+                    <div class="form-group">
+                        <label>Date Range</label>
+                        <div class="grid-2">
+                            <input type="date" class="form-control" id="searchTravelFrom">
+                            <input type="date" class="form-control" id="searchTravelTo">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="checkbox-group" style="margin-bottom: 16px;">
+                    <div class="checkbox-item"><input type="checkbox" id="searchOffering" checked><label>🚗 Offering rides</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="searchSeeking" checked><label>👍 Seeking rides</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="searchCompanions" checked><label>🤝 Companions</label></div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="handleSearchTravel()">🔍 Search</button>
+                
+                <div id="travelSearchResults" style="margin-top: 24px;">
+                    <p class="loading">Enter search criteria to find travelers...</p>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 24px;">
+                <h3>📋 Your Active Travel Plans</h3>
+                <div id="myTravelPlans"><p class="loading">Loading your travel plans...</p></div>
             </div>
         </div>
         
@@ -641,6 +846,7 @@
             },150);
             if(tabId==='activity')loadActivity();
             if(tabId==='dashboard')loadDashboard();
+            if(tabId==='travel')loadMyTravelPlans();
         }
         function showLoggedInTabs(){document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.remove('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.add('hidden')}
         async function checkAuth(){if(!db)return;const{data}=await db.auth.getUser();if(data&&data.user){currentUser=data.user;await onUserLoggedIn()}}
@@ -772,6 +978,10 @@
                 document.getElementById('profileFirstName').value=data.first_name||'';
                 document.getElementById('profileSurname').value=data.last_name||'';
                 document.getElementById('profileMobile').value=data.phone||'';
+                document.getElementById('profileGender').value=data.gender||'';
+                document.getElementById('prefMeetupGender').value=data.pref_meetup_gender||'any';
+                document.getElementById('prefSOSGender').value=data.pref_sos_gender||'any';
+                document.getElementById('prefHitchGender').value=data.pref_hitch_gender||'any';
                 document.getElementById('profileCountry').value=data.country||'';
                 document.getElementById('profileSuburb').value=data.suburb||'';
                 document.getElementById('profileCity').value=data.city||'';
@@ -787,14 +997,45 @@
                     homeMap.setView([data.home_latitude,data.home_longitude],14);
                     if(homeMarker)homeMap.removeLayer(homeMarker);
                     homeMarker=L.marker([data.home_latitude,data.home_longitude]).addTo(homeMap);
-                    // Update other maps to user's home location as default
                     updateMapsToUserLocation(data.home_latitude, data.home_longitude);
                 }
                 if(data.unit_distance)selectRadio('unitDistance',data.unit_distance);
                 if(data.unit_temperature)selectRadio('unitTemp',data.unit_temperature);
             }
         }
-        async function handleSaveProfile(){if(!currentUser)return;const r=document.getElementById('profileResult');r.innerHTML='<div class="alert alert-info">Saving...</div>';const lat=parseFloat(document.getElementById('profileHomeLat').value),lng=parseFloat(document.getElementById('profileHomeLng').value);const d={id:currentUser.id,display_name:generateAnonymousName(currentUser.email),first_name:document.getElementById('profileFirstName').value,last_name:document.getElementById('profileSurname').value,phone:document.getElementById('profileMobile').value,country:document.getElementById('profileCountry').value,suburb:document.getElementById('profileSuburb').value,city:document.getElementById('profileCity').value,post_code:document.getElementById('profilePostCode').value,home_latitude:isNaN(lat)?null:lat,home_longitude:isNaN(lng)?null:lng,emergency_contact_name:document.getElementById('emergencyName').value,emergency_contact_phone:document.getElementById('emergencyPhone').value,emergency_contact_email:document.getElementById('emergencyEmail').value,unit_distance:document.querySelector('input[name="unitDistance"]:checked')?.value||'km',unit_temperature:document.querySelector('input[name="unitTemp"]:checked')?.value||'celsius',updated_at:new Date().toISOString()};const{error}=await db.from('profiles').upsert(d);userProfile=d;r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>'}
+        async function handleSaveProfile(){
+            if(!currentUser)return;
+            const r=document.getElementById('profileResult');
+            r.innerHTML='<div class="alert alert-info">Saving...</div>';
+            const lat=parseFloat(document.getElementById('profileHomeLat').value);
+            const lng=parseFloat(document.getElementById('profileHomeLng').value);
+            const d={
+                id:currentUser.id,
+                display_name:generateAnonymousName(currentUser.email),
+                first_name:document.getElementById('profileFirstName').value,
+                last_name:document.getElementById('profileSurname').value,
+                phone:document.getElementById('profileMobile').value,
+                gender:document.getElementById('profileGender').value||null,
+                pref_meetup_gender:document.getElementById('prefMeetupGender').value,
+                pref_sos_gender:document.getElementById('prefSOSGender').value,
+                pref_hitch_gender:document.getElementById('prefHitchGender').value,
+                country:document.getElementById('profileCountry').value,
+                suburb:document.getElementById('profileSuburb').value,
+                city:document.getElementById('profileCity').value,
+                post_code:document.getElementById('profilePostCode').value,
+                home_latitude:isNaN(lat)?null:lat,
+                home_longitude:isNaN(lng)?null:lng,
+                emergency_contact_name:document.getElementById('emergencyName').value,
+                emergency_contact_phone:document.getElementById('emergencyPhone').value,
+                emergency_contact_email:document.getElementById('emergencyEmail').value,
+                unit_distance:document.querySelector('input[name="unitDistance"]:checked')?.value||'km',
+                unit_temperature:document.querySelector('input[name="unitTemp"]:checked')?.value||'celsius',
+                updated_at:new Date().toISOString()
+            };
+            const{error}=await db.from('profiles').upsert(d);
+            userProfile=d;
+            r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>';
+        }
         function selectRadio(name,val){document.querySelectorAll(`input[name="${name}"]`).forEach(r=>{r.checked=r.value===val;r.closest('.radio-item').classList.toggle('selected',r.checked)})}
         
         // Vehicles
@@ -835,6 +1076,253 @@
             }
         }
         async function handleSaveAvailability(){if(!currentUser)return;const r=document.getElementById('availResult');r.innerHTML='<div class="alert alert-info">Saving...</div>';const lat=parseFloat(document.getElementById('availLat').value),lng=parseFloat(document.getElementById('availLng').value);const d={user_id:currentUser.id,is_available:document.getElementById('availActive').checked,current_location_name:document.getElementById('availLocation').value,latitude:isNaN(lat)?null:lat,longitude:isNaN(lng)?null:lng,max_help_radius_km:parseInt(document.getElementById('availRadius').value)||50,can_pickup:document.getElementById('canPickup').checked,can_provide_garage:document.getElementById('canGarage').checked,can_provide_accommodation:document.getElementById('canStay').checked,can_meet_for_drinks:document.getElementById('canMeet').checked,can_provide_local_advice:document.getElementById('canAdvice').checked,can_provide_help:document.getElementById('canHelp').checked,updated_at:new Date().toISOString()};const{error}=await db.from('user_availability').upsert(d,{onConflict:'user_id'});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Saved!</div>'}
+        
+        // Travel/Hitchhiking
+        let userTravelPlans = [];
+        
+        function setTravelMode(mode){
+            document.querySelectorAll('input[name="travelMode"]').forEach(r=>{
+                r.checked = r.value === mode;
+                r.closest('.radio-item').classList.toggle('selected', r.checked);
+            });
+            // Show/hide driver-specific options
+            const driverDetails = document.getElementById('travelOfferingDetails');
+            if(driverDetails) driverDetails.style.display = mode === 'offering' ? 'block' : 'none';
+        }
+        
+        function getTravelLocation(point, source){
+            if(source === 'home'){
+                let lat = userProfile?.home_latitude || parseFloat(document.getElementById('profileHomeLat')?.value);
+                let lng = userProfile?.home_longitude || parseFloat(document.getElementById('profileHomeLng')?.value);
+                if(!lat || !lng || isNaN(lat) || isNaN(lng)){
+                    alert('Home location not set. Please set your Home Location in your Profile first.');
+                    return;
+                }
+                document.getElementById(`travel${point.charAt(0).toUpperCase()+point.slice(1)}Lat`).value = lat;
+                document.getElementById(`travel${point.charAt(0).toUpperCase()+point.slice(1)}Lng`).value = lng;
+                document.getElementById(`travel${point.charAt(0).toUpperCase()+point.slice(1)}`).value = `${userProfile?.city||''}, ${userProfile?.country||''}`.replace(/^,\s*|,\s*$/g,'').trim();
+            } else if(source === 'gps'){
+                if(!navigator.geolocation){
+                    alert('Geolocation not supported');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(p=>{
+                    document.getElementById(`travel${point.charAt(0).toUpperCase()+point.slice(1)}Lat`).value = p.coords.latitude.toFixed(6);
+                    document.getElementById(`travel${point.charAt(0).toUpperCase()+point.slice(1)}Lng`).value = p.coords.longitude.toFixed(6);
+                }, e=>alert('Error: '+e.message), {enableHighAccuracy:true});
+            }
+        }
+        
+        async function geocodeTravelLocation(point){
+            const locationName = document.getElementById(`travel${point.charAt(0).toUpperCase()+point.slice(1)}`).value;
+            if(!locationName || locationName.trim().length < 2){
+                alert('Enter a location name first');
+                return;
+            }
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}&limit=1`, {
+                    headers: { 'User-Agent': 'Obonato App' }
+                });
+                const data = await response.json();
+                if(data && data.length > 0){
+                    document.getElementById(`travel${point.charAt(0).toUpperCase()+point.slice(1)}Lat`).value = parseFloat(data[0].lat).toFixed(6);
+                    document.getElementById(`travel${point.charAt(0).toUpperCase()+point.slice(1)}Lng`).value = parseFloat(data[0].lon).toFixed(6);
+                } else {
+                    alert('Location not found. Try a more specific name.');
+                }
+            } catch(e){
+                console.error('Geocode error:', e);
+                alert('Error looking up location');
+            }
+        }
+        
+        async function handleSaveTravel(){
+            if(!currentUser)return;
+            const r = document.getElementById('travelResult');
+            r.innerHTML = '<div class="alert alert-info">Saving travel plan...</div>';
+            
+            const fromLat = parseFloat(document.getElementById('travelFromLat').value);
+            const fromLng = parseFloat(document.getElementById('travelFromLng').value);
+            const toLat = parseFloat(document.getElementById('travelToLat').value);
+            const toLng = parseFloat(document.getElementById('travelToLng').value);
+            const travelDate = document.getElementById('travelDate').value;
+            
+            if(!document.getElementById('travelFrom').value || !document.getElementById('travelTo').value){
+                r.innerHTML = '<div class="alert alert-danger">Please enter both origin and destination</div>';
+                return;
+            }
+            if(!travelDate){
+                r.innerHTML = '<div class="alert alert-danger">Please select a travel date</div>';
+                return;
+            }
+            
+            const d = {
+                user_id: currentUser.id,
+                travel_mode: document.querySelector('input[name="travelMode"]:checked')?.value || 'seeking',
+                from_location_name: document.getElementById('travelFrom').value,
+                from_latitude: isNaN(fromLat) ? null : fromLat,
+                from_longitude: isNaN(fromLng) ? null : fromLng,
+                to_location_name: document.getElementById('travelTo').value,
+                to_latitude: isNaN(toLat) ? null : toLat,
+                to_longitude: isNaN(toLng) ? null : toLng,
+                travel_date: travelDate,
+                travel_time: document.getElementById('travelTime').value || null,
+                flexibility_hours: parseInt(document.getElementById('travelFlex').value) || 2,
+                available_seats: document.querySelector('input[name="travelMode"]:checked')?.value === 'offering' ? parseInt(document.getElementById('travelSeats').value) : null,
+                luggage_space: document.querySelector('input[name="travelMode"]:checked')?.value === 'offering' ? document.getElementById('travelLuggage').value : null,
+                cost_sharing: document.querySelector('input[name="travelMode"]:checked')?.value === 'offering' ? document.getElementById('travelCost').value : null,
+                notes: document.getElementById('travelNotes').value,
+                is_recurring: document.getElementById('travelRecurring').checked,
+                accepts_detours: document.getElementById('travelWaypoints').checked,
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            
+            const{error} = await db.from('travel_plans').insert(d);
+            if(error){
+                r.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
+            } else {
+                r.innerHTML = '<div class="alert alert-success">✅ Travel plan posted!</div>';
+                await loadMyTravelPlans();
+                // Clear form
+                document.getElementById('travelFrom').value = '';
+                document.getElementById('travelTo').value = '';
+                document.getElementById('travelFromLat').value = '';
+                document.getElementById('travelFromLng').value = '';
+                document.getElementById('travelToLat').value = '';
+                document.getElementById('travelToLng').value = '';
+                document.getElementById('travelNotes').value = '';
+            }
+        }
+        
+        async function loadMyTravelPlans(){
+            if(!currentUser)return;
+            const div = document.getElementById('myTravelPlans');
+            const{data, error} = await db.from('travel_plans').select('*').eq('user_id', currentUser.id).order('travel_date', {ascending: true});
+            
+            if(error){
+                div.innerHTML = '<div class="alert alert-danger">Error loading travel plans</div>';
+                return;
+            }
+            
+            userTravelPlans = data || [];
+            
+            if(userTravelPlans.length === 0){
+                div.innerHTML = '<p style="color:var(--text-light)">No active travel plans. Create one above!</p>';
+                return;
+            }
+            
+            const modeIcons = {offering: '🚗', seeking: '👍', companion: '🤝'};
+            div.innerHTML = userTravelPlans.map(t => {
+                const dateStr = new Date(t.travel_date).toLocaleDateString('en-NZ', {weekday:'short', day:'numeric', month:'short'});
+                const timeStr = t.travel_time ? ` at ${t.travel_time}` : '';
+                const flexStr = t.flexibility_hours > 0 ? ` (±${t.flexibility_hours}h)` : '';
+                return `
+                <div class="request-card" style="margin-bottom: 16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom: 12px;">
+                        <div>
+                            <span style="font-size: 24px;">${modeIcons[t.travel_mode] || '🚗'}</span>
+                            <span class="severity-badge severity-${t.status === 'active' ? 'low' : 'medium'}" style="margin-left: 8px;">${t.status}</span>
+                        </div>
+                        <button class="btn btn-danger btn-xs" onclick="deleteTravelPlan('${t.id}')">🗑️ Delete</button>
+                    </div>
+                    <h4 style="margin: 0 0 8px;">🅰️ ${t.from_location_name} → 🅱️ ${t.to_location_name}</h4>
+                    <p style="color: var(--text-light); margin: 0;">📅 ${dateStr}${timeStr}${flexStr}</p>
+                    ${t.notes ? `<p style="color: var(--text-light); margin-top: 8px; font-size: 13px;">${t.notes}</p>` : ''}
+                </div>`;
+            }).join('');
+        }
+        
+        async function deleteTravelPlan(id){
+            if(!confirm('Delete this travel plan?')) return;
+            const{error} = await db.from('travel_plans').delete().eq('id', id);
+            if(error) alert('Error: ' + error.message);
+            else await loadMyTravelPlans();
+        }
+        
+        async function handleSearchTravel(){
+            const div = document.getElementById('travelSearchResults');
+            div.innerHTML = '<p class="loading">🔍 Searching...</p>';
+            
+            const location = document.getElementById('searchTravelLocation').value;
+            const fromDate = document.getElementById('searchTravelFrom').value;
+            const toDate = document.getElementById('searchTravelTo').value;
+            
+            let query = db.from('travel_plans').select('*, profiles(id, email, gender)').eq('status', 'active').neq('user_id', currentUser.id);
+            
+            if(fromDate) query = query.gte('travel_date', fromDate);
+            if(toDate) query = query.lte('travel_date', toDate);
+            
+            // Filter by travel mode
+            const modes = [];
+            if(document.getElementById('searchOffering').checked) modes.push('offering');
+            if(document.getElementById('searchSeeking').checked) modes.push('seeking');
+            if(document.getElementById('searchCompanions').checked) modes.push('companion');
+            if(modes.length > 0 && modes.length < 3) query = query.in('travel_mode', modes);
+            
+            const{data, error} = await query.order('travel_date', {ascending: true}).limit(20);
+            
+            if(error){
+                div.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+                return;
+            }
+            
+            if(!data || data.length === 0){
+                div.innerHTML = '<div class="alert alert-info">No matching travel plans found. Try adjusting your search criteria.</div>';
+                return;
+            }
+            
+            // Apply gender preference filter if set
+            const hitchPref = userProfile?.pref_hitch_gender || 'any';
+            const myGender = userProfile?.gender;
+            
+            const filtered = data.filter(t => {
+                if(hitchPref === 'any') return true;
+                const theirGender = t.profiles?.gender;
+                if(!theirGender) return true; // Don't filter out unknown genders
+                if(hitchPref === 'same') return theirGender === myGender;
+                return theirGender === hitchPref;
+            });
+            
+            if(filtered.length === 0){
+                div.innerHTML = '<div class="alert alert-info">No travelers matching your gender preferences. Try adjusting filters.</div>';
+                return;
+            }
+            
+            const modeIcons = {offering: '🚗 Offering ride', seeking: '👍 Seeking ride', companion: '🤝 Seeking companion'};
+            div.innerHTML = `<h4>${filtered.length} traveler(s) found</h4>` + filtered.map(t => {
+                const e = t.profiles?.email || 'unknown';
+                const dn = generateAnonymousName(e);
+                const av = generateAvatarData(e);
+                const dateStr = new Date(t.travel_date).toLocaleDateString('en-NZ', {weekday:'short', day:'numeric', month:'short'});
+                const timeStr = t.travel_time ? ` at ${t.travel_time}` : '';
+                const flexStr = t.flexibility_hours > 0 ? ` (±${t.flexibility_hours}h)` : '';
+                return `
+                <div class="request-card" style="margin-bottom: 16px;">
+                    <div class="request-user">
+                        <div class="request-avatar" style="background:${av.color}">${av.icon}</div>
+                        <div class="request-info">
+                            <h4>${dn}</h4>
+                            <p>${modeIcons[t.travel_mode] || t.travel_mode}</p>
+                        </div>
+                    </div>
+                    <div style="margin: 12px 0;">
+                        <p style="font-weight: 600;">🅰️ ${t.from_location_name} → 🅱️ ${t.to_location_name}</p>
+                        <p style="color: var(--text-light);">📅 ${dateStr}${timeStr}${flexStr}</p>
+                        ${t.available_seats ? `<p style="color: var(--text-light);">💺 ${t.available_seats} seat(s) available</p>` : ''}
+                    </div>
+                    ${t.notes ? `<p style="color: var(--text-light); font-size: 13px; margin-bottom: 12px;">${t.notes}</p>` : ''}
+                    <button class="btn btn-primary btn-sm" onclick="contactTraveler('${t.profiles?.id}', '${dn}')">📨 Contact</button>
+                </div>`;
+            }).join('');
+        }
+        
+        function contactTraveler(userId, displayName){
+            // Open contact modal or create interaction
+            alert(`Contact feature coming soon! You want to reach: ${displayName}`);
+            // TODO: Implement proper contact/messaging
+        }
         
         // Dashboard
         async function loadDashboard(){if(!currentUser)return;const{data:avail}=await db.from('user_availability').select('*').eq('user_id',currentUser.id).single();if(avail&&avail.latitude)dashboardMap.setView([avail.latitude,avail.longitude],11);await loadNearbyRequests(avail);await loadNearbyTravelers(avail);await loadDashboardStats()}
