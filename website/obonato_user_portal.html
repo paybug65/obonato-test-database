@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Obonato - I exist because you exist</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Leaflet CSS & JS for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
             --primary: #1F4788;
@@ -62,6 +65,21 @@
         .status-connected { background: var(--success); }
         .status-disconnected { background: var(--danger); }
         
+        .pending-badge {
+            background: var(--danger);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
         .user-info { font-size: 14px; }
         .btn-signout {
             background: rgba(255,255,255,0.2);
@@ -99,12 +117,27 @@
             white-space: nowrap;
             transition: all 0.2s;
             border-bottom: 3px solid transparent;
+            position: relative;
         }
         .tab:hover { color: var(--primary); background: #f1f5f9; }
         .tab.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
             background: white;
+        }
+        .tab .tab-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--danger);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .tab-content {
@@ -128,6 +161,16 @@
             font-size: 18px;
             margin-bottom: 16px;
             color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h4 {
+            font-size: 16px;
+            margin: 24px 0 16px;
+            color: var(--text);
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
         }
         
         .form-group { margin-bottom: 20px; }
@@ -155,6 +198,12 @@
             margin-top: 6px;
         }
         
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
         .btn {
             padding: 12px 24px;
             border: none;
@@ -173,8 +222,11 @@
         .btn-success:hover { opacity: 0.9; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-danger:hover { opacity: 0.9; }
+        .btn-warning { background: var(--warning); color: white; }
         .btn-secondary { background: var(--border); color: var(--text); }
         .btn-secondary:hover { background: #cbd5e1; }
+        .btn-sm { padding: 8px 16px; font-size: 13px; }
+        .btn-block { width: 100%; justify-content: center; }
         
         .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
         
@@ -189,7 +241,118 @@
         .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
         
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
         
+        /* Map Styles */
+        .map-container {
+            height: 400px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+        #helpersMap, #homeMap { height: 100%; width: 100%; }
+        
+        .map-legend {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 13px;
+        }
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .legend-marker {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        /* Helper Cards */
+        .helper-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+        .helper-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .helper-card h4 { margin-bottom: 8px; }
+        .helper-card .distance { color: var(--text-light); font-size: 14px; }
+        .helper-card .services { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .helper-card .service-tag {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .helper-card .actions { margin-top: 16px; display: flex; gap: 8px; }
+        
+        /* Checkbox Groups */
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 16px; }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input { width: 18px; height: 18px; cursor: pointer; }
+        .checkbox-item label { cursor: pointer; font-size: 14px; }
+        
+        /* Radio Groups */
+        .radio-group { display: flex; gap: 24px; flex-wrap: wrap; }
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .radio-item:hover { border-color: var(--primary); }
+        .radio-item.selected {
+            border-color: var(--primary);
+            background: #eef2ff;
+        }
+        .radio-item input { width: 18px; height: 18px; }
+        .radio-item label { cursor: pointer; font-weight: 500; }
+        
+        /* Location Box */
+        .location-capture-box {
+            background: var(--bg);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .location-capture-box.has-location {
+            border-style: solid;
+            border-color: var(--success);
+            background: #f0fdf4;
+        }
+        .location-display {
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 12px;
+        }
+        
+        /* SOS Styles */
         .sos-container { text-align: center; padding: 40px; }
         .sos-button {
             width: 200px;
@@ -230,36 +393,132 @@
             transition: width 0.1s linear;
         }
         
-        .helper-card {
+        /* Activity/Interaction Cards */
+        .interaction-card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 16px;
         }
-        .helper-card h4 { margin-bottom: 8px; }
-        .helper-card .distance { color: var(--text-light); font-size: 14px; }
-        .helper-card .services { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-        .helper-card .service-tag {
-            background: #e0f2fe;
-            color: #0369a1;
+        .interaction-card.needs-feedback {
+            border-color: var(--warning);
+            background: #fffbeb;
+        }
+        .interaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .interaction-type {
+            font-size: 12px;
             padding: 4px 12px;
             border-radius: 20px;
+            background: var(--bg);
+            color: var(--text-light);
+        }
+        .interaction-status {
             font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
         }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-needs-feedback { background: #fee2e2; color: #991b1b; }
         
-        .checkbox-group { display: flex; flex-wrap: wrap; gap: 16px; }
-        .checkbox-item {
-            display: flex;
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            padding: 20px;
         }
-        .checkbox-item input { width: 18px; height: 18px; cursor: pointer; }
-        .checkbox-item label { cursor: pointer; font-size: 14px; }
+        .modal-overlay.active { display: flex; }
         
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: #f8fafc; font-weight: 600; font-size: 13px; color: var(--text-light); }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            font-size: 20px;
+            color: var(--primary);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        .modal-body { padding: 24px; }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        /* Feedback Rating */
+        .rating-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin: 24px 0;
+        }
+        .rating-btn {
+            padding: 20px 30px;
+            border: 3px solid var(--border);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .rating-btn:hover { transform: scale(1.05); }
+        .rating-btn.selected { border-width: 3px; }
+        .rating-btn.positive.selected { border-color: var(--success); background: #f0fdf4; }
+        .rating-btn.neutral.selected { border-color: var(--warning); background: #fffbeb; }
+        .rating-btn.negative.selected { border-color: var(--danger); background: #fef2f2; }
+        .rating-btn .emoji { font-size: 36px; display: block; margin-bottom: 8px; }
+        .rating-btn .label { font-size: 14px; font-weight: 600; }
+        
+        /* Verification Photo */
+        .photo-upload-box {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .photo-upload-box:hover { border-color: var(--primary); background: #f8fafc; }
+        .photo-upload-box.has-photo { border-style: solid; border-color: var(--success); }
+        .photo-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
         
         .hidden { display: none !important; }
         .loading { text-align: center; padding: 40px; color: var(--text-light); }
@@ -267,8 +526,12 @@
         @media (max-width: 768px) {
             .tabs { flex-wrap: nowrap; }
             .tab { padding: 12px 16px; font-size: 13px; }
-            .grid-2 { grid-template-columns: 1fr; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
             .header-content { flex-direction: column; height: auto; padding: 12px 0; gap: 12px; }
+            .radio-group { flex-direction: column; gap: 12px; }
+            .map-container { height: 300px; }
+            .rating-buttons { flex-direction: column; }
+            .rating-btn { padding: 16px 20px; }
         }
     </style>
 </head>
@@ -281,6 +544,7 @@
             </div>
             <div class="header-right">
                 <span id="connectionStatus" class="status-badge status-disconnected">Connecting...</span>
+                <span id="pendingFeedback" class="pending-badge hidden" onclick="showTab('activity', document.querySelector('.tab[data-tab=activity]'))">⚠️ Feedback Required</span>
                 <div id="userArea" class="hidden">
                     <span class="user-info" id="userEmail"></span>
                     <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
@@ -291,11 +555,12 @@
     
     <div class="container">
         <div class="tabs">
-            <button class="tab active" onclick="showTab('auth', this)">🔐 Sign In</button>
-            <button class="tab" onclick="showTab('profile', this)">👤 Profile</button>
-            <button class="tab" onclick="showTab('availability', this)">📍 Availability</button>
-            <button class="tab" onclick="showTab('helpers', this)">🔍 Find Helpers</button>
-            <button class="tab" onclick="showTab('sos', this)">🚨 SOS</button>
+            <button class="tab active" data-tab="auth" onclick="showTab('auth', this)">🔐 Sign In</button>
+            <button class="tab" data-tab="profile" onclick="showTab('profile', this)">👤 Profile</button>
+            <button class="tab" data-tab="availability" onclick="showTab('availability', this)">📍 Availability</button>
+            <button class="tab" data-tab="helpers" onclick="showTab('helpers', this)">🗺️ Find Helpers</button>
+            <button class="tab" data-tab="activity" onclick="showTab('activity', this)">📋 Activity</button>
+            <button class="tab" data-tab="sos" onclick="showTab('sos', this)">🚨 SOS</button>
         </div>
         
         <!-- Auth Tab -->
@@ -339,7 +604,9 @@
         <div id="profile" class="tab-content">
             <div class="card">
                 <h3>👤 Your Profile</h3>
-                <div class="grid-2">
+                
+                <h4>📋 Personal Information</h4>
+                <div class="grid-3">
                     <div class="form-group">
                         <label>First Name</label>
                         <input type="text" class="form-control" id="profileFirstName">
@@ -352,61 +619,116 @@
                         <label>Known As / Display Name</label>
                         <input type="text" class="form-control" id="profileKnownAs">
                     </div>
+                </div>
+                <div class="grid-2">
                     <div class="form-group">
                         <label>Mobile Phone</label>
-                        <input type="tel" class="form-control" id="profileMobile">
+                        <input type="tel" class="form-control" id="profileMobile" placeholder="+64 21 123 4567">
                     </div>
                     <div class="form-group">
                         <label>Email</label>
                         <input type="email" class="form-control" id="profileEmail" readonly>
                     </div>
+                </div>
+                
+                <h4>🏠 Home Address</h4>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Suburb / Area</label>
+                        <input type="text" class="form-control" id="profileSuburb">
+                    </div>
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" class="form-control" id="profileCity">
+                    </div>
+                </div>
+                <div class="grid-3">
                     <div class="form-group">
                         <label>Country</label>
                         <input type="text" class="form-control" id="profileCountry">
                     </div>
-                </div>
-                
-                <h4 style="margin: 24px 0 16px;">🚗 Traveler Type</h4>
-                <div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="typeMoto">
-                        <label for="typeMoto">🏍️ Motorcyclist</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="typeCyclist">
-                        <label for="typeCyclist">🚴 Cyclist</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="type4wd">
-                        <label for="type4wd">🚙 4WD / Overlander</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="typeYacht">
-                        <label for="typeYacht">⛵ Yachtie / Sailor</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="typeHiker">
-                        <label for="typeHiker">🥾 Hiker / Backpacker</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="typeTrucker">
-                        <label for="typeTrucker">🚛 Truck Driver</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="typeRV">
-                        <label for="typeRV">🚐 RV / Campervan</label>
-                    </div>
-                </div>
-                
-                <h4 style="margin: 24px 0 16px;">🚨 Emergency Contact</h4>
-                <div class="grid-2">
                     <div class="form-group">
-                        <label>Emergency Contact Name</label>
+                        <label>Post Code</label>
+                        <input type="text" class="form-control" id="profilePostCode">
+                    </div>
+                </div>
+                
+                <h4>📍 Home Location</h4>
+                <div class="grid-2">
+                    <div>
+                        <div class="location-capture-box" id="homeLocationBox">
+                            <div class="btn-group" style="justify-content: center; margin-bottom: 16px;">
+                                <button class="btn btn-primary btn-sm" onclick="captureHomeGPS()">📍 Use Device GPS</button>
+                                <button class="btn btn-secondary btn-sm" onclick="showManualEntry()">✏️ Manual</button>
+                            </div>
+                            <div id="manualGpsEntry" class="hidden" style="margin-top: 16px;">
+                                <div class="grid-2" style="max-width: 300px; margin: 0 auto;">
+                                    <input type="text" class="form-control" id="profileHomeLat" placeholder="Latitude">
+                                    <input type="text" class="form-control" id="profileHomeLng" placeholder="Longitude">
+                                </div>
+                            </div>
+                            <div class="location-display" id="homeLocationDisplay">No location set</div>
+                        </div>
+                    </div>
+                    <div class="map-container" id="homeMapContainer" style="height: 200px;">
+                        <div id="homeMap"></div>
+                    </div>
+                </div>
+                
+                <h4>🚗 Traveler Type</h4>
+                <div class="checkbox-group">
+                    <div class="checkbox-item"><input type="checkbox" id="typeMoto"><label for="typeMoto">🏍️ Motorcyclist</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeCyclist"><label for="typeCyclist">🚴 Cyclist</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="type4wd"><label for="type4wd">🚙 4WD / Overlander</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeYacht"><label for="typeYacht">⛵ Sailor</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeHiker"><label for="typeHiker">🥾 Hiker</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeTrucker"><label for="typeTrucker">🚛 Trucker</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="typeRV"><label for="typeRV">🚐 RV / Campervan</label></div>
+                </div>
+                
+                <h4>🚨 Emergency Contact</h4>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Contact Name</label>
                         <input type="text" class="form-control" id="emergencyName">
                     </div>
                     <div class="form-group">
-                        <label>Emergency Contact Phone</label>
+                        <label>Contact Phone</label>
                         <input type="tel" class="form-control" id="emergencyPhone">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Email</label>
+                        <input type="email" class="form-control" id="emergencyEmail">
+                    </div>
+                </div>
+                
+                <h4>⚙️ Preferences</h4>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Distance Units</label>
+                        <div class="radio-group">
+                            <div class="radio-item selected" onclick="selectRadio('unitDistance', 'km')">
+                                <input type="radio" name="unitDistance" value="km" checked>
+                                <label>Kilometres</label>
+                            </div>
+                            <div class="radio-item" onclick="selectRadio('unitDistance', 'miles')">
+                                <input type="radio" name="unitDistance" value="miles">
+                                <label>Miles</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Temperature Units</label>
+                        <div class="radio-group">
+                            <div class="radio-item selected" onclick="selectRadio('unitTemp', 'celsius')">
+                                <input type="radio" name="unitTemp" value="celsius" checked>
+                                <label>Celsius (°C)</label>
+                            </div>
+                            <div class="radio-item" onclick="selectRadio('unitTemp', 'fahrenheit')">
+                                <input type="radio" name="unitTemp" value="fahrenheit">
+                                <label>Fahrenheit (°F)</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -420,60 +742,45 @@
         <!-- Availability Tab -->
         <div id="availability" class="tab-content">
             <div class="card">
-                <h3>📍 Your Location & Availability</h3>
-                
-                <div class="form-group">
-                    <label>Current Location</label>
-                    <div class="btn-group" style="margin-bottom: 12px;">
-                        <button class="btn btn-secondary" onclick="getCurrentLocation()">📍 Use My Current Location</button>
-                    </div>
-                    <div class="grid-2">
-                        <input type="text" class="form-control" id="availLat" placeholder="Latitude (e.g., -36.8485)">
-                        <input type="text" class="form-control" id="availLng" placeholder="Longitude (e.g., 174.7633)">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Location Description</label>
-                    <input type="text" class="form-control" id="availLocation" placeholder="e.g., Auckland, New Zealand">
-                </div>
+                <h3>📍 Your Availability</h3>
                 
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="availActive" checked> I am available to help others
+                        <input type="checkbox" id="availActive" checked style="width: 20px; height: 20px; margin-right: 8px;">
+                        <strong>I am available to help others</strong>
                     </label>
                 </div>
                 
-                <h4 style="margin: 24px 0 16px;">🤝 Services You Can Provide</h4>
-                <div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="canPickup">
-                        <label for="canPickup">🚗 Pickup / Rescue / Trailer</label>
+                <h4>📍 Current Location</h4>
+                <div class="grid-2">
+                    <div>
+                        <button class="btn btn-secondary" onclick="getCurrentLocation()" style="margin-bottom: 12px;">📍 Use Current Location</button>
+                        <div class="grid-2">
+                            <input type="text" class="form-control" id="availLat" placeholder="Latitude">
+                            <input type="text" class="form-control" id="availLng" placeholder="Longitude">
+                        </div>
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label>Location Description</label>
+                            <input type="text" class="form-control" id="availLocation" placeholder="e.g., Auckland CBD">
+                        </div>
                     </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="canGarage">
-                        <label for="canGarage">🔧 Garage / Workshop Space</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="canStay">
-                        <label for="canStay">🏠 Accommodation / Camping</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="canMeet">
-                        <label for="canMeet">🍺 Meet for Drinks / Dinner</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="canAdvice">
-                        <label for="canAdvice">💡 Local Knowledge / Advice</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="canHelp">
-                        <label for="canHelp">🆘 General Help (fuel, directions)</label>
+                    <div class="map-container" style="height: 200px;">
+                        <div id="availMap"></div>
                     </div>
                 </div>
                 
+                <h4>🤝 Services You Can Provide</h4>
+                <div class="checkbox-group">
+                    <div class="checkbox-item"><input type="checkbox" id="canPickup"><label for="canPickup">🚗 Pickup / Rescue</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canGarage"><label for="canGarage">🔧 Garage / Workshop</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canStay"><label for="canStay">🏠 Accommodation</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canMeet"><label for="canMeet">🍺 Meet for Drinks</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canAdvice"><label for="canAdvice">💡 Local Knowledge</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="canHelp"><label for="canHelp">🆘 General Help</label></div>
+                </div>
+                
                 <div class="form-group" style="margin-top: 24px;">
-                    <label>Maximum Help Radius (km)</label>
+                    <label>Maximum Help Radius (<span id="radiusUnit">km</span>)</label>
                     <input type="number" class="form-control" id="availRadius" value="50" style="width: 150px;">
                 </div>
                 
@@ -482,51 +789,67 @@
             </div>
         </div>
         
-        <!-- Find Helpers Tab -->
+        <!-- Find Helpers Tab with Map -->
         <div id="helpers" class="tab-content">
             <div class="card">
-                <h3>🔍 Find Nearby Helpers</h3>
+                <h3>🗺️ Find Nearby Helpers</h3>
                 
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label>Your Location</label>
-                        <button class="btn btn-secondary" onclick="getSearchLocation()">📍 Use Current Location</button>
-                        <div class="grid-2" style="margin-top: 12px;">
+                <div class="grid-2" style="margin-bottom: 20px;">
+                    <div>
+                        <button class="btn btn-secondary" onclick="getSearchLocation()" style="margin-bottom: 12px;">📍 Use Current Location</button>
+                        <div class="grid-2">
                             <input type="text" class="form-control" id="searchLat" placeholder="Latitude">
                             <input type="text" class="form-control" id="searchLng" placeholder="Longitude">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Search Radius (km)</label>
+                        <label>Search Radius (<span id="searchRadiusUnit">km</span>)</label>
                         <input type="number" class="form-control" id="searchRadius" value="50">
                     </div>
                 </div>
                 
-                <h4 style="margin: 16px 0;">Filter by Service Needed</h4>
                 <div class="checkbox-group" style="margin-bottom: 20px;">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="needPickup">
-                        <label for="needPickup">🚗 Pickup / Rescue</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="needGarage">
-                        <label for="needGarage">🔧 Garage / Workshop</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="needStay">
-                        <label for="needStay">🏠 Accommodation</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="needMeet">
-                        <label for="needMeet">🍺 Social Meetup</label>
-                    </div>
+                    <div class="checkbox-item"><input type="checkbox" id="needPickup"><label>🚗 Pickup</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needGarage"><label>🔧 Garage</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needStay"><label>🏠 Stay</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needMeet"><label>🍺 Meetup</label></div>
                 </div>
                 
                 <button class="btn btn-primary" onclick="handleSearchHelpers()">🔍 Search for Helpers</button>
             </div>
             
-            <div id="helperResults">
-                <p class="loading">Enter your location and click search to find helpers...</p>
+            <!-- Map -->
+            <div class="map-container" style="height: 450px;">
+                <div id="helpersMap"></div>
+            </div>
+            
+            <!-- Helper List -->
+            <div id="helperResults" style="margin-top: 20px;">
+                <p class="loading">Use the search above to find helpers near you...</p>
+            </div>
+        </div>
+        
+        <!-- Activity Tab -->
+        <div id="activity" class="tab-content">
+            <div class="card">
+                <h3>📋 Your Activity</h3>
+                <p style="color: var(--text-light); margin-bottom: 20px;">
+                    Track your interactions and provide feedback. Feedback is required after each completed interaction.
+                </p>
+                
+                <div id="pendingFeedbackAlert" class="alert alert-warning hidden">
+                    <strong>⚠️ Feedback Required:</strong> You have interactions that need feedback before you can request more help.
+                </div>
+                
+                <h4>Pending Feedback</h4>
+                <div id="pendingInteractions">
+                    <p class="loading">Loading...</p>
+                </div>
+                
+                <h4>Recent Activity</h4>
+                <div id="recentActivity">
+                    <p class="loading">Loading...</p>
+                </div>
             </div>
         </div>
         
@@ -540,11 +863,8 @@
                 
                 <div class="sos-container">
                     <button class="sos-button" id="sosButton" 
-                            onmousedown="startSOS()" 
-                            onmouseup="cancelSOS()" 
-                            onmouseleave="cancelSOS()"
-                            ontouchstart="startSOS()" 
-                            ontouchend="cancelSOS()">
+                            onmousedown="startSOS()" onmouseup="cancelSOS()" onmouseleave="cancelSOS()"
+                            ontouchstart="startSOS()" ontouchend="cancelSOS()">
                         🚨 SOS
                         <span>Hold for 3 seconds</span>
                     </button>
@@ -557,35 +877,36 @@
             
             <div class="card">
                 <h3>📝 Create Help Request</h3>
-                <div class="form-group">
-                    <label>Type of Help Needed</label>
-                    <select class="form-control" id="sosType">
-                        <option value="breakdown">🔧 Breakdown</option>
-                        <option value="accident">💥 Accident</option>
-                        <option value="medical">🏥 Medical</option>
-                        <option value="stuck">🚙 Stuck (mud/sand)</option>
-                        <option value="fuel">⛽ Out of Fuel</option>
-                        <option value="lost">🗺️ Lost / Need Directions</option>
-                        <option value="unsafe">⚠️ Feeling Unsafe</option>
-                        <option value="other">❓ Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Severity</label>
-                    <select class="form-control" id="sosSeverity">
-                        <option value="low">Low - Not urgent</option>
-                        <option value="medium">Medium - Need help today</option>
-                        <option value="high">High - Need help soon</option>
-                        <option value="critical">Critical - Emergency</option>
-                    </select>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Type of Help</label>
+                        <select class="form-control" id="sosType">
+                            <option value="breakdown">🔧 Breakdown</option>
+                            <option value="accident">💥 Accident</option>
+                            <option value="medical">🏥 Medical</option>
+                            <option value="stuck">🚙 Stuck</option>
+                            <option value="fuel">⛽ Out of Fuel</option>
+                            <option value="unsafe">⚠️ Feeling Unsafe</option>
+                            <option value="other">❓ Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Severity</label>
+                        <select class="form-control" id="sosSeverity">
+                            <option value="low">Low - Not urgent</option>
+                            <option value="medium">Medium - Today</option>
+                            <option value="high">High - Soon</option>
+                            <option value="critical">Critical - Now</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Description</label>
                     <textarea class="form-control" id="sosDescription" rows="3" placeholder="Describe your situation..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Your Location</label>
-                    <button class="btn btn-secondary" onclick="getSOSLocation()" style="margin-bottom: 12px;">📍 Get Current Location</button>
+                    <label>Location</label>
+                    <button class="btn btn-secondary btn-sm" onclick="getSOSLocation()" style="margin-bottom: 8px;">📍 Get Location</button>
                     <div class="grid-2">
                         <input type="text" class="form-control" id="sosLat" placeholder="Latitude">
                         <input type="text" class="form-control" id="sosLng" placeholder="Longitude">
@@ -596,61 +917,202 @@
             </div>
         </div>
     </div>
+    
+    <!-- Feedback Modal -->
+    <div class="modal-overlay" id="feedbackModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>⭐ Rate Your Interaction</h2>
+                <button class="modal-close" onclick="closeFeedbackModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="text-align: center; color: var(--text-light); margin-bottom: 20px;">
+                    How was your experience with <strong id="feedbackUserName">this helper</strong>?
+                </p>
+                
+                <div class="rating-buttons">
+                    <button class="rating-btn positive" onclick="selectRating('positive')">
+                        <span class="emoji">😊</span>
+                        <span class="label">Positive</span>
+                    </button>
+                    <button class="rating-btn neutral" onclick="selectRating('neutral')">
+                        <span class="emoji">😐</span>
+                        <span class="label">Neutral</span>
+                    </button>
+                    <button class="rating-btn negative" onclick="selectRating('negative')">
+                        <span class="emoji">😞</span>
+                        <span class="label">Negative</span>
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Comments (optional)</label>
+                    <textarea class="form-control" id="feedbackComment" rows="3" placeholder="Share your experience..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="feedbackWouldAgain" checked style="margin-right: 8px;">
+                        I would interact with this person again
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>📸 Verification Photo (optional)</label>
+                    <p class="form-hint">Take a photo together to verify this interaction happened</p>
+                    <div class="photo-upload-box" onclick="document.getElementById('photoInput').click()">
+                        <span style="font-size: 32px;">📷</span>
+                        <p>Click to upload photo</p>
+                        <img id="photoPreview" class="photo-preview hidden">
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="previewPhoto(this)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeFeedbackModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contact Helper Modal -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📨 Contact Helper</h2>
+                <button class="modal-close" onclick="closeContactModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="contactHelperInfo"></div>
+                
+                <div class="form-group">
+                    <label>What do you need help with?</label>
+                    <select class="form-control" id="contactType">
+                        <option value="breakdown">🔧 Breakdown Assistance</option>
+                        <option value="accommodation">🏠 Accommodation</option>
+                        <option value="meetup">🍺 Social Meetup</option>
+                        <option value="advice">💡 Local Advice</option>
+                        <option value="other">❓ Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea class="form-control" id="contactMessage" rows="4" placeholder="Hi! I'm traveling through your area and..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeContactModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="sendContactRequest()">Send Request</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // =====================================================
-        // DATABASE CONFIGURATION - AUTO CONNECT
+        // CONFIGURATION
         // =====================================================
         var SUPABASE_URL = 'https://mozbpccxzfcoswvxjuym.supabase.co';
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODY4NTQsImV4cCI6MjA4NDY2Mjg1NH0.lfOM5ojN2B1MV6wMsntGWmI7OWL7fhUJV5E8b6I48N0';
         
-        // Global variables
         var db = null;
         var currentUser = null;
+        var userSettings = { distance: 'km', temperature: 'celsius' };
         var sosTimer = null;
         var sosStartTime = null;
         
-        // Tab navigation
-        function showTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
-            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-            document.getElementById(tabId).classList.add('active');
-            btn.classList.add('active');
-        }
+        // Maps
+        var helpersMap = null;
+        var homeMap = null;
+        var availMap = null;
+        var markers = [];
+        var currentHelpers = [];
+        var selectedHelper = null;
+        var currentInteractionId = null;
+        var selectedRating = null;
         
-        // Auto-connect on page load
+        // =====================================================
+        // INITIALIZATION
+        // =====================================================
         window.onload = function() {
             initDatabase();
+            initMaps();
         };
         
-        // Initialize database connection
         function initDatabase() {
             try {
                 db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 updateConnectionStatus(true);
                 checkAuth();
             } catch (error) {
-                console.error('Database connection error:', error);
+                console.error('Database error:', error);
                 updateConnectionStatus(false);
             }
         }
         
-        // Update connection status
-        function updateConnectionStatus(connected) {
-            var badge = document.getElementById('connectionStatus');
-            if (connected) {
-                badge.textContent = 'Connected';
-                badge.className = 'status-badge status-connected';
-            } else {
-                badge.textContent = 'Connection Error';
-                badge.className = 'status-badge status-disconnected';
-            }
+        function initMaps() {
+            // Helpers Map
+            helpersMap = L.map('helpersMap').setView([-36.8485, 174.7633], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(helpersMap);
+            
+            // Add legend
+            var legend = L.control({position: 'bottomright'});
+            legend.onAdd = function(map) {
+                var div = L.DomUtil.create('div', 'map-legend');
+                div.innerHTML = `
+                    <div class="map-legend-item"><div class="legend-marker" style="background:#3b82f6;">📍</div> You</div>
+                    <div class="map-legend-item"><div class="legend-marker" style="background:#10b981;">🟢</div> Available Helper</div>
+                `;
+                return div;
+            };
+            legend.addTo(helpersMap);
+            
+            // Home Map (smaller)
+            homeMap = L.map('homeMap').setView([-36.8485, 174.7633], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OSM'
+            }).addTo(homeMap);
+            
+            // Availability Map
+            availMap = L.map('availMap').setView([-36.8485, 174.7633], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OSM'
+            }).addTo(availMap);
         }
         
-        // Check authentication
+        function updateConnectionStatus(connected) {
+            var badge = document.getElementById('connectionStatus');
+            badge.textContent = connected ? 'Connected' : 'Connection Error';
+            badge.className = 'status-badge ' + (connected ? 'status-connected' : 'status-disconnected');
+        }
+        
+        // =====================================================
+        // TAB NAVIGATION
+        // =====================================================
+        function showTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+            
+            // Refresh maps when tab becomes visible
+            setTimeout(() => {
+                if (tabId === 'helpers' && helpersMap) helpersMap.invalidateSize();
+                if (tabId === 'profile' && homeMap) homeMap.invalidateSize();
+                if (tabId === 'availability' && availMap) availMap.invalidateSize();
+            }, 100);
+            
+            // Load activity data
+            if (tabId === 'activity') loadActivity();
+        }
+        
+        // =====================================================
+        // AUTHENTICATION
+        // =====================================================
         async function checkAuth() {
             if (!db) return;
-            
             var response = await db.auth.getUser();
             if (response.data && response.data.user) {
                 currentUser = response.data.user;
@@ -659,16 +1121,11 @@
                 document.getElementById('profileEmail').value = currentUser.email;
                 loadProfile();
                 loadAvailability();
+                checkPendingFeedback();
             }
         }
         
-        // Sign In
         async function handleSignIn() {
-            if (!db) {
-                alert('Database not connected. Please refresh the page.');
-                return;
-            }
-            
             var email = document.getElementById('signInEmail').value;
             var password = document.getElementById('signInPassword').value;
             var resultDiv = document.getElementById('signInResult');
@@ -679,8 +1136,7 @@
             }
             
             resultDiv.innerHTML = '<div class="alert alert-info">Signing in...</div>';
-            
-            var response = await db.auth.signInWithPassword({ email: email, password: password });
+            var response = await db.auth.signInWithPassword({ email, password });
             
             if (response.error) {
                 resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
@@ -689,19 +1145,14 @@
                 document.getElementById('userArea').classList.remove('hidden');
                 document.getElementById('userEmail').textContent = currentUser.email;
                 document.getElementById('profileEmail').value = currentUser.email;
-                resultDiv.innerHTML = '<div class="alert alert-success">✅ Signed in successfully!</div>';
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Signed in!</div>';
                 loadProfile();
                 loadAvailability();
+                checkPendingFeedback();
             }
         }
         
-        // Sign Up
         async function handleSignUp() {
-            if (!db) {
-                alert('Database not connected. Please refresh the page.');
-                return;
-            }
-            
             var email = document.getElementById('signUpEmail').value;
             var password = document.getElementById('signUpPassword').value;
             var displayName = document.getElementById('signUpName').value;
@@ -713,101 +1164,66 @@
             }
             
             resultDiv.innerHTML = '<div class="alert alert-info">Creating account...</div>';
-            
             var response = await db.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: { display_name: displayName }
-                }
+                email, password,
+                options: { data: { display_name: displayName } }
             });
             
             if (response.error) {
                 resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
             } else {
-                resultDiv.innerHTML = '<div class="alert alert-success">✅ Account created! Check your email for verification link, then sign in.</div>';
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ Check your email to verify!</div>';
             }
         }
         
-        // Sign Out
         async function handleSignOut() {
-            if (!db) return;
             await db.auth.signOut();
             currentUser = null;
             document.getElementById('userArea').classList.add('hidden');
-            document.getElementById('userEmail').textContent = '';
         }
         
-        // Get current location
-        function getCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        document.getElementById('availLat').value = position.coords.latitude.toFixed(6);
-                        document.getElementById('availLng').value = position.coords.longitude.toFixed(6);
-                    },
-                    function(error) { alert('Could not get location: ' + error.message); }
-                );
-            } else {
-                alert('Geolocation not supported');
-            }
-        }
-        
-        function getSearchLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        document.getElementById('searchLat').value = position.coords.latitude.toFixed(6);
-                        document.getElementById('searchLng').value = position.coords.longitude.toFixed(6);
-                    },
-                    function(error) { alert('Could not get location: ' + error.message); }
-                );
-            }
-        }
-        
-        function getSOSLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        document.getElementById('sosLat').value = position.coords.latitude.toFixed(6);
-                        document.getElementById('sosLng').value = position.coords.longitude.toFixed(6);
-                    },
-                    function(error) { alert('Could not get location: ' + error.message); }
-                );
-            }
-        }
-        
-        // Load profile
+        // =====================================================
+        // PROFILE
+        // =====================================================
         async function loadProfile() {
             if (!db || !currentUser) return;
-            
-            var response = await db
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
+            var response = await db.from('profiles').select('*').eq('id', currentUser.id).single();
             
             if (response.data) {
-                var data = response.data;
-                document.getElementById('profileFirstName').value = data.first_name || '';
-                document.getElementById('profileSurname').value = data.last_name || '';
-                document.getElementById('profileKnownAs').value = data.display_name || '';
-                document.getElementById('profileMobile').value = data.phone || '';
-                document.getElementById('profileCountry').value = data.country || '';
-                document.getElementById('emergencyName').value = data.emergency_contact_name || '';
-                document.getElementById('emergencyPhone').value = data.emergency_contact_phone || '';
+                var d = response.data;
+                document.getElementById('profileFirstName').value = d.first_name || '';
+                document.getElementById('profileSurname').value = d.last_name || '';
+                document.getElementById('profileKnownAs').value = d.display_name || '';
+                document.getElementById('profileMobile').value = d.phone || '';
+                document.getElementById('profileCountry').value = d.country || '';
+                document.getElementById('profileSuburb').value = d.suburb || '';
+                document.getElementById('profileCity').value = d.city || '';
+                document.getElementById('profilePostCode').value = d.post_code || '';
+                document.getElementById('emergencyName').value = d.emergency_contact_name || '';
+                document.getElementById('emergencyPhone').value = d.emergency_contact_phone || '';
+                document.getElementById('emergencyEmail').value = d.emergency_contact_email || '';
+                
+                if (d.home_latitude && d.home_longitude) {
+                    document.getElementById('profileHomeLat').value = d.home_latitude;
+                    document.getElementById('profileHomeLng').value = d.home_longitude;
+                    document.getElementById('homeLocationDisplay').textContent = d.home_latitude + ', ' + d.home_longitude;
+                    document.getElementById('homeLocationBox').classList.add('has-location');
+                    document.getElementById('manualGpsEntry').classList.remove('hidden');
+                    updateHomeMap(d.home_latitude, d.home_longitude);
+                }
+                
+                if (d.unit_distance) selectRadio('unitDistance', d.unit_distance);
+                if (d.unit_temperature) selectRadio('unitTemp', d.unit_temperature);
             }
         }
         
-        // Save profile
         async function handleSaveProfile() {
-            if (!db || !currentUser) {
-                alert('Please sign in first');
-                return;
-            }
-            
+            if (!currentUser) { alert('Please sign in'); return; }
             var resultDiv = document.getElementById('profileResult');
             resultDiv.innerHTML = '<div class="alert alert-info">Saving...</div>';
+            
+            var homeLat = parseFloat(document.getElementById('profileHomeLat').value);
+            var homeLng = parseFloat(document.getElementById('profileHomeLng').value);
             
             var profileData = {
                 id: currentUser.id,
@@ -816,58 +1232,93 @@
                 display_name: document.getElementById('profileKnownAs').value,
                 phone: document.getElementById('profileMobile').value,
                 country: document.getElementById('profileCountry').value,
+                suburb: document.getElementById('profileSuburb').value,
+                city: document.getElementById('profileCity').value,
+                post_code: document.getElementById('profilePostCode').value,
+                home_latitude: isNaN(homeLat) ? null : homeLat,
+                home_longitude: isNaN(homeLng) ? null : homeLng,
                 emergency_contact_name: document.getElementById('emergencyName').value,
                 emergency_contact_phone: document.getElementById('emergencyPhone').value,
+                emergency_contact_email: document.getElementById('emergencyEmail').value,
+                unit_distance: document.querySelector('input[name="unitDistance"]:checked').value,
+                unit_temperature: document.querySelector('input[name="unitTemp"]:checked').value,
                 updated_at: new Date().toISOString()
             };
             
             var response = await db.from('profiles').upsert(profileData);
-            
-            if (response.error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
-            } else {
-                resultDiv.innerHTML = '<div class="alert alert-success">✅ Profile saved!</div>';
+            resultDiv.innerHTML = response.error ? 
+                '<div class="alert alert-danger">❌ ' + response.error.message + '</div>' :
+                '<div class="alert alert-success">✅ Profile saved!</div>';
+        }
+        
+        function captureHomeGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    var lat = pos.coords.latitude.toFixed(6);
+                    var lng = pos.coords.longitude.toFixed(6);
+                    document.getElementById('profileHomeLat').value = lat;
+                    document.getElementById('profileHomeLng').value = lng;
+                    document.getElementById('homeLocationDisplay').textContent = lat + ', ' + lng;
+                    document.getElementById('homeLocationBox').classList.add('has-location');
+                    document.getElementById('manualGpsEntry').classList.remove('hidden');
+                    updateHomeMap(parseFloat(lat), parseFloat(lng));
+                }, function(err) {
+                    alert('Could not get location: ' + err.message);
+                    document.getElementById('manualGpsEntry').classList.remove('hidden');
+                }, { enableHighAccuracy: true });
             }
         }
         
-        // Load availability
+        function showManualEntry() {
+            document.getElementById('manualGpsEntry').classList.toggle('hidden');
+        }
+        
+        function updateHomeMap(lat, lng) {
+            if (homeMap) {
+                homeMap.setView([lat, lng], 14);
+                L.marker([lat, lng]).addTo(homeMap).bindPopup('🏠 Home').openPopup();
+            }
+        }
+        
+        // =====================================================
+        // AVAILABILITY
+        // =====================================================
         async function loadAvailability() {
-            if (!db || !currentUser) return;
-            
-            var response = await db
-                .from('user_availability')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .single();
+            if (!currentUser) return;
+            var response = await db.from('user_availability').select('*').eq('user_id', currentUser.id).single();
             
             if (response.data) {
-                var data = response.data;
-                document.getElementById('availActive').checked = data.is_available;
-                document.getElementById('availLocation').value = data.current_location_name || '';
-                document.getElementById('availRadius').value = data.max_help_radius_km || 50;
-                document.getElementById('canPickup').checked = data.can_pickup;
-                document.getElementById('canGarage').checked = data.can_provide_garage;
-                document.getElementById('canStay').checked = data.can_provide_accommodation;
-                document.getElementById('canMeet').checked = data.can_meet_for_drinks;
-                document.getElementById('canAdvice').checked = data.can_provide_local_advice;
-                document.getElementById('canHelp').checked = data.can_provide_help;
+                var d = response.data;
+                document.getElementById('availActive').checked = d.is_available;
+                document.getElementById('availLocation').value = d.current_location_name || '';
+                document.getElementById('availRadius').value = d.max_help_radius_km || 50;
+                document.getElementById('canPickup').checked = d.can_pickup;
+                document.getElementById('canGarage').checked = d.can_provide_garage;
+                document.getElementById('canStay').checked = d.can_provide_accommodation;
+                document.getElementById('canMeet').checked = d.can_meet_for_drinks;
+                document.getElementById('canAdvice').checked = d.can_provide_local_advice;
+                document.getElementById('canHelp').checked = d.can_provide_help;
+                
+                if (d.latitude && d.longitude) {
+                    document.getElementById('availLat').value = d.latitude;
+                    document.getElementById('availLng').value = d.longitude;
+                    if (availMap) {
+                        availMap.setView([d.latitude, d.longitude], 12);
+                        L.marker([d.latitude, d.longitude]).addTo(availMap);
+                    }
+                }
             }
         }
         
-        // Save availability
         async function handleSaveAvailability() {
-            if (!db || !currentUser) {
-                alert('Please sign in first');
-                return;
-            }
-            
+            if (!currentUser) { alert('Please sign in'); return; }
             var resultDiv = document.getElementById('availResult');
             resultDiv.innerHTML = '<div class="alert alert-info">Saving...</div>';
             
             var lat = parseFloat(document.getElementById('availLat').value);
             var lng = parseFloat(document.getElementById('availLng').value);
             
-            var availData = {
+            var data = {
                 user_id: currentUser.id,
                 is_available: document.getElementById('availActive').checked,
                 current_location_name: document.getElementById('availLocation').value,
@@ -883,22 +1334,38 @@
                 updated_at: new Date().toISOString()
             };
             
-            var response = await db.from('user_availability').upsert(availData, { onConflict: 'user_id' });
-            
-            if (response.error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
-            } else {
-                resultDiv.innerHTML = '<div class="alert alert-success">✅ Availability updated!</div>';
+            var response = await db.from('user_availability').upsert(data, { onConflict: 'user_id' });
+            resultDiv.innerHTML = response.error ?
+                '<div class="alert alert-danger">❌ ' + response.error.message + '</div>' :
+                '<div class="alert alert-success">✅ Availability updated!</div>';
+        }
+        
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    document.getElementById('availLat').value = pos.coords.latitude.toFixed(6);
+                    document.getElementById('availLng').value = pos.coords.longitude.toFixed(6);
+                    if (availMap) {
+                        availMap.setView([pos.coords.latitude, pos.coords.longitude], 12);
+                    }
+                }, err => alert('Error: ' + err.message), { enableHighAccuracy: true });
             }
         }
         
-        // Search helpers
-        async function handleSearchHelpers() {
-            if (!db) {
-                alert('Database not connected');
-                return;
+        // =====================================================
+        // FIND HELPERS
+        // =====================================================
+        function getSearchLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    document.getElementById('searchLat').value = pos.coords.latitude.toFixed(6);
+                    document.getElementById('searchLng').value = pos.coords.longitude.toFixed(6);
+                    helpersMap.setView([pos.coords.latitude, pos.coords.longitude], 11);
+                }, err => alert('Error: ' + err.message), { enableHighAccuracy: true });
             }
-            
+        }
+        
+        async function handleSearchHelpers() {
             var resultsDiv = document.getElementById('helperResults');
             resultsDiv.innerHTML = '<p class="loading">Searching...</p>';
             
@@ -907,70 +1374,114 @@
             var radius = parseInt(document.getElementById('searchRadius').value) || 50;
             
             if (isNaN(lat) || isNaN(lng)) {
-                resultsDiv.innerHTML = '<div class="alert alert-danger">Please enter your location first</div>';
+                resultsDiv.innerHTML = '<div class="alert alert-danger">Please get your location first</div>';
                 return;
             }
             
-            try {
-                var query = db
-                    .from('user_availability')
-                    .select('*, profiles (display_name, first_name)')
-                    .eq('is_available', true);
-                
-                if (document.getElementById('needPickup').checked) query = query.eq('can_pickup', true);
-                if (document.getElementById('needGarage').checked) query = query.eq('can_provide_garage', true);
-                if (document.getElementById('needStay').checked) query = query.eq('can_provide_accommodation', true);
-                if (document.getElementById('needMeet').checked) query = query.eq('can_meet_for_drinks', true);
-                
-                var response = await query;
-                
-                if (response.error) throw response.error;
-                
-                var data = response.data;
-                if (!data || data.length === 0) {
-                    resultsDiv.innerHTML = '<div class="alert alert-info">No helpers found. Try increasing the search radius.</div>';
-                    return;
-                }
-                
-                var helpersInRange = data.filter(function(h) {
-                    if (!h.latitude || !h.longitude) return false;
-                    var dist = getDistance(lat, lng, h.latitude, h.longitude);
-                    h.distance = dist;
-                    return dist <= radius;
-                }).sort(function(a, b) { return a.distance - b.distance; });
-                
-                if (helpersInRange.length === 0) {
-                    resultsDiv.innerHTML = '<div class="alert alert-info">No helpers found within ' + radius + 'km.</div>';
-                    return;
-                }
-                
-                var html = '';
-                helpersInRange.forEach(function(h) {
-                    var name = (h.profiles && h.profiles.display_name) || (h.profiles && h.profiles.first_name) || 'Anonymous Helper';
-                    var services = [];
-                    if (h.can_pickup) services.push('🚗 Pickup');
-                    if (h.can_provide_garage) services.push('🔧 Garage');
-                    if (h.can_provide_accommodation) services.push('🏠 Stay');
-                    if (h.can_meet_for_drinks) services.push('🍺 Meetup');
-                    if (h.can_provide_local_advice) services.push('💡 Advice');
-                    
-                    html += '<div class="helper-card">';
-                    html += '<h4>' + name + '</h4>';
-                    html += '<p class="distance">📍 ' + h.distance.toFixed(1) + ' km away - ' + (h.current_location_name || 'Location not specified') + '</p>';
-                    html += '<div class="services">';
-                    services.forEach(function(s) { html += '<span class="service-tag">' + s + '</span>'; });
-                    html += '</div>';
-                    html += '<button class="btn btn-primary" style="margin-top: 12px;">💬 Contact</button>';
-                    html += '</div>';
-                });
-                
-                resultsDiv.innerHTML = html;
-            } catch (error) {
-                resultsDiv.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+            // Clear existing markers
+            markers.forEach(m => helpersMap.removeLayer(m));
+            markers = [];
+            
+            // Add user marker
+            var userMarker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background:#3b82f6;color:white;padding:8px;border-radius:50%;font-size:16px;">📍</div>',
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18]
+                })
+            }).addTo(helpersMap).bindPopup('<strong>You are here</strong>');
+            markers.push(userMarker);
+            
+            // Search helpers
+            var query = db.from('user_availability')
+                .select('*, profiles(id, display_name, first_name)')
+                .eq('is_available', true);
+            
+            if (document.getElementById('needPickup').checked) query = query.eq('can_pickup', true);
+            if (document.getElementById('needGarage').checked) query = query.eq('can_provide_garage', true);
+            if (document.getElementById('needStay').checked) query = query.eq('can_provide_accommodation', true);
+            if (document.getElementById('needMeet').checked) query = query.eq('can_meet_for_drinks', true);
+            
+            var response = await query;
+            if (response.error) {
+                resultsDiv.innerHTML = '<div class="alert alert-danger">Error: ' + response.error.message + '</div>';
+                return;
             }
+            
+            currentHelpers = (response.data || []).filter(h => {
+                if (!h.latitude || !h.longitude) return false;
+                h.distance = getDistance(lat, lng, h.latitude, h.longitude);
+                return h.distance <= radius;
+            }).sort((a, b) => a.distance - b.distance);
+            
+            if (currentHelpers.length === 0) {
+                resultsDiv.innerHTML = '<div class="alert alert-info">No helpers found in this area. Try increasing the radius.</div>';
+                return;
+            }
+            
+            // Add helper markers
+            currentHelpers.forEach((h, i) => {
+                var name = (h.profiles && h.profiles.display_name) || 'Helper';
+                var marker = L.marker([h.latitude, h.longitude], {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background:#10b981;color:white;padding:8px 12px;border-radius:20px;font-size:12px;white-space:nowrap;">' + name + '</div>',
+                        iconAnchor: [20, 20]
+                    })
+                }).addTo(helpersMap);
+                
+                var services = [];
+                if (h.can_pickup) services.push('🚗');
+                if (h.can_provide_garage) services.push('🔧');
+                if (h.can_provide_accommodation) services.push('🏠');
+                if (h.can_meet_for_drinks) services.push('🍺');
+                
+                marker.bindPopup(`
+                    <strong>${name}</strong><br>
+                    📍 ${h.distance.toFixed(1)} km<br>
+                    ${services.join(' ')}<br>
+                    <button onclick="openContactModal(${i})" style="margin-top:8px;padding:6px 12px;background:#1F4788;color:white;border:none;border-radius:4px;cursor:pointer;">Contact</button>
+                `);
+                markers.push(marker);
+            });
+            
+            // Fit map to markers
+            var group = L.featureGroup(markers);
+            helpersMap.fitBounds(group.getBounds().pad(0.1));
+            
+            // Render list
+            var html = '';
+            currentHelpers.forEach((h, i) => {
+                var name = (h.profiles && h.profiles.display_name) || 'Anonymous';
+                var services = [];
+                if (h.can_pickup) services.push('🚗 Pickup');
+                if (h.can_provide_garage) services.push('🔧 Garage');
+                if (h.can_provide_accommodation) services.push('🏠 Stay');
+                if (h.can_meet_for_drinks) services.push('🍺 Meetup');
+                if (h.can_provide_local_advice) services.push('💡 Advice');
+                
+                html += `
+                    <div class="helper-card">
+                        <h4>${name}</h4>
+                        <p class="distance">📍 ${h.distance.toFixed(1)} km away - ${h.current_location_name || 'Location not specified'}</p>
+                        <div class="services">${services.map(s => '<span class="service-tag">' + s + '</span>').join('')}</div>
+                        <div class="actions">
+                            <button class="btn btn-primary btn-sm" onclick="openContactModal(${i})">📨 Contact</button>
+                            <button class="btn btn-secondary btn-sm" onclick="focusHelper(${i})">🗺️ Show on Map</button>
+                        </div>
+                    </div>
+                `;
+            });
+            resultsDiv.innerHTML = html;
         }
         
-        // Calculate distance
+        function focusHelper(index) {
+            var h = currentHelpers[index];
+            helpersMap.setView([h.latitude, h.longitude], 14);
+            markers[index + 1].openPopup(); // +1 because user marker is first
+        }
+        
         function getDistance(lat1, lng1, lat2, lng2) {
             var R = 6371;
             var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -978,25 +1489,246 @@
             var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                     Math.sin(dLng/2) * Math.sin(dLng/2);
-            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
         
-        // SOS Functions
+        // =====================================================
+        // CONTACT & INTERACTIONS
+        // =====================================================
+        function openContactModal(index) {
+            selectedHelper = currentHelpers[index];
+            var name = (selectedHelper.profiles && selectedHelper.profiles.display_name) || 'Helper';
+            
+            document.getElementById('contactHelperInfo').innerHTML = `
+                <div style="text-align:center;margin-bottom:20px;">
+                    <div style="font-size:48px;">👤</div>
+                    <h3>${name}</h3>
+                    <p style="color:var(--text-light);">📍 ${selectedHelper.distance.toFixed(1)} km away</p>
+                </div>
+            `;
+            
+            document.getElementById('contactModal').classList.add('active');
+        }
+        
+        function closeContactModal() {
+            document.getElementById('contactModal').classList.remove('active');
+            selectedHelper = null;
+        }
+        
+        async function sendContactRequest() {
+            if (!currentUser || !selectedHelper) return;
+            
+            // Create interaction record
+            var response = await db.from('interactions').insert({
+                requester_id: currentUser.id,
+                helper_id: selectedHelper.profiles.id,
+                interaction_type: document.getElementById('contactType').value,
+                status: 'pending',
+                notes: document.getElementById('contactMessage').value
+            });
+            
+            if (response.error) {
+                alert('Error: ' + response.error.message);
+            } else {
+                alert('✅ Request sent! The helper will be notified.');
+                closeContactModal();
+            }
+        }
+        
+        // =====================================================
+        // ACTIVITY & FEEDBACK
+        // =====================================================
+        async function checkPendingFeedback() {
+            if (!currentUser) return;
+            
+            var response = await db.from('interactions')
+                .select('*')
+                .or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`)
+                .eq('status', 'completed')
+                .or(`and(requester_id.eq.${currentUser.id},requester_feedback_given.eq.false),and(helper_id.eq.${currentUser.id},helper_feedback_given.eq.false)`);
+            
+            var pendingCount = response.data ? response.data.length : 0;
+            var badge = document.getElementById('pendingFeedback');
+            
+            if (pendingCount > 0) {
+                badge.classList.remove('hidden');
+                badge.textContent = '⚠️ ' + pendingCount + ' Feedback Required';
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+        
+        async function loadActivity() {
+            if (!currentUser) return;
+            
+            // Load pending feedback
+            var pendingResponse = await db.from('interactions')
+                .select('*, requester:requester_id(display_name), helper:helper_id(display_name)')
+                .or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`)
+                .eq('status', 'completed');
+            
+            var pendingDiv = document.getElementById('pendingInteractions');
+            var pending = (pendingResponse.data || []).filter(i => {
+                if (i.requester_id === currentUser.id && !i.requester_feedback_given) return true;
+                if (i.helper_id === currentUser.id && !i.helper_feedback_given) return true;
+                return false;
+            });
+            
+            if (pending.length > 0) {
+                document.getElementById('pendingFeedbackAlert').classList.remove('hidden');
+                pendingDiv.innerHTML = pending.map(i => {
+                    var otherUser = i.requester_id === currentUser.id ? i.helper : i.requester;
+                    var name = otherUser ? otherUser.display_name : 'Unknown';
+                    return `
+                        <div class="interaction-card needs-feedback">
+                            <div class="interaction-header">
+                                <span class="interaction-type">${i.interaction_type}</span>
+                                <span class="interaction-status status-needs-feedback">Feedback Required</span>
+                            </div>
+                            <p><strong>With:</strong> ${name}</p>
+                            <p><strong>Date:</strong> ${new Date(i.completed_at || i.created_at).toLocaleDateString()}</p>
+                            <button class="btn btn-warning btn-sm" onclick="openFeedbackModal('${i.id}', '${name}')" style="margin-top:12px;">⭐ Give Feedback</button>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                document.getElementById('pendingFeedbackAlert').classList.add('hidden');
+                pendingDiv.innerHTML = '<p style="color:var(--text-light);">No pending feedback 🎉</p>';
+            }
+            
+            // Load recent activity
+            var recentResponse = await db.from('interactions')
+                .select('*, requester:requester_id(display_name), helper:helper_id(display_name)')
+                .or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`)
+                .order('created_at', { ascending: false })
+                .limit(10);
+            
+            var recentDiv = document.getElementById('recentActivity');
+            var recent = recentResponse.data || [];
+            
+            if (recent.length > 0) {
+                recentDiv.innerHTML = recent.map(i => {
+                    var otherUser = i.requester_id === currentUser.id ? i.helper : i.requester;
+                    var name = otherUser ? otherUser.display_name : 'Unknown';
+                    var statusClass = i.status === 'completed' ? 'status-completed' : 'status-pending';
+                    return `
+                        <div class="interaction-card">
+                            <div class="interaction-header">
+                                <span class="interaction-type">${i.interaction_type}</span>
+                                <span class="interaction-status ${statusClass}">${i.status}</span>
+                            </div>
+                            <p><strong>With:</strong> ${name}</p>
+                            <p><strong>Date:</strong> ${new Date(i.created_at).toLocaleDateString()}</p>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                recentDiv.innerHTML = '<p style="color:var(--text-light);">No activity yet. Start by finding helpers!</p>';
+            }
+        }
+        
+        // =====================================================
+        // FEEDBACK MODAL
+        // =====================================================
+        function openFeedbackModal(interactionId, userName) {
+            currentInteractionId = interactionId;
+            selectedRating = null;
+            document.getElementById('feedbackUserName').textContent = userName;
+            document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('feedbackComment').value = '';
+            document.getElementById('feedbackWouldAgain').checked = true;
+            document.getElementById('photoPreview').classList.add('hidden');
+            document.getElementById('feedbackModal').classList.add('active');
+        }
+        
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.remove('active');
+            currentInteractionId = null;
+        }
+        
+        function selectRating(rating) {
+            selectedRating = rating;
+            document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelector('.rating-btn.' + rating).classList.add('selected');
+        }
+        
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        async function submitFeedback() {
+            if (!selectedRating) {
+                alert('Please select a rating');
+                return;
+            }
+            
+            // Get interaction details
+            var interactionRes = await db.from('interactions').select('*').eq('id', currentInteractionId).single();
+            if (!interactionRes.data) {
+                alert('Error loading interaction');
+                return;
+            }
+            
+            var interaction = interactionRes.data;
+            var isRequester = interaction.requester_id === currentUser.id;
+            var toUserId = isRequester ? interaction.helper_id : interaction.requester_id;
+            
+            // Insert feedback
+            var feedbackResponse = await db.from('feedback').insert({
+                interaction_id: currentInteractionId,
+                from_user_id: currentUser.id,
+                to_user_id: toUserId,
+                rating: selectedRating,
+                comment: document.getElementById('feedbackComment').value,
+                would_interact_again: document.getElementById('feedbackWouldAgain').checked,
+                interaction_type: interaction.interaction_type
+            });
+            
+            if (feedbackResponse.error) {
+                alert('Error: ' + feedbackResponse.error.message);
+                return;
+            }
+            
+            // Update interaction
+            var updateField = isRequester ? 'requester_feedback_given' : 'helper_feedback_given';
+            await db.from('interactions').update({ [updateField]: true }).eq('id', currentInteractionId);
+            
+            closeFeedbackModal();
+            checkPendingFeedback();
+            loadActivity();
+            alert('✅ Thank you for your feedback!');
+        }
+        
+        // =====================================================
+        // SOS
+        // =====================================================
+        function getSOSLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    document.getElementById('sosLat').value = pos.coords.latitude.toFixed(6);
+                    document.getElementById('sosLng').value = pos.coords.longitude.toFixed(6);
+                }, err => alert('Error: ' + err.message), { enableHighAccuracy: true });
+            }
+        }
+        
         function startSOS() {
             var btn = document.getElementById('sosButton');
             var progress = document.getElementById('sosProgress');
-            var status = document.getElementById('sosStatus');
-            
             btn.classList.add('holding');
             sosStartTime = Date.now();
-            status.textContent = 'Hold for 3 seconds to send SOS...';
+            document.getElementById('sosStatus').textContent = 'Hold for 3 seconds...';
             
             sosTimer = setInterval(function() {
                 var elapsed = Date.now() - sosStartTime;
-                var percent = Math.min((elapsed / 3000) * 100, 100);
-                progress.style.width = percent + '%';
-                
+                progress.style.width = Math.min((elapsed / 3000) * 100, 100) + '%';
                 if (elapsed >= 3000) {
                     cancelSOS();
                     triggerSOS();
@@ -1005,67 +1737,35 @@
         }
         
         function cancelSOS() {
-            var btn = document.getElementById('sosButton');
-            var progress = document.getElementById('sosProgress');
-            var status = document.getElementById('sosStatus');
-            
-            btn.classList.remove('holding');
-            progress.style.width = '0%';
-            if (!sosTimer) status.textContent = '';
-            
-            if (sosTimer) {
-                clearInterval(sosTimer);
-                sosTimer = null;
-            }
+            document.getElementById('sosButton').classList.remove('holding');
+            document.getElementById('sosProgress').style.width = '0%';
+            if (sosTimer) { clearInterval(sosTimer); sosTimer = null; }
         }
         
         function triggerSOS() {
-            var status = document.getElementById('sosStatus');
-            status.textContent = '🚨 SOS TRIGGERED! Alerting nearby helpers...';
-            status.style.color = 'var(--danger)';
-            status.style.fontWeight = 'bold';
+            document.getElementById('sosStatus').textContent = '🚨 SOS TRIGGERED!';
+            document.getElementById('sosStatus').style.color = 'var(--danger)';
             
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async function(position) {
-                    await createSOSFromButton(position.coords.latitude, position.coords.longitude);
-                }, function() {
-                    status.textContent = '⚠️ Could not get location. Use the form below.';
+                navigator.geolocation.getCurrentPosition(async function(pos) {
+                    await db.from('sos_alerts').insert({
+                        user_id: currentUser.id,
+                        alert_type: 'emergency',
+                        severity: 'critical',
+                        description: 'EMERGENCY SOS',
+                        latitude: pos.coords.latitude,
+                        longitude: pos.coords.longitude,
+                        status: 'active'
+                    });
+                    document.getElementById('sosStatus').textContent = '✅ SOS sent!';
                 });
             }
         }
         
-        async function createSOSFromButton(lat, lng) {
-            if (!db || !currentUser) {
-                document.getElementById('sosStatus').textContent = '⚠️ Please sign in first';
-                return;
-            }
-            
-            var response = await db.from('sos_alerts').insert({
-                user_id: currentUser.id,
-                alert_type: 'emergency',
-                severity: 'critical',
-                description: 'EMERGENCY SOS - Immediate assistance needed',
-                latitude: lat,
-                longitude: lng,
-                status: 'active',
-                created_at: new Date().toISOString()
-            });
-            
-            if (response.error) {
-                document.getElementById('sosStatus').textContent = '❌ Error: ' + response.error.message;
-            } else {
-                document.getElementById('sosStatus').textContent = '✅ SOS sent! Nearby helpers have been notified.';
-            }
-        }
-        
         async function handleCreateSOS() {
-            if (!db || !currentUser) {
-                alert('Please sign in first');
-                return;
-            }
-            
+            if (!currentUser) { alert('Please sign in'); return; }
             var resultDiv = document.getElementById('sosResult');
-            resultDiv.innerHTML = '<div class="alert alert-info">Sending alert...</div>';
+            resultDiv.innerHTML = '<div class="alert alert-info">Sending...</div>';
             
             var response = await db.from('sos_alerts').insert({
                 user_id: currentUser.id,
@@ -1074,16 +1774,22 @@
                 description: document.getElementById('sosDescription').value,
                 latitude: parseFloat(document.getElementById('sosLat').value) || null,
                 longitude: parseFloat(document.getElementById('sosLng').value) || null,
-                status: 'active',
-                created_at: new Date().toISOString()
+                status: 'active'
             });
             
-            if (response.error) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + response.error.message + '</div>';
-            } else {
-                resultDiv.innerHTML = '<div class="alert alert-success">✅ Help request sent!</div>';
-                document.getElementById('sosDescription').value = '';
-            }
+            resultDiv.innerHTML = response.error ?
+                '<div class="alert alert-danger">❌ ' + response.error.message + '</div>' :
+                '<div class="alert alert-success">✅ Help request sent!</div>';
+        }
+        
+        // =====================================================
+        // UTILITIES
+        // =====================================================
+        function selectRadio(name, value) {
+            document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+                r.checked = r.value === value;
+                r.closest('.radio-item').classList.toggle('selected', r.checked);
+            });
         }
     </script>
 </body>
