@@ -3953,9 +3953,8 @@
         }
         
         // ==================== MESSAGING SYSTEM ====================
-        let currentChatUserId = null;
+        // Variables currentChatUserId and messageSubscription already declared above
         let currentChatContext = null; // {type: 'sos'|'traveler'|'general', id: sosAlertId or null}
-        let messageSubscription = null;
         
         // Load conversations for Messages tab
         async function loadConversations(){
