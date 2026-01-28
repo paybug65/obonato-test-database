@@ -1362,12 +1362,12 @@
         function showLoggedInTabs(){document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.remove('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.add('hidden')}
         async function checkAuth(){if(!db)return;const{data}=await db.auth.getUser();if(data&&data.user){currentUser=data.user;await onUserLoggedIn()}}
         async function onUserLoggedIn(){
-            const dn=generateAnonymousName(currentUser.email);
+            const dn=generateAnonymousName(currentUser.id);
             document.getElementById('userArea').classList.remove('hidden');
             document.getElementById('userDisplayName').textContent=dn;
-            renderAvatar(currentUser.email,document.getElementById('userAvatar'));
+            renderAvatar(currentUser.id,document.getElementById('userAvatar'));
             document.getElementById('profileDisplayName').textContent=dn;
-            renderAvatar(currentUser.email,document.getElementById('profileAvatar'));
+            renderAvatar(currentUser.id,document.getElementById('profileAvatar'));
             showLoggedInTabs();
             showTab('dashboard',document.querySelector('[data-tab="dashboard"]'));
             await loadProfile();
@@ -1516,7 +1516,7 @@
             }
         }
         async function handleSignIn(){const e=document.getElementById('signInEmail').value,p=document.getElementById('signInPassword').value,r=document.getElementById('signInResult');if(!e||!p){r.innerHTML='<div class="alert alert-danger">Enter credentials</div>';return}r.innerHTML='<div class="alert alert-info">Signing in...</div>';const{data,error}=await db.auth.signInWithPassword({email:e,password:p});if(error)r.innerHTML='<div class="alert alert-danger">❌ '+error.message+'</div>';else{currentUser=data.user;r.innerHTML='<div class="alert alert-success">✅ Welcome!</div>';await onUserLoggedIn()}}
-        async function handleSignUp(){const e=document.getElementById('signUpEmail').value,p=document.getElementById('signUpPassword').value,r=document.getElementById('signUpResult');if(!e||!p){r.innerHTML='<div class="alert alert-danger">Enter credentials</div>';return}const dn=generateAnonymousName(e);r.innerHTML='<div class="alert alert-info">Creating...</div>';const{error}=await db.auth.signUp({email:e,password:p,options:{data:{display_name:dn}}});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':`<div class="alert alert-success">✅ Created! Name: <strong>${dn}</strong>. Check email.</div>`}
+        async function handleSignUp(){const e=document.getElementById('signUpEmail').value,p=document.getElementById('signUpPassword').value,r=document.getElementById('signUpResult');if(!e||!p){r.innerHTML='<div class="alert alert-danger">Enter credentials</div>';return}r.innerHTML='<div class="alert alert-info">Creating...</div>';const{error}=await db.auth.signUp({email:e,password:p});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':`<div class="alert alert-success">✅ Account created! Check your email to confirm, then sign in to see your anonymous identity.</div>`}
         async function handleSignOut(){await db.auth.signOut();currentUser=null;userProfile=null;document.getElementById('userArea').classList.add('hidden');document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.add('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.remove('hidden');showTab('auth',document.querySelector('[data-tab="auth"]'));showSignIn()}
         
         // Location
@@ -1901,7 +1901,7 @@
             const lng=parseFloat(document.getElementById('profileHomeLng').value);
             const d={
                 id:currentUser.id,
-                display_name:generateAnonymousName(currentUser.email),
+                display_name:generateAnonymousName(currentUser.id),
                 first_name:document.getElementById('profileFirstName').value,
                 last_name:document.getElementById('profileSurname').value,
                 phone:document.getElementById('profileMobile').value,
