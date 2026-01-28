@@ -3248,7 +3248,150 @@
         }
         
         // Activity & Feedback
-        async function checkPendingFeedback(){if(!currentUser)return;const{data}=await db.from('interactions').select('*').or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`).eq('status','completed');const pending=(data||[]).filter(i=>(i.requester_id===currentUser.id&&!i.requester_feedback_given)||(i.helper_id===currentUser.id&&!i.helper_feedback_given));const badge=document.getElementById('pendingBadge');if(pending.length>0){badge.classList.remove('hidden');badge.textContent='⚠️ '+pending.length}else badge.classList.add('hidden')}
+        async function checkPendingFeedback(){
+            if(!currentUser) return;
+            
+            const{data} = await db.from('interactions')
+                .select('*')
+                .or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`)
+                .eq('status','completed');
+            
+            const pending = (data||[]).filter(i => 
+                (i.requester_id===currentUser.id && !i.requester_feedback_given) || 
+                (i.helper_id===currentUser.id && !i.helper_feedback_given)
+            );
+            
+            const badge = document.getElementById('pendingBadge');
+            if(pending.length > 0){
+                badge.classList.remove('hidden');
+                badge.textContent = '⚠️ ' + pending.length;
+                
+                // Force feedback modal for first pending interaction
+                const first = pending[0];
+                const isRequester = first.requester_id === currentUser.id;
+                const otherUserId = isRequester ? first.helper_id : first.requester_id;
+                const name = generateAnonymousName(otherUserId || 'unknown');
+                
+                // Show blocking feedback modal
+                showFeedbackBlockingModal(first.id, name, otherUserId, pending.length);
+            } else {
+                badge.classList.add('hidden');
+                hideFeedbackBlockingModal();
+            }
+        }
+        
+        function showFeedbackBlockingModal(interactionId, name, otherUserId, totalPending){
+            currentInteractionId = interactionId;
+            
+            let modal = document.getElementById('feedbackBlockingModal');
+            if(!modal){
+                // Create blocking modal if doesn't exist
+                modal = document.createElement('div');
+                modal.id = 'feedbackBlockingModal';
+                modal.className = 'modal-overlay active';
+                modal.style.cssText = 'z-index: 2000;';
+                modal.innerHTML = `
+                    <div class="modal" style="max-width: 450px;">
+                        <div class="modal-header" style="background: linear-gradient(135deg, var(--warning), #d97706); color: white;">
+                            <h2>⚠️ Feedback Required</h2>
+                        </div>
+                        <div class="modal-body">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <p style="font-size: 16px; margin-bottom: 12px;">Before continuing, please rate your interaction with:</p>
+                                <p id="blockingFeedbackName" style="font-size: 20px; font-weight: 700;"></p>
+                                <p id="blockingFeedbackCount" style="color: var(--text-light); font-size: 13px; margin-top: 8px;"></p>
+                            </div>
+                            
+                            <p style="font-weight: 600; margin-bottom: 12px; text-align: center;">How was your experience?</p>
+                            <div class="rating-buttons" id="blockingRatingButtons" style="margin-bottom: 20px;">
+                                <button class="rating-btn positive" onclick="selectBlockingRating('positive')"><span class="emoji">👍</span><span class="label">Positive</span></button>
+                                <button class="rating-btn neutral" onclick="selectBlockingRating('neutral')"><span class="emoji">😐</span><span class="label">Neutral</span></button>
+                                <button class="rating-btn negative" onclick="selectBlockingRating('negative')"><span class="emoji">👎</span><span class="label">Negative</span></button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Comment (optional)</label>
+                                <textarea class="form-control" id="blockingFeedbackComment" rows="2" placeholder="Share your experience..."></textarea>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blockingWouldAgain" checked>
+                                <label for="blockingWouldAgain">Would interact with this person again</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary btn-block" id="blockingSubmitBtn" onclick="submitBlockingFeedback()" disabled style="opacity: 0.5;">
+                                ⭐ Submit Feedback to Continue
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            document.getElementById('blockingFeedbackName').textContent = name;
+            document.getElementById('blockingFeedbackCount').textContent = totalPending > 1 
+                ? `(${totalPending} feedback${totalPending > 1 ? 's' : ''} pending)` 
+                : '';
+            
+            // Reset state
+            window.blockingSelectedRating = null;
+            window.blockingOtherUserId = otherUserId;
+            document.querySelectorAll('#blockingRatingButtons .rating-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('blockingFeedbackComment').value = '';
+            document.getElementById('blockingWouldAgain').checked = true;
+            document.getElementById('blockingSubmitBtn').disabled = true;
+            document.getElementById('blockingSubmitBtn').style.opacity = '0.5';
+            
+            modal.classList.add('active');
+        }
+        
+        function hideFeedbackBlockingModal(){
+            const modal = document.getElementById('feedbackBlockingModal');
+            if(modal) modal.classList.remove('active');
+        }
+        
+        function selectBlockingRating(rating){
+            window.blockingSelectedRating = rating;
+            document.querySelectorAll('#blockingRatingButtons .rating-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelector(`#blockingRatingButtons .rating-btn.${rating}`).classList.add('selected');
+            document.getElementById('blockingSubmitBtn').disabled = false;
+            document.getElementById('blockingSubmitBtn').style.opacity = '1';
+        }
+        
+        async function submitBlockingFeedback(){
+            if(!window.blockingSelectedRating || !currentInteractionId) return;
+            
+            const{data: interaction} = await db.from('interactions').select('*').eq('id', currentInteractionId).single();
+            if(!interaction) return;
+            
+            const isRequester = interaction.requester_id === currentUser.id;
+            
+            // Insert feedback
+            await db.from('feedback').insert({
+                interaction_id: currentInteractionId,
+                from_user_id: currentUser.id,
+                to_user_id: window.blockingOtherUserId,
+                rating: window.blockingSelectedRating,
+                comment: document.getElementById('blockingFeedbackComment').value,
+                would_interact_again: document.getElementById('blockingWouldAgain').checked,
+                interaction_type: interaction.interaction_type
+            });
+            
+            // Update interaction to mark feedback given
+            await db.from('interactions').update({
+                [isRequester ? 'requester_feedback_given' : 'helper_feedback_given']: true
+            }).eq('id', currentInteractionId);
+            
+            // Update verification count for the other user
+            await updateVerificationCount(window.blockingOtherUserId);
+            
+            // Check for more pending feedback
+            await checkPendingFeedback();
+            
+            // Refresh stats
+            loadDashboardStats();
+        }
         async function loadActivity(){
             if(!currentUser) return;
             const{data} = await db.from('interactions')
@@ -3609,6 +3752,7 @@
             }
             
             checkPendingFeedback();
+            loadDashboardStats();
         }
         
         // In-App Messaging
