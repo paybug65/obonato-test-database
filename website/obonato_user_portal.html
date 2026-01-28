@@ -1380,8 +1380,8 @@
             </div>
             <div class="modal-footer" style="flex-direction: column; gap: 12px;">
                 <div style="display: flex; gap: 12px; width: 100%;">
-                    <button class="btn btn-primary" onclick="messageFromViewRequest()" style="flex: 1;">💬 Message</button>
-                    <button class="btn btn-success" onclick="helpFromViewRequest()" style="flex: 1;">🚗 I'll Help!</button>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); messageFromViewRequest()" style="flex: 1;">💬 Message</button>
+                    <button class="btn btn-success" onclick="event.stopPropagation(); helpFromViewRequest()" style="flex: 1;">🚗 I'll Help!</button>
                 </div>
                 <button class="btn btn-secondary" onclick="closeViewRequestModal()" style="width: 100%;">Close</button>
             </div>
@@ -4080,12 +4080,14 @@
         let viewRequestData = null;
         
         function openViewRequestModal(requestId){
+            console.log('openViewRequestModal called with:', requestId);
             const request = window.nearbySOSRequests?.find(r => r.id === requestId);
             if(!request){
                 alert('Request not found');
                 return;
             }
             viewRequestData = request;
+            console.log('viewRequestData set to:', viewRequestData);
             
             const av = generateAvatarData(request.user_id);
             const name = generateAnonymousName(request.user_id);
@@ -4151,21 +4153,29 @@
         }
         
         function messageFromViewRequest(){
-            if(!viewRequestData) return;
+            if(!viewRequestData){
+                console.log('messageFromViewRequest: No viewRequestData');
+                return;
+            }
             // Capture data before closing modal
             const userId = viewRequestData.user_id;
             const sosId = viewRequestData.id;
             const alertType = viewRequestData.alert_type;
             const name = generateAnonymousName(userId);
             
+            console.log('messageFromViewRequest:', {userId, sosId, alertType, name});
+            
             // Close the view modal first
             document.getElementById('viewRequestModal').classList.remove('active');
-            
-            // Then open chat (don't clear viewRequestData until after)
-            openUniversalChat(userId, name, {type: 'sos', id: sosId, label: alertType});
-            
-            // Now clear it
             viewRequestData = null;
+            
+            // Then open chat
+            try {
+                openUniversalChat(userId, name, {type: 'sos', id: sosId, label: alertType});
+            } catch(e) {
+                console.error('Error opening chat:', e);
+                alert('Error opening chat: ' + e.message);
+            }
         }
         
         function helpFromViewRequest(){
