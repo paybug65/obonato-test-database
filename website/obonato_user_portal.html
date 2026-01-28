@@ -4082,12 +4082,17 @@
             }
             console.log('markSOSResolved: SOS status updated to resolved');
             
-            // Mark any accepted interactions as completed
-            const{error: intUpdateError} = await db.from('interactions')
-                .update({status: 'completed', updated_at: new Date().toISOString()})
-                .eq('sos_alert_id', id);
-            
-            console.log('markSOSResolved: Interaction update result:', intUpdateError ? 'Error: ' + intUpdateError.message : 'Success');
+            // Mark each interaction as completed by its own ID
+            if(interactions && interactions.length > 0){
+                for(const interaction of interactions){
+                    console.log('markSOSResolved: Updating interaction', interaction.id, 'to completed');
+                    const{error: intUpdateError} = await db.from('interactions')
+                        .update({status: 'completed', updated_at: new Date().toISOString()})
+                        .eq('id', interaction.id);
+                    
+                    console.log('markSOSResolved: Interaction', interaction.id, 'update result:', intUpdateError ? 'Error: ' + intUpdateError.message : 'Success');
+                }
+            }
             
             loadActiveSOSRequests();
             
