@@ -2737,7 +2737,7 @@
             }).join('');
             
             div.innerHTML = filterButtons + 
-                `<div style="max-height:300px;overflow-y:auto;padding-right:4px;">
+                `<div style="max-height:500px;overflow-y:auto;padding-right:4px;">
                     ${filtered.length ? cards : '<p style="color:var(--text-light);text-align:center;padding:20px;">No requests match this filter.</p>'}
                 </div>`;
         }
@@ -3270,7 +3270,7 @@
             const{data, error} = await db.from('sos_alerts')
                 .select('*')
                 .eq('user_id', currentUser.id)
-                .eq('status', 'active')
+                .in('status', ['active', 'help_coming'])
                 .order('created_at', {ascending: false});
             
             if(error || !data || data.length === 0){
@@ -3283,11 +3283,13 @@
                 
                 list.innerHTML = data.map(s => {
                     const created = new Date(s.created_at).toLocaleString('en-NZ', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+                    const isHelpComing = s.status === 'help_coming';
                     return `
-                    <div class="request-card" style="margin-bottom: 16px; border-left: 4px solid ${severityColors[s.severity] || '#ccc'};">
+                    <div class="request-card" style="margin-bottom: 16px; border-left: 4px solid ${isHelpComing ? 'var(--success)' : (severityColors[s.severity] || '#ccc')}; ${isHelpComing ? 'background: linear-gradient(135deg, #f0fdf4, #dcfce7);' : ''}">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div>
                                 <h4 style="margin: 0 0 8px;">${typeIcons[s.alert_type] || '❓'} ${s.alert_type.charAt(0).toUpperCase() + s.alert_type.slice(1)}</h4>
+                                ${isHelpComing ? `<p style="color: var(--success); font-weight: 700; margin: 0 0 8px;">🚗 Help is on the way!</p>` : ''}
                                 <p style="color: var(--text-light); font-size: 13px; margin: 0 0 8px;">📅 ${created}</p>
                                 ${s.description ? `<p style="margin: 0; color: var(--text-light);">${s.description}</p>` : ''}
                             </div>
