@@ -602,10 +602,12 @@
                     <div class="form-group"><label>Search Radius (km)</label><input type="number" class="form-control" id="searchRadius" value="50"></div>
                 </div>
                 <div class="checkbox-group" style="margin-bottom: 24px;">
-                    <div class="checkbox-item"><input type="checkbox" id="needPickup"><label>🚗 Pickup</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="needGarage"><label>🔧 Garage</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="needStay"><label>🏠 Stay</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needPickup"><label>🚗 Pickup/Trailer</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needGarage"><label>🔧 Workshop</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needStay"><label>🏠 Accommodation</label></div>
                     <div class="checkbox-item"><input type="checkbox" id="needMeet"><label>🍺 Meetup</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needAdvice"><label>💡 Advice</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="needHelp"><label>🆘 Help</label></div>
                 </div>
                 <button class="btn btn-primary" onclick="handleSearchHelpers()">🔍 Search Helpers</button>
             </div>
@@ -1477,6 +1479,8 @@
             if(document.getElementById('needGarage').checked)q=q.eq('can_provide_garage',true);
             if(document.getElementById('needStay').checked)q=q.eq('can_provide_accommodation',true);
             if(document.getElementById('needMeet').checked)q=q.eq('can_meet_for_drinks',true);
+            if(document.getElementById('needAdvice').checked)q=q.eq('can_provide_local_advice',true);
+            if(document.getElementById('needHelp').checked)q=q.eq('can_provide_help',true);
             
             const{data,error}=await q;
             if(error){
