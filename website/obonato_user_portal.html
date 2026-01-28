@@ -195,6 +195,10 @@
             background: linear-gradient(135deg, #ef4444, #dc2626) !important;
             color: white !important;
         }
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
         @keyframes heartbeat-standby {
             0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
             50% { box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.4); }
@@ -1357,7 +1361,160 @@
         }
         function showLoggedInTabs(){document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.remove('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.add('hidden')}
         async function checkAuth(){if(!db)return;const{data}=await db.auth.getUser();if(data&&data.user){currentUser=data.user;await onUserLoggedIn()}}
-        async function onUserLoggedIn(){const dn=generateAnonymousName(currentUser.email);document.getElementById('userArea').classList.remove('hidden');document.getElementById('userDisplayName').textContent=dn;renderAvatar(currentUser.email,document.getElementById('userAvatar'));document.getElementById('profileDisplayName').textContent=dn;renderAvatar(currentUser.email,document.getElementById('profileAvatar'));showLoggedInTabs();showTab('dashboard',document.querySelector('[data-tab="dashboard"]'));await loadProfile();await loadAvailability();await loadVehicles();await checkPendingFeedback();await loadDashboard()}
+        async function onUserLoggedIn(){
+            const dn=generateAnonymousName(currentUser.email);
+            document.getElementById('userArea').classList.remove('hidden');
+            document.getElementById('userDisplayName').textContent=dn;
+            renderAvatar(currentUser.email,document.getElementById('userAvatar'));
+            document.getElementById('profileDisplayName').textContent=dn;
+            renderAvatar(currentUser.email,document.getElementById('profileAvatar'));
+            showLoggedInTabs();
+            showTab('dashboard',document.querySelector('[data-tab="dashboard"]'));
+            await loadProfile();
+            await loadAvailability();
+            await loadVehicles();
+            await checkPendingFeedback();
+            await loadDashboard();
+            
+            // Setup realtime subscriptions for notifications
+            setupRealtimeSubscriptions();
+        }
+        
+        let sosSubscription = null;
+        let interactionSubscription = null;
+        
+        function setupRealtimeSubscriptions(){
+            // Subscribe to changes on interactions where I'm the requester (help coming!)
+            interactionSubscription = db.channel('my-help-coming')
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'interactions',
+                    filter: `requester_id=eq.${currentUser.id}`
+                }, async (payload) => {
+                    console.log('New help response!', payload);
+                    await notifyHelpComing(payload.new);
+                })
+                .subscribe();
+            
+            // Subscribe to changes on my SOS alerts (status changes)
+            sosSubscription = db.channel('my-sos-updates')
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'sos_alerts',
+                    filter: `user_id=eq.${currentUser.id}`
+                }, async (payload) => {
+                    console.log('SOS alert updated!', payload);
+                    if(payload.new.status === 'help_coming'){
+                        // Refresh the SOS tab
+                        await loadActiveSOSRequests();
+                    }
+                })
+                .subscribe();
+        }
+        
+        async function notifyHelpComing(interaction){
+            // Play notification sound
+            playNotificationSound();
+            
+            // Get helper info
+            const helperName = generateAnonymousName(interaction.helper_id);
+            
+            // Show browser notification if permitted
+            if(Notification.permission === 'granted'){
+                new Notification('🚗 Help is on the way!', {
+                    body: `${helperName} is coming to help you${interaction.eta ? ' - ETA: ' + interaction.eta : ''}`,
+                    icon: '🆘',
+                    tag: 'help-coming'
+                });
+            }
+            
+            // Show in-app notification banner
+            showNotificationBanner(`🚗 ${helperName} is on their way!${interaction.eta ? ' ETA: ' + interaction.eta : ''}`, 'success');
+            
+            // Refresh the incoming help section
+            await loadActiveSOSRequests();
+            
+            // If on SOS tab, scroll to incoming help
+            if(document.getElementById('sos').classList.contains('active')){
+                document.getElementById('incomingHelpSection').scrollIntoView({behavior: 'smooth'});
+            }
+        }
+        
+        function playNotificationSound(){
+            // Create a simple notification beep using Web Audio API
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.frequency.value = 880; // A5 note
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+                
+                // Second beep
+                setTimeout(() => {
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.frequency.value = 1100; // Higher note
+                    osc2.type = 'sine';
+                    gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    osc2.start(audioCtx.currentTime);
+                    osc2.stop(audioCtx.currentTime + 0.5);
+                }, 200);
+            } catch(e) {
+                console.log('Could not play notification sound:', e);
+            }
+        }
+        
+        function showNotificationBanner(message, type = 'info'){
+            // Remove any existing banner
+            const existing = document.getElementById('notificationBanner');
+            if(existing) existing.remove();
+            
+            const colors = {
+                success: {bg: '#dcfce7', border: '#22c55e', text: '#166534'},
+                danger: {bg: '#fef2f2', border: '#ef4444', text: '#991b1b'},
+                warning: {bg: '#fffbeb', border: '#f59e0b', text: '#92400e'},
+                info: {bg: '#eff6ff', border: '#3b82f6', text: '#1e40af'}
+            };
+            const c = colors[type] || colors.info;
+            
+            const banner = document.createElement('div');
+            banner.id = 'notificationBanner';
+            banner.innerHTML = `
+                <div style="position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:10000;
+                    background:${c.bg};border:2px solid ${c.border};border-radius:12px;padding:16px 24px;
+                    box-shadow:0 4px 20px rgba(0,0,0,0.15);display:flex;align-items:center;gap:12px;
+                    max-width:90%;animation:slideDown 0.3s ease-out;">
+                    <span style="font-size:24px;">🚗</span>
+                    <span style="font-weight:600;color:${c.text};">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0 0 0 12px;">×</button>
+                </div>
+            `;
+            document.body.appendChild(banner);
+            
+            // Auto-remove after 10 seconds
+            setTimeout(() => banner.remove(), 10000);
+        }
+        
+        // Request notification permission on first visit
+        function requestNotificationPermission(){
+            if('Notification' in window && Notification.permission === 'default'){
+                Notification.requestPermission();
+            }
+        }
         async function handleSignIn(){const e=document.getElementById('signInEmail').value,p=document.getElementById('signInPassword').value,r=document.getElementById('signInResult');if(!e||!p){r.innerHTML='<div class="alert alert-danger">Enter credentials</div>';return}r.innerHTML='<div class="alert alert-info">Signing in...</div>';const{data,error}=await db.auth.signInWithPassword({email:e,password:p});if(error)r.innerHTML='<div class="alert alert-danger">❌ '+error.message+'</div>';else{currentUser=data.user;r.innerHTML='<div class="alert alert-success">✅ Welcome!</div>';await onUserLoggedIn()}}
         async function handleSignUp(){const e=document.getElementById('signUpEmail').value,p=document.getElementById('signUpPassword').value,r=document.getElementById('signUpResult');if(!e||!p){r.innerHTML='<div class="alert alert-danger">Enter credentials</div>';return}const dn=generateAnonymousName(e);r.innerHTML='<div class="alert alert-info">Creating...</div>';const{error}=await db.auth.signUp({email:e,password:p,options:{data:{display_name:dn}}});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':`<div class="alert alert-success">✅ Created! Name: <strong>${dn}</strong>. Check email.</div>`}
         async function handleSignOut(){await db.auth.signOut();currentUser=null;userProfile=null;document.getElementById('userArea').classList.add('hidden');document.querySelectorAll('.tab[data-tab]').forEach(t=>{if(t.dataset.tab!=='auth')t.classList.add('hidden')});document.querySelector('.tab[data-tab="auth"]').classList.remove('hidden');showTab('auth',document.querySelector('[data-tab="auth"]'));showSignIn()}
@@ -2187,7 +2344,7 @@
             
             console.log('loadNearbyRequests: Fetching SOS alerts...');
             // Include gender from profiles for filtering, fetch both active and help_coming statuses
-            const{data:reqs, error}=await db.from('sos_alerts').select('*, profiles(id, gender)').in('status', ['active', 'help_coming']);
+            const{data:reqs, error}=await db.from('sos_alerts').select('*, requester:profiles!sos_alerts_user_id_fkey(id, gender)').in('status', ['active', 'help_coming']);
             console.log('loadNearbyRequests: Found', reqs?.length || 0, 'alerts. Error:', error);
             
             if(error){
@@ -2764,6 +2921,9 @@
                 return;
             }
             
+            // Request notification permission so they can be alerted when help responds
+            requestNotificationPermission();
+            
             result.innerHTML = '<div class="alert alert-info">📡 Sending SOS...</div>';
             
             if(navigator.geolocation){
@@ -2782,7 +2942,7 @@
                     if(error){
                         result.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
                     } else {
-                        result.innerHTML = '<div class="alert alert-success">✅ SOS sent! Help is being notified.</div>';
+                        result.innerHTML = '<div class="alert alert-success">✅ SOS sent! Help is being notified.<br><small>You\'ll be notified when someone responds.</small></div>';
                         document.getElementById('sosStatus').textContent = '✅ SOS sent!';
                         document.getElementById('sosStatus').style.color = 'var(--success)';
                         setTimeout(() => {
@@ -2797,7 +2957,40 @@
                 result.innerHTML = '<div class="alert alert-danger">⚠️ Geolocation not supported</div>';
             }
         }
-        async function handleCreateSOS(){if(!currentUser)return;const r=document.getElementById('sosResult');r.innerHTML='<div class="alert alert-info">Sending...</div>';const vid=document.getElementById('sosVehicle').value;let vinfo='';if(vid){const v=userVehicles.find(x=>x.id===vid);if(v)vinfo=`\n🚗 Vehicle: ${v.year||''} ${v.make} ${v.model} (${v.fuel_type||'Unknown'})`}const{error}=await db.from('sos_alerts').insert({user_id:currentUser.id,alert_type:document.getElementById('sosType').value,severity:document.getElementById('sosSeverity').value,description:document.getElementById('sosDescription').value+vinfo,latitude:parseFloat(document.getElementById('sosLat').value)||null,longitude:parseFloat(document.getElementById('sosLng').value)||null,status:'active'});r.innerHTML=error?'<div class="alert alert-danger">❌ '+error.message+'</div>':'<div class="alert alert-success">✅ Help request sent!</div>';if(!error){document.getElementById('sosDescription').value='';loadActiveSOSRequests()}}
+        async function handleCreateSOS(){
+            if(!currentUser)return;
+            const r=document.getElementById('sosResult');
+            r.innerHTML='<div class="alert alert-info">Sending...</div>';
+            
+            // Request notification permission
+            requestNotificationPermission();
+            
+            const vid=document.getElementById('sosVehicle').value;
+            let vinfo='';
+            if(vid){
+                const v=userVehicles.find(x=>x.id===vid);
+                if(v)vinfo=`\n🚗 Vehicle: ${v.year||''} ${v.make} ${v.model} (${v.fuel_type||'Unknown'})`;
+            }
+            
+            const{error}=await db.from('sos_alerts').insert({
+                user_id:currentUser.id,
+                alert_type:document.getElementById('sosType').value,
+                severity:document.getElementById('sosSeverity').value,
+                description:document.getElementById('sosDescription').value+vinfo,
+                latitude:parseFloat(document.getElementById('sosLat').value)||null,
+                longitude:parseFloat(document.getElementById('sosLng').value)||null,
+                status:'active'
+            });
+            
+            r.innerHTML=error
+                ? '<div class="alert alert-danger">❌ '+error.message+'</div>'
+                : '<div class="alert alert-success">✅ Help request sent!<br><small>You\'ll be notified when someone responds.</small></div>';
+            
+            if(!error){
+                document.getElementById('sosDescription').value='';
+                loadActiveSOSRequests();
+            }
+        }
         
         async function loadActiveSOSRequests(){
             if(!currentUser)return;
