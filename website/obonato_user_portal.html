@@ -1393,10 +1393,11 @@
         <div class="modal" style="max-width: 500px; height: 80vh; display: flex; flex-direction: column;">
             <div class="modal-header" style="flex-shrink: 0;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div id="chatUserAvatar" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px;"></div>
+                    <div id="uniChatAvatar" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;"></div>
                     <div>
-                        <h2 id="chatUserName" style="margin: 0; font-size: 16px;">Chat</h2>
-                        <p id="chatContext" style="margin: 0; font-size: 12px; color: var(--text-light);"></p>
+                        <p style="margin: 0; font-size: 12px; color: var(--text-light);">Chatting with</p>
+                        <h2 id="uniChatName" style="margin: 0; font-size: 18px; font-weight: 700;">User</h2>
+                        <p id="uniChatContext" style="margin: 2px 0 0; font-size: 11px; color: var(--text-light);"></p>
                     </div>
                 </div>
                 <button class="modal-close" onclick="closeUniversalChat()">×</button>
@@ -4053,6 +4054,28 @@
             return date.toLocaleDateString('en-NZ', {day: 'numeric', month: 'short'});
         }
         
+        function formatChatTimestamp(timestamp){
+            const date = new Date(timestamp);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+            const messageDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            
+            const time = date.toLocaleTimeString('en-NZ', {hour: '2-digit', minute: '2-digit'});
+            
+            if(messageDay.getTime() === today.getTime()){
+                return time; // Just time for today
+            } else if(messageDay.getTime() === yesterday.getTime()){
+                return `Yesterday ${time}`;
+            } else if(now - date < 7 * 24 * 60 * 60 * 1000){
+                // Within last week - show day name
+                return date.toLocaleDateString('en-NZ', {weekday: 'short'}) + ' ' + time;
+            } else {
+                // Older - show full date
+                return date.toLocaleDateString('en-NZ', {day: 'numeric', month: 'short'}) + ' ' + time;
+            }
+        }
+        
         // View Request Modal
         let viewRequestData = null;
         
@@ -4147,12 +4170,12 @@
             currentChatContext = context;
             
             const av = generateAvatarData(userId);
-            document.getElementById('chatUserAvatar').style.background = av.color;
-            document.getElementById('chatUserAvatar').innerHTML = av.icon;
-            document.getElementById('chatUserName').textContent = userName;
-            document.getElementById('chatContext').textContent = context?.label 
+            document.getElementById('uniChatAvatar').style.background = av.color;
+            document.getElementById('uniChatAvatar').innerHTML = av.icon;
+            document.getElementById('uniChatName').textContent = userName;
+            document.getElementById('uniChatContext').textContent = context?.label 
                 ? `Re: ${context.label}` 
-                : 'Direct message';
+                : '';
             
             document.getElementById('universalChatInput').value = '';
             document.getElementById('universalChatModal').classList.add('active');
@@ -4198,7 +4221,7 @@
             
             div.innerHTML = messages.map(m => {
                 const isMe = m.sender_id === currentUser.id;
-                const time = new Date(m.created_at).toLocaleTimeString('en-NZ', {hour: '2-digit', minute: '2-digit'});
+                const time = formatChatTimestamp(m.created_at);
                 
                 return `
                 <div style="display: flex; justify-content: ${isMe ? 'flex-end' : 'flex-start'}; margin-bottom: 8px;">
@@ -4244,7 +4267,7 @@
         function appendChatMessage(m){
             const div = document.getElementById('universalChatMessages');
             const isMe = m.sender_id === currentUser.id;
-            const time = new Date(m.created_at).toLocaleTimeString('en-NZ', {hour: '2-digit', minute: '2-digit'});
+            const time = formatChatTimestamp(m.created_at);
             
             // Remove "no messages" placeholder if present
             if(div.querySelector('div[style*="text-align: center"]')){
