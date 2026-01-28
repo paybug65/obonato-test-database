@@ -780,6 +780,7 @@
         const SUPABASE_URL = 'https://mozbpccxzfcoswvxjuym.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODY4NTQsImV4cCI6MjA4NDY2Mjg1NH0.lfOM5ojN2B1MV6wMsntGWmI7OWL7fhUJV5E8b6I48N0';
         const W3W_API_KEY = 'X6FXORRH';
+        const W3W_ENABLED = false; // Set to true when you have a valid API key
         
         let db=null,currentUser=null,userProfile=null,helpersMap=null,homeMap=null,availMap=null,dashboardMap=null;
         let markers=[],currentHelpers=[],selectedHelper=null,currentInteractionId=null,selectedRating=null;
@@ -821,6 +822,13 @@
         async function fetchW3W(lat,lng,target){
             const w3wDiv = document.getElementById(`${target}W3W`);
             const w3wValue = document.getElementById(`${target}W3WValue`);
+            
+            // Check if W3W is enabled
+            if(!W3W_ENABLED){
+                w3wDiv.classList.add('hidden');
+                return;
+            }
+            
             w3wValue.textContent = 'loading...';
             w3wDiv.classList.remove('hidden');
             
@@ -830,11 +838,12 @@
                 if (data.words) {
                     w3wValue.textContent = `///${data.words}`;
                 } else if (data.error) {
-                    w3wValue.textContent = 'Error: ' + (data.error.message || 'API error');
+                    // Quota exceeded or other API error - hide quietly
+                    w3wDiv.classList.add('hidden');
                 }
             } catch (e) {
                 console.log('W3W error:', e);
-                w3wValue.textContent = 'Unable to load';
+                w3wDiv.classList.add('hidden');
             }
         }
         
