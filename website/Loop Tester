@@ -1,1 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiriwe Core Loop Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --green: #2E7D32; --green-light: #43A047; --green-dark: #1B5E20;
+            --orange: #FF9800; --red: #E53935; --blue: #1565C0;
+            --bg: #F5F5F0; --card: #FFFFFF; --border: #E0E0DC;
+            --text: #1A1A1A; --text-mid: #5A5A5A; --text-muted: #8A8A8A;
+            --success: #4CAF50; --warning: #FF9800; --error: #E53935; --info: #2196F3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; background: var(--bg); color: var(--text); font-size: 13px; }
+
+        /* HEADER */
+        .header { background: var(--green-dark); color: white; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-left h1 { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+        .header-left .tag { background: var(--orange); color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-pill { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        .user-pill .emoji { font-size: 16px; }
+        .btn-logout { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 12px; }
+        .btn-logout:hover { background: rgba(255,255,255,0.3); }
+
+        /* LAYOUT */
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: calc(100vh - 48px); }
+        .panel { padding: 16px; overflow-y: auto; max-height: calc(100vh - 48px); }
+        .panel-left { border-right: 2px solid var(--border); background: white; }
+        .panel-right { background: #1E1E2E; color: #CDD6F4; }
+
+        /* STEPS */
+        .step-tracker { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+        .step-pip { padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); cursor: default; }
+        .step-pip.active { background: var(--green); color: white; border-color: var(--green); }
+        .step-pip.done { background: #E8F5E9; color: var(--green-dark); border-color: var(--green); }
+        .step-pip.error { background: #FFEBEE; color: var(--red); border-color: var(--red); }
+
+        /* ACTION CARD */
+        .action-card { background: white; border: 2px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+        .action-header { padding: 14px 16px; background: var(--bg); border-bottom: 1px solid var(--border); }
+        .action-header h2 { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .action-header .step-num { background: var(--green); color: white; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; }
+        .action-body { padding: 16px; }
+        .action-desc { color: var(--text-mid); margin-bottom: 14px; line-height: 1.6; }
+        .action-desc strong { color: var(--text); }
+
+        /* FORMS */
+        .form-row { margin-bottom: 12px; }
+        .form-row label { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px; background: white; }
+        .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 2px rgba(46,125,50,0.1); }
+        .form-row textarea { resize: vertical; min-height: 60px; }
+        .form-row-inline { display: flex; gap: 10px; }
+        .form-row-inline .form-row { flex: 1; }
+
+        /* BUTTONS */
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--green); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--green-dark); }
+        .btn-orange { background: var(--orange); color: white; }
+        .btn-orange:hover:not(:disabled) { background: #F57C00; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-red:hover:not(:disabled) { background: #C62828; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-blue:hover:not(:disabled) { background: #0D47A1; }
+        .btn-ghost { background: transparent; color: var(--green); border: 1px solid var(--green); }
+        .btn-ghost:hover:not(:disabled) { background: rgba(46,125,50,0.05); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* AUTH */
+        .auth-box { max-width: 400px; margin: 60px auto; }
+        .auth-box h2 { font-size: 18px; margin-bottom: 4px; color: var(--green-dark); }
+        .auth-box p { color: var(--text-muted); margin-bottom: 20px; }
+        .auth-tabs { display: flex; gap: 0; margin-bottom: 16px; }
+        .auth-tab { flex: 1; padding: 10px; text-align: center; border: 1px solid var(--border); cursor: pointer; font-weight: 600; font-size: 12px; background: var(--bg); }
+        .auth-tab:first-child { border-radius: 6px 0 0 6px; }
+        .auth-tab:last-child { border-radius: 0 6px 6px 0; }
+        .auth-tab.active { background: var(--green); color: white; border-color: var(--green); }
+        .auth-error { background: #FFEBEE; color: var(--red); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; display: none; }
+
+        /* DEBUG PANEL (right side) */
+        .debug-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #89B4FA; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .debug-section { margin-bottom: 20px; }
+        .debug-table-name { font-size: 12px; font-weight: 700; color: #F9E2AF; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .debug-table-name .count { background: #45475A; padding: 1px 6px; border-radius: 4px; font-size: 10px; color: #A6ADC8; }
+        .debug-row { background: #313244; border-radius: 6px; padding: 10px 12px; margin-bottom: 6px; font-size: 11px; line-height: 1.7; border-left: 3px solid transparent; }
+        .debug-row.highlight { border-left-color: #89B4FA; background: #3B3D52; }
+        .debug-row .field { color: #89B4FA; }
+        .debug-row .value { color: #A6E3A1; }
+        .debug-row .value-warn { color: #F9E2AF; }
+        .debug-row .value-error { color: #F38BA8; }
+        .debug-row .value-null { color: #6C7086; font-style: italic; }
+        .debug-empty { color: #6C7086; font-style: italic; padding: 10px; font-size: 12px; }
+        .debug-refresh { background: #45475A; border: none; color: #CDD6F4; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 11px; }
+        .debug-refresh:hover { background: #585B70; }
+
+        /* EVENT LOG */
+        .event-log { border-top: 1px solid #45475A; padding-top: 12px; margin-top: 12px; }
+        .log-entry { padding: 4px 0; font-size: 11px; border-bottom: 1px solid #2A2B3D; display: flex; gap: 8px; }
+        .log-time { color: #6C7086; flex-shrink: 0; }
+        .log-msg { flex: 1; }
+        .log-ok { color: #A6E3A1; }
+        .log-warn { color: #F9E2AF; }
+        .log-err { color: #F38BA8; }
+        .log-info { color: #89B4FA; }
+
+        /* STATUS BADGES */
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .badge-active { background: #E3F2FD; color: #1565C0; }
+        .badge-resolved { background: #E8F5E9; color: #2E7D32; }
+        .badge-completed { background: #E8F5E9; color: #2E7D32; }
+        .badge-pending { background: #FFF3E0; color: #E65100; }
+
+        /* RESULT BOX */
+        .result-box { padding: 12px; border-radius: 6px; margin-top: 12px; font-size: 12px; line-height: 1.6; }
+        .result-box.success { background: #E8F5E9; border: 1px solid #A5D6A7; color: #1B5E20; }
+        .result-box.error { background: #FFEBEE; border: 1px solid #EF9A9A; color: #B71C1C; }
+        .result-box.info { background: #E3F2FD; border: 1px solid #90CAF9; color: #0D47A1; }
+        .result-box.warning { background: #FFF3E0; border: 1px solid #FFCC80; color: #E65100; }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+            .panel { max-height: none; }
+        }
+
+        /* INSTRUCTIONS */
+        .instructions { background: #F5F5F0; border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+        .instructions h3 { font-size: 13px; margin-bottom: 6px; color: var(--green-dark); }
+        .instructions ol, .instructions ul { padding-left: 20px; line-height: 1.8; color: var(--text-mid); }
+        .instructions code { background: #E8E8E4; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-left">
+        <h1>TIRIWE</h1>
+        <span class="tag">Core Loop Tester</span>
+    </div>
+    <div class="header-right" id="header-user" style="display:none">
+        <div class="user-pill">
+            <span class="emoji" id="hdr-emoji"></span>
+            <span id="hdr-name"></span>
+            <span style="color:rgba(255,255,255,0.5)">|</span>
+            <span id="hdr-email" style="opacity:0.7;font-size:11px"></span>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">Log Out</button>
+    </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+    <div class="layout">
+        <div class="panel panel-left">
+            <div class="auth-box">
+                <h2>🔑 Tiriwe Core Loop Tester</h2>
+                <p>Log in or sign up to test the SOS → Respond → Resolve → Feedback cycle against your live Supabase database.</p>
+
+                <div class="instructions">
+                    <h3>How to test the full loop:</h3>
+                    <ol>
+                        <li>Create <strong>two test accounts</strong> (User A = requester, User B = helper)</li>
+                        <li>Log in as <strong>User A</strong> → Create an SOS alert</li>
+                        <li>Log out → Log in as <strong>User B</strong> → Respond to the SOS</li>
+                        <li>Log out → Log in as <strong>User A</strong> → Resolve the SOS</li>
+                        <li>Give feedback as both users</li>
+                        <li>Check the Debug Panel for database state at each step</li>
+                    </ol>
+                </div>
+
+                <div class="auth-tabs">
+                    <div class="auth-tab active" onclick="switchAuthTab('login',this)">Log In</div>
+                    <div class="auth-tab" onclick="switchAuthTab('signup',this)">Sign Up</div>
+                </div>
+
+                <div id="auth-error" class="auth-error"></div>
+
+                <div id="auth-form-login">
+                    <div class="form-row">
+                        <label>Email</label>
+                        <input type="email" id="login-email" placeholder="test@example.com">
+                    </div>
+                    <div class="form-row">
+                        <label>Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••">
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doLogin()">Log In</button>
+                </div>
+
+                <div id="auth-form-signup" class="hidden">
+                    <div class="form-row">
+                        <label>Email</label>
+                        <input type="email" id="signup-email" placeholder="tester1@example.com">
+                    </div>
+                    <div class="form-row">
+                        <label>Password (min 6 chars)</label>
+                        <input type="password" id="signup-password" placeholder="••••••••">
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doSignup()">Create Account</button>
+                    <div class="result-box info" style="margin-top:12px">
+                        ℹ️ Supabase may send a confirmation email. Check your inbox or disable email confirmation in your Supabase Auth settings for testing.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-right">
+            <div class="debug-header">Database Connection</div>
+            <div class="debug-row">
+                <span class="field">url:</span> <span class="value">mozbpccxzfcoswvxjuym.supabase.co</span>
+            </div>
+            <div class="debug-row">
+                <span class="field">key:</span> <span class="value">eyJhbG...48N0</span> <span style="color:#6C7086">(anon)</span>
+            </div>
+            <div class="debug-row" id="db-connection-status">
+                <span class="field">status:</span> <span class="value-warn">awaiting auth...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP (shown after auth) -->
+<div id="app-screen" class="hidden">
+    <div class="layout">
+        <!-- LEFT: ACTION PANEL -->
+        <div class="panel panel-left">
+            <div class="step-tracker" id="step-tracker">
+                <div class="step-pip active" data-step="1">1. Create SOS</div>
+                <div class="step-pip" data-step="2">2. Respond</div>
+                <div class="step-pip" data-step="3">3. Resolve</div>
+                <div class="step-pip" data-step="4">4. Feedback</div>
+                <div class="step-pip" data-step="5">5. Verify</div>
+            </div>
+
+            <!-- STEP 1: CREATE SOS -->
+            <div class="action-card" id="step-1">
+                <div class="action-header">
+                    <h2><span class="step-num">1</span> Create SOS Alert</h2>
+                </div>
+                <div class="action-body">
+                    <div class="action-desc">
+                        As the <strong>requester</strong>, create a help request. This inserts into <code>sos_alerts</code> and the trigger <code>log_sos_created()</code> should fire, creating an <code>activity_log</code> entry.
+                    </div>
+                    <div class="form-row-inline">
+                        <div class="form-row">
+                            <label>Alert Type</label>
+                            <select id="sos-type">
+                                <option value="breakdown">Breakdown</option>
+                                <option value="fuel">Out of Fuel</option>
+                                <option value="stuck">Stuck</option>
+                                <option value="directions">Need Directions</option>
+                                <option value="meetup">Meetup Request</option>
+                                <option value="medical">Medical</option>
+                                <option value="accident">Accident</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label>Severity</label>
+                            <select id="sos-severity">
+                                <option value="low">Low (25km)</option>
+                                <option value="medium" selected>Medium (50km)</option>
+                                <option value="high">High (100km)</option>
+                                <option value="critical">Critical (200km)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label>Title</label>
+                        <input type="text" id="sos-title" value="Test: Chain broke on gravel road">
+                    </div>
+                    <div class="form-row">
+                        <label>Description</label>
+                        <textarea id="sos-desc">Testing the core loop. Need help with a chain issue.</textarea>
+                    </div>
+                    <div class="form-row">
+                        <label>📍 Location (auto-detected or manual)</label>
+                        <div class="form-row-inline">
+                            <div class="form-row"><label>Lat</label><input type="text" id="sos-lat" value="-36.8485"></div>
+                            <div class="form-row"><label>Lng</label><input type="text" id="sos-lng" value="174.7633"></div>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="getGPS()" style="margin-top:4px">📍 Use My GPS</button>
+                    </div>
+                    <div id="sos-result"></div>
+                    <div style="margin-top:12px">
+                        <button class="btn btn-orange" onclick="createSOS()">🆘 Create SOS Alert</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: RESPOND TO SOS -->
+            <div class="action-card" id="step-2">
+                <div class="action-header">
+                    <h2><span class="step-num">2</span> Respond to SOS (as Helper)</h2>
+                </div>
+                <div class="action-body">
+                    <div class="action-desc">
+                        Log in as a <strong>different user</strong> (the helper). This step finds active SOS alerts, then creates an <code>interaction</code> record linking the helper to the requester's SOS.
+                    </div>
+                    <div style="margin-bottom:12px">
+                        <button class="btn btn-ghost btn-sm" onclick="loadActiveAlerts()">🔍 Load Active SOS Alerts</button>
+                    </div>
+                    <div id="active-alerts-list"></div>
+                    <div id="respond-result"></div>
+                </div>
+            </div>
+
+            <!-- STEP 3: RESOLVE SOS -->
+            <div class="action-card" id="step-3">
+                <div class="action-header">
+                    <h2><span class="step-num">3</span> Resolve SOS (as Requester)</h2>
+                </div>
+                <div class="action-body">
+                    <div class="action-desc">
+                        Log back in as the <strong>requester</strong>. Resolve the SOS alert (sets status to <code>resolved</code>). The app then also updates the interaction to <code>completed</code>. Trigger <code>log_sos_resolved()</code> and <code>log_interaction_completed()</code> should fire.
+                    </div>
+                    <div style="margin-bottom:12px">
+                        <button class="btn btn-ghost btn-sm" onclick="loadMyAlerts()">🔍 Load My Active Alerts</button>
+                    </div>
+                    <div id="my-alerts-list"></div>
+                    <div id="resolve-result"></div>
+                </div>
+            </div>
+
+            <!-- STEP 4: GIVE FEEDBACK -->
+            <div class="action-card" id="step-4">
+                <div class="action-header">
+                    <h2><span class="step-num">4</span> Give Feedback (Both Users)</h2>
+                </div>
+                <div class="action-body">
+                    <div class="action-desc">
+                        Both the requester and helper must give feedback. The trigger <code>log_feedback_given()</code> fires, which logs activity, updates the interaction's feedback flags, and updates user counters.
+                    </div>
+                    <div style="margin-bottom:12px">
+                        <button class="btn btn-ghost btn-sm" onclick="loadMyInteractions()">🔍 Load My Completed Interactions</button>
+                    </div>
+                    <div id="my-interactions-list"></div>
+                    <div class="form-row" id="feedback-form" style="display:none">
+                        <label>Rating</label>
+                        <div class="btn-group" style="margin-bottom:10px">
+                            <button class="btn btn-primary btn-sm" onclick="setRating('positive')" id="rate-pos">👍 Positive</button>
+                            <button class="btn btn-ghost btn-sm" onclick="setRating('neutral')" id="rate-neu">😐 Neutral</button>
+                            <button class="btn btn-ghost btn-sm" onclick="setRating('negative')" id="rate-neg">👎 Negative</button>
+                        </div>
+                        <label>Would interact again?</label>
+                        <div class="btn-group" style="margin-bottom:10px">
+                            <button class="btn btn-ghost btn-sm" onclick="setWouldAgain(true)" id="again-yes">Yes</button>
+                            <button class="btn btn-ghost btn-sm" onclick="setWouldAgain(false)" id="again-no">No</button>
+                        </div>
+                        <label>Comment (optional)</label>
+                        <textarea id="feedback-comment" placeholder="How was the interaction?"></textarea>
+                        <button class="btn btn-primary" onclick="submitFeedback()" style="margin-top:8px">Submit Feedback</button>
+                    </div>
+                    <div id="feedback-result"></div>
+                </div>
+            </div>
+
+            <!-- STEP 5: VERIFY -->
+            <div class="action-card" id="step-5">
+                <div class="action-header">
+                    <h2><span class="step-num">5</span> Verify Everything</h2>
+                </div>
+                <div class="action-body">
+                    <div class="action-desc">
+                        Check that the entire chain worked. Click the button to run diagnostics on all tables and verify counters, activity logs, and feedback flags.
+                    </div>
+                    <button class="btn btn-blue" onclick="runVerification()">🔍 Run Full Verification</button>
+                    <div id="verify-result"></div>
+                </div>
+            </div>
+
+            <!-- UTILITY -->
+            <div class="action-card">
+                <div class="action-header">
+                    <h2>🧹 Utilities</h2>
+                </div>
+                <div class="action-body">
+                    <div class="action-desc">Cleanup tools for testing. These soft-delete test data.</div>
+                    <div class="btn-group">
+                        <button class="btn btn-ghost btn-sm" onclick="refreshDebug()">🔄 Refresh Debug Panel</button>
+                        <button class="btn btn-ghost btn-sm" onclick="loadAllMyData()">📊 Load All My Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: DEBUG PANEL -->
+        <div class="panel panel-right" id="debug-panel">
+            <div class="debug-header">
+                Database Inspector
+                <button class="debug-refresh" onclick="refreshDebug()">↻ Refresh All</button>
+            </div>
+
+            <div class="debug-section" id="debug-user">
+                <div class="debug-table-name">👤 Current User <span class="count" id="user-count">0</span></div>
+                <div id="debug-user-data"><div class="debug-empty">Log in to see user data</div></div>
+            </div>
+
+            <div class="debug-section" id="debug-sos">
+                <div class="debug-table-name">🆘 sos_alerts <span class="count" id="sos-count">0</span></div>
+                <div id="debug-sos-data"><div class="debug-empty">No alerts found</div></div>
+            </div>
+
+            <div class="debug-section" id="debug-interactions">
+                <div class="debug-table-name">🤝 interactions <span class="count" id="int-count">0</span></div>
+                <div id="debug-int-data"><div class="debug-empty">No interactions found</div></div>
+            </div>
+
+            <div class="debug-section" id="debug-feedback">
+                <div class="debug-table-name">⭐ feedback <span class="count" id="fb-count">0</span></div>
+                <div id="debug-fb-data"><div class="debug-empty">No feedback found</div></div>
+            </div>
+
+            <div class="debug-section" id="debug-activity">
+                <div class="debug-table-name">📋 activity_log <span class="count" id="act-count">0</span></div>
+                <div id="debug-act-data"><div class="debug-empty">No activity found</div></div>
+            </div>
+
+            <div class="event-log">
+                <div class="debug-header">Event Log</div>
+                <div id="event-log"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// SUPABASE CONNECTION
+// ============================================================
+const SUPABASE_URL = 'https://mozbpccxzfcoswvxjuym.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODY4NTQsImV4cCI6MjA4NDY2Mjg1NH0.lfOM5ojN2B1MV6wMsntGWmI7OWL7fhUJV5E8b6I48N0';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null;      // users table record
+let currentAuthUser = null;  // auth user
+let selectedRating = null;
+let selectedWouldAgain = null;
+let selectedInteractionId = null;
+let selectedOtherUserId = null;
+
+// ============================================================
+// AUTH
+// ============================================================
+function switchAuthTab(tab, el) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('auth-form-login').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('auth-form-signup').classList.toggle('hidden', tab !== 'signup');
+    document.getElementById('auth-error').style.display = 'none';
+}
+
+function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) return showAuthError('Enter email and password');
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return showAuthError(error.message);
+
+    currentAuthUser = data.user;
+    await loadCurrentUser();
+    showApp();
+}
+
+async function doSignup() {
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    if (!email || !password) return showAuthError('Enter email and password');
+    if (password.length < 6) return showAuthError('Password must be at least 6 characters');
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return showAuthError(error.message);
+
+    if (data.user && !data.user.email_confirmed_at) {
+        showAuthError('Account created! Check your email for confirmation, then log in. (Or disable email confirmation in Supabase Auth settings for easier testing.)');
+        return;
+    }
+
+    currentAuthUser = data.user;
+    await loadCurrentUser();
+    showApp();
+}
+
+async function doLogout() {
+    await supabase.auth.signOut();
+    currentUser = null;
+    currentAuthUser = null;
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('app-screen').classList.add('hidden');
+    document.getElementById('header-user').style.display = 'none';
+    log('Logged out', 'info');
+}
+
+async function loadCurrentUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('auth_id', user.id)
+        .is('deleted_at', null)
+        .single();
+
+    if (error) {
+        log('Failed to load user record: ' + error.message, 'err');
+        return;
+    }
+    currentUser = data;
+    log(`Loaded user: ${data.display_name} (${data.id.substring(0,8)}...)`, 'ok');
+}
+
+function showApp() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app-screen').classList.remove('hidden');
+    document.getElementById('header-user').style.display = 'flex';
+    document.getElementById('hdr-emoji').textContent = currentUser?.avatar_emoji || '👤';
+    document.getElementById('hdr-name').textContent = currentUser?.display_name || 'Unknown';
+    document.getElementById('hdr-email').textContent = currentAuthUser?.email || '';
+    document.getElementById('db-connection-status').innerHTML = '<span class="field">status:</span> <span class="value">connected ✓</span>';
+    refreshDebug();
+}
+
+// Check for existing session on load
+async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+        currentAuthUser = session.user;
+        await loadCurrentUser();
+        if (currentUser) showApp();
+    }
+}
+
+// ============================================================
+// STEP 1: CREATE SOS
+// ============================================================
+async function createSOS() {
+    if (!currentUser) return alert('Please log in first');
+
+    const alertType = document.getElementById('sos-type').value;
+    const severity = document.getElementById('sos-severity').value;
+    const title = document.getElementById('sos-title').value;
+    const description = document.getElementById('sos-desc').value;
+    const lat = parseFloat(document.getElementById('sos-lat').value);
+    const lng = parseFloat(document.getElementById('sos-lng').value);
+
+    if (!title) return showResult('sos-result', 'error', 'Title is required');
+    if (isNaN(lat) || isNaN(lng)) return showResult('sos-result', 'error', 'Valid lat/lng required');
+
+    log(`Creating SOS: ${alertType} / ${severity} / "${title}"`, 'info');
+
+    const { data, error } = await supabase
+        .from('sos_alerts')
+        .insert({
+            user_id: currentUser.id,
+            alert_type: alertType,
+            severity: severity,
+            title: title,
+            description: description,
+            location: `SRID=4326;POINT(${lng} ${lat})`,
+            status: 'active',
+            broadcast_radius_km: severity === 'low' ? 25 : severity === 'medium' ? 50 : severity === 'high' ? 100 : 200
+        })
+        .select()
+        .single();
+
+    if (error) {
+        log(`SOS creation FAILED: ${error.message}`, 'err');
+        showResult('sos-result', 'error', `Failed: ${error.message}\n\nHint: ${error.hint || 'Check RLS policies on sos_alerts table'}`);
+        setStepState(1, 'error');
+        return;
+    }
+
+    log(`SOS created! ID: ${data.id}`, 'ok');
+    showResult('sos-result', 'success', `✅ SOS Alert created!\n\nID: ${data.id}\nStatus: ${data.status}\nType: ${data.alert_type}\nSeverity: ${data.severity}\n\n→ Now log out and log in as the HELPER to respond.`);
+    setStepState(1, 'done');
+    refreshDebug();
+}
+
+// ============================================================
+// STEP 2: RESPOND TO SOS
+// ============================================================
+async function loadActiveAlerts() {
+    log('Loading active SOS alerts...', 'info');
+
+    const { data, error } = await supabase
+        .from('sos_alerts')
+        .select('*, users!sos_alerts_user_id_fkey(display_name, avatar_emoji)')
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        log(`Failed to load alerts: ${error.message}`, 'err');
+        document.getElementById('active-alerts-list').innerHTML = `<div class="result-box error">Error: ${error.message}</div>`;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        document.getElementById('active-alerts-list').innerHTML = `<div class="result-box warning">No active SOS alerts found. Create one first (Step 1) with a different account.</div>`;
+        return;
+    }
+
+    log(`Found ${data.length} active alerts`, 'ok');
+    let html = '';
+    data.forEach(alert => {
+        const isOwn = alert.user_id === currentUser?.id;
+        html += `
+            <div class="result-box info" style="margin-bottom:8px">
+                <strong>${alert.users?.avatar_emoji || '👤'} ${alert.users?.display_name || 'Unknown'}</strong> — ${alert.alert_type} (${alert.severity})<br>
+                <small>${alert.title}</small><br>
+                <small style="color:#6C7086">ID: ${alert.id}</small><br>
+                <small style="color:#6C7086">Created: ${new Date(alert.created_at).toLocaleString()}</small><br>
+                ${isOwn
+                    ? '<small style="color:var(--orange)">⚠️ This is YOUR alert — you need a different account to respond.</small>'
+                    : `<button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="respondToSOS('${alert.id}', '${alert.user_id}', '${alert.alert_type}')">🤝 I'll Help!</button>`
+                }
+            </div>`;
+    });
+    document.getElementById('active-alerts-list').innerHTML = html;
+}
+
+async function respondToSOS(sosId, requesterId, alertType) {
+    if (!currentUser) return alert('Please log in first');
+    if (currentUser.id === requesterId) return alert('You cannot respond to your own SOS!');
+
+    log(`Responding to SOS ${sosId.substring(0,8)}... as helper`, 'info');
+
+    // Step 2a: Create the interaction
+    const { data: interaction, error: intError } = await supabase
+        .from('interactions')
+        .insert({
+            requester_id: requesterId,
+            helper_id: currentUser.id,
+            sos_alert_id: sosId,
+            interaction_type: 'sos_response',
+            status: 'confirmed',
+            helper_eta_minutes: 15,
+            helper_confirmed_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+    if (intError) {
+        log(`Interaction creation FAILED: ${intError.message}`, 'err');
+        showResult('respond-result', 'error', `Failed to create interaction: ${intError.message}\n\nHint: ${intError.hint || 'Check RLS policies on interactions table. Helper must INSERT as helper.'}`);
+        setStepState(2, 'error');
+        return;
+    }
+
+    log(`Interaction created! ID: ${interaction.id}, sos_alert_id: ${interaction.sos_alert_id}`, 'ok');
+
+    // Step 2b: Update SOS status to 'help_coming'
+    const { error: sosError } = await supabase
+        .from('sos_alerts')
+        .update({ status: 'help_coming', helper_count: 1 })
+        .eq('id', sosId);
+
+    if (sosError) {
+        log(`SOS status update failed (non-critical): ${sosError.message}`, 'warn');
+    } else {
+        log(`SOS status updated to 'help_coming'`, 'ok');
+    }
+
+    showResult('respond-result', 'success', `✅ Response recorded!\n\nInteraction ID: ${interaction.id}\nSOS Alert ID: ${interaction.sos_alert_id}\nStatus: ${interaction.status}\n\nCRITICAL CHECK: Does sos_alert_id match?\nSOS ID: ${sosId}\nStored:  ${interaction.sos_alert_id}\nMatch: ${sosId === interaction.sos_alert_id ? '✅ YES' : '❌ NO — THIS IS THE BUG'}\n\n→ Now log out and log in as the REQUESTER to resolve.`);
+    setStepState(2, sosId === interaction.sos_alert_id ? 'done' : 'error');
+    refreshDebug();
+}
+
+// ============================================================
+// STEP 3: RESOLVE SOS
+// ============================================================
+async function loadMyAlerts() {
+    if (!currentUser) return;
+    log('Loading my active/help_coming alerts...', 'info');
+
+    const { data, error } = await supabase
+        .from('sos_alerts')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .in('status', ['active', 'help_coming'])
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        log(`Failed: ${error.message}`, 'err');
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        document.getElementById('my-alerts-list').innerHTML = `<div class="result-box warning">No active alerts found for your account.</div>`;
+        return;
+    }
+
+    log(`Found ${data.length} of my alerts`, 'ok');
+    let html = '';
+    data.forEach(alert => {
+        html += `
+            <div class="result-box info" style="margin-bottom:8px">
+                <strong>${alert.alert_type}</strong> — ${alert.severity} — <span class="badge badge-${alert.status}">${alert.status}</span><br>
+                <small>${alert.title}</small><br>
+                <small style="color:#6C7086">ID: ${alert.id}</small><br>
+                <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="resolveSOS('${alert.id}')">✅ Mark Resolved</button>
+            </div>`;
+    });
+    document.getElementById('my-alerts-list').innerHTML = html;
+}
+
+async function resolveSOS(sosId) {
+    if (!currentUser) return;
+    log(`Resolving SOS ${sosId.substring(0,8)}...`, 'info');
+
+    // Step 3a: Update SOS to resolved
+    const { error: sosErr } = await supabase
+        .from('sos_alerts')
+        .update({
+            status: 'resolved',
+            resolved_at: new Date().toISOString()
+        })
+        .eq('id', sosId)
+        .eq('user_id', currentUser.id);
+
+    if (sosErr) {
+        log(`SOS resolve FAILED: ${sosErr.message}`, 'err');
+        showResult('resolve-result', 'error', `Failed: ${sosErr.message}`);
+        setStepState(3, 'error');
+        return;
+    }
+
+    log(`SOS resolved!`, 'ok');
+
+    // Step 3b: Find and complete the matching interaction
+    // THIS IS THE CRITICAL STEP — the app must do this, no trigger exists
+    const { data: interactions, error: intErr } = await supabase
+        .from('interactions')
+        .select('*')
+        .eq('sos_alert_id', sosId)
+        .is('deleted_at', null);
+
+    if (intErr) {
+        log(`Failed to find interactions for SOS: ${intErr.message}`, 'err');
+        showResult('resolve-result', 'warning', `SOS resolved but couldn't find matching interaction: ${intErr.message}`);
+        setStepState(3, 'error');
+        refreshDebug();
+        return;
+    }
+
+    if (!interactions || interactions.length === 0) {
+        log(`⚠️ NO INTERACTIONS FOUND for SOS ${sosId.substring(0,8)}! This is the bug.`, 'err');
+        showResult('resolve-result', 'error', `⚠️ SOS resolved BUT no matching interaction found!\n\nThis means either:\n1. The interaction's sos_alert_id doesn't match (the known bug)\n2. No one responded yet\n3. RLS is blocking the query\n\nCheck the Debug Panel → interactions table`);
+        setStepState(3, 'error');
+        refreshDebug();
+        return;
+    }
+
+    // Complete each interaction
+    let completedCount = 0;
+    for (const interaction of interactions) {
+        const { error: updateErr } = await supabase
+            .from('interactions')
+            .update({
+                status: 'completed',
+                completed_at: new Date().toISOString(),
+                activity_status: 'pending_feedback'
+            })
+            .eq('id', interaction.id);
+
+        if (updateErr) {
+            log(`Failed to complete interaction ${interaction.id.substring(0,8)}: ${updateErr.message}`, 'err');
+        } else {
+            completedCount++;
+            log(`Interaction ${interaction.id.substring(0,8)} → completed ✓`, 'ok');
+        }
+    }
+
+    showResult('resolve-result', 'success', `✅ SOS Resolved & ${completedCount}/${interactions.length} interaction(s) completed!\n\nThe trigger log_interaction_completed() should have fired, creating activity log entries and updating user counters.\n\n→ Now both users need to give feedback.`);
+    setStepState(3, completedCount > 0 ? 'done' : 'error');
+    refreshDebug();
+}
+
+// ============================================================
+// STEP 4: FEEDBACK
+// ============================================================
+async function loadMyInteractions() {
+    if (!currentUser) return;
+    log('Loading my completed interactions...', 'info');
+
+    // Load interactions where I'm requester OR helper
+    const { data: asRequester, error: e1 } = await supabase
+        .from('interactions')
+        .select('*, helper:users!interactions_helper_id_fkey(display_name, avatar_emoji), requester:users!interactions_requester_id_fkey(display_name, avatar_emoji)')
+        .eq('requester_id', currentUser.id)
+        .eq('status', 'completed')
+        .is('deleted_at', null);
+
+    const { data: asHelper, error: e2 } = await supabase
+        .from('interactions')
+        .select('*, helper:users!interactions_helper_id_fkey(display_name, avatar_emoji), requester:users!interactions_requester_id_fkey(display_name, avatar_emoji)')
+        .eq('helper_id', currentUser.id)
+        .eq('status', 'completed')
+        .is('deleted_at', null);
+
+    const all = [...(asRequester || []), ...(asHelper || [])];
+    // Deduplicate by id
+    const unique = [...new Map(all.map(i => [i.id, i])).values()];
+
+    if (unique.length === 0) {
+        document.getElementById('my-interactions-list').innerHTML = `<div class="result-box warning">No completed interactions found. Complete Step 3 first.</div>`;
+        return;
+    }
+
+    log(`Found ${unique.length} completed interaction(s)`, 'ok');
+    let html = '';
+    unique.forEach(int => {
+        const amRequester = int.requester_id === currentUser.id;
+        const otherUser = amRequester ? int.helper : int.requester;
+        const otherUserId = amRequester ? int.helper_id : int.requester_id;
+        const myFeedbackGiven = amRequester ? int.requester_feedback_given : int.helper_feedback_given;
+
+        html += `
+            <div class="result-box ${myFeedbackGiven ? 'success' : 'info'}" style="margin-bottom:8px">
+                <strong>🤝 ${int.interaction_type}</strong> with ${otherUser?.avatar_emoji || '👤'} ${otherUser?.display_name || 'Unknown'}<br>
+                <small>Role: ${amRequester ? 'Requester' : 'Helper'} | Status: ${int.status}</small><br>
+                <small>My feedback: ${myFeedbackGiven ? '✅ Given' : '⏳ Pending'}</small><br>
+                <small style="color:#6C7086">ID: ${int.id}</small><br>
+                ${myFeedbackGiven
+                    ? '<small style="color:var(--green)">Feedback already submitted</small>'
+                    : `<button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="selectInteractionForFeedback('${int.id}', '${otherUserId}')">⭐ Give Feedback</button>`
+                }
+            </div>`;
+    });
+    document.getElementById('my-interactions-list').innerHTML = html;
+}
+
+function selectInteractionForFeedback(interactionId, otherUserId) {
+    selectedInteractionId = interactionId;
+    selectedOtherUserId = otherUserId;
+    selectedRating = null;
+    selectedWouldAgain = null;
+    document.getElementById('feedback-form').style.display = 'block';
+    document.getElementById('feedback-comment').value = '';
+    // Reset button states
+    ['rate-pos','rate-neu','rate-neg','again-yes','again-no'].forEach(id => {
+        document.getElementById(id).className = 'btn btn-ghost btn-sm';
+    });
+    log(`Selected interaction ${interactionId.substring(0,8)} for feedback`, 'info');
+}
+
+function setRating(r) {
+    selectedRating = r;
+    ['rate-pos','rate-neu','rate-neg'].forEach(id => {
+        document.getElementById(id).className = 'btn btn-ghost btn-sm';
+    });
+    const map = { positive: 'rate-pos', neutral: 'rate-neu', negative: 'rate-neg' };
+    document.getElementById(map[r]).className = 'btn btn-primary btn-sm';
+}
+
+function setWouldAgain(val) {
+    selectedWouldAgain = val;
+    document.getElementById('again-yes').className = val === true ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+    document.getElementById('again-no').className = val === false ? 'btn btn-red btn-sm' : 'btn btn-ghost btn-sm';
+}
+
+async function submitFeedback() {
+    if (!selectedInteractionId || !selectedRating) return showResult('feedback-result', 'error', 'Select an interaction and a rating');
+    if (selectedWouldAgain === null) return showResult('feedback-result', 'error', 'Select "Would interact again?"');
+
+    log(`Submitting feedback: ${selectedRating} for interaction ${selectedInteractionId.substring(0,8)}`, 'info');
+
+    const { data, error } = await supabase
+        .from('feedback')
+        .insert({
+            interaction_id: selectedInteractionId,
+            from_user_id: currentUser.id,
+            to_user_id: selectedOtherUserId,
+            rating: selectedRating,
+            would_interact_again: selectedWouldAgain,
+            comment: document.getElementById('feedback-comment').value || null
+        })
+        .select()
+        .single();
+
+    if (error) {
+        log(`Feedback FAILED: ${error.message}`, 'err');
+        showResult('feedback-result', 'error', `Failed: ${error.message}\n\nHint: ${error.hint || error.details || 'Check RLS or unique constraint (interaction_id, from_user_id)'}`);
+        return;
+    }
+
+    log(`Feedback submitted! ID: ${data.id}`, 'ok');
+    showResult('feedback-result', 'success', `✅ Feedback submitted!\n\nID: ${data.id}\nRating: ${data.rating}\nWould interact again: ${data.would_interact_again}\n\nTrigger log_feedback_given() should have fired.\nCheck Debug Panel for:\n- activity_log entries\n- interaction feedback flags\n- user feedback counters`);
+    setStepState(4, 'done');
+    refreshDebug();
+    loadMyInteractions(); // refresh the list
+}
+
+// ============================================================
+// STEP 5: VERIFICATION
+// ============================================================
+async function runVerification() {
+    if (!currentUser) return;
+    log('Running full verification...', 'info');
+
+    let results = [];
+    let allGood = true;
+
+    // 1. Check user counters
+    const { data: userData } = await supabase
+        .from('users')
+        .select('display_name, interactions_helped, interactions_received, positive_feedback_count, neutral_feedback_count, negative_feedback_count, verification_level')
+        .eq('id', currentUser.id)
+        .single();
+
+    if (userData) {
+        results.push(`👤 USER COUNTERS (${userData.display_name}):`);
+        results.push(`   Helped: ${userData.interactions_helped || 0}`);
+        results.push(`   Received: ${userData.interactions_received || 0}`);
+        results.push(`   Positive FB: ${userData.positive_feedback_count || 0}`);
+        results.push(`   Neutral FB: ${userData.neutral_feedback_count || 0}`);
+        results.push(`   Negative FB: ${userData.negative_feedback_count || 0}`);
+        results.push(`   Verification: ${userData.verification_level}`);
+    }
+
+    // 2. Check activity log
+    const { data: activities } = await supabase
+        .from('activity_log')
+        .select('event_type, summary, created_at')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+    results.push(`\n📋 ACTIVITY LOG (last 10):`);
+    if (activities && activities.length > 0) {
+        activities.forEach(a => {
+            results.push(`   [${a.event_type}] ${a.summary}`);
+        });
+    } else {
+        results.push(`   ⚠️ NO ACTIVITY LOG ENTRIES — triggers may not be firing!`);
+        allGood = false;
+    }
+
+    // 3. Check interactions
+    const { data: ints } = await supabase
+        .from('interactions')
+        .select('id, sos_alert_id, status, requester_feedback_given, helper_feedback_given, activity_status, completed_at')
+        .or(`requester_id.eq.${currentUser.id},helper_id.eq.${currentUser.id}`)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    results.push(`\n🤝 RECENT INTERACTIONS:`);
+    if (ints && ints.length > 0) {
+        ints.forEach(i => {
+            results.push(`   ${i.id.substring(0,8)}... status=${i.status} req_fb=${i.requester_feedback_given} hlp_fb=${i.helper_feedback_given} act_status=${i.activity_status}`);
+            if (i.status === 'completed' && !i.completed_at) {
+                results.push(`   ⚠️ Status=completed but completed_at is NULL`);
+                allGood = false;
+            }
+        });
+    } else {
+        results.push(`   No interactions found`);
+    }
+
+    // 4. Check feedback
+    const { data: fbs } = await supabase
+        .from('feedback')
+        .select('id, interaction_id, rating, from_user_id, to_user_id')
+        .or(`from_user_id.eq.${currentUser.id},to_user_id.eq.${currentUser.id}`)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    results.push(`\n⭐ RECENT FEEDBACK:`);
+    if (fbs && fbs.length > 0) {
+        fbs.forEach(f => {
+            const dir = f.from_user_id === currentUser.id ? 'GAVE' : 'RECEIVED';
+            results.push(`   ${dir}: ${f.rating} (interaction ${f.interaction_id.substring(0,8)}...)`);
+        });
+    } else {
+        results.push(`   No feedback found`);
+    }
+
+    results.push(`\n${allGood ? '✅ ALL CHECKS PASSED' : '⚠️ SOME ISSUES DETECTED — see above'}`);
+
+    showResult('verify-result', allGood ? 'success' : 'warning', results.join('\n'));
+    setStepState(5, allGood ? 'done' : 'error');
+    log('Verification complete', allGood ? 'ok' : 'warn');
+}
+
+// ============================================================
+// DEBUG PANEL
+// ============================================================
+async function refreshDebug() {
+    if (!currentUser) return;
+
+    // User data
+    const { data: userData } = await supabase.from('users').select('id, display_name, avatar_emoji, avatar_color, verification_level, interactions_helped, interactions_received, positive_feedback_count, negative_feedback_count, is_available').eq('id', currentUser.id).single();
+    if (userData) {
+        document.getElementById('user-count').textContent = '1';
+        document.getElementById('debug-user-data').innerHTML = renderDebugRow(userData, ['id','display_name','avatar_emoji','verification_level','interactions_helped','interactions_received','positive_feedback_count','negative_feedback_count','is_available']);
+    }
+
+    // SOS alerts (my alerts)
+    const { data: sosData } = await supabase.from('sos_alerts').select('id, user_id, alert_type, severity, status, title, helper_count, created_at, resolved_at').eq('user_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
+    document.getElementById('sos-count').textContent = sosData?.length || 0;
+    document.getElementById('debug-sos-data').innerHTML = sosData?.length ? sosData.map(r => renderDebugRow(r, ['id','alert_type','severity','status','title','helper_count','created_at','resolved_at'])).join('') : '<div class="debug-empty">No alerts for this user</div>';
+
+    // Interactions (as requester or helper)
+    const { data: intReq } = await supabase.from('interactions').select('id, requester_id, helper_id, sos_alert_id, interaction_type, status, completed_at, activity_status, requester_feedback_given, helper_feedback_given, created_at').eq('requester_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
+    const { data: intHlp } = await supabase.from('interactions').select('id, requester_id, helper_id, sos_alert_id, interaction_type, status, completed_at, activity_status, requester_feedback_given, helper_feedback_given, created_at').eq('helper_id', currentUser.id).is('deleted_at', null).order('created_at', { ascending: false }).limit(5);
+    const allInts = [...(intReq||[]), ...(intHlp||[])];
+    const uniqueInts = [...new Map(allInts.map(i => [i.id, i])).values()].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0,5);
+    document.getElementById('int-count').textContent = uniqueInts.length;
+    document.getElementById('debug-int-data').innerHTML = uniqueInts.length ? uniqueInts.map(r => renderDebugRow(r, ['id','sos_alert_id','status','activity_status','requester_feedback_given','helper_feedback_given','completed_at'])).join('') : '<div class="debug-empty">No interactions</div>';
+
+    // Feedback
+    const { data: fbData } = await supabase.from('feedback').select('id, interaction_id, from_user_id, to_user_id, rating, would_interact_again, created_at').or(`from_user_id.eq.${currentUser.id},to_user_id.eq.${currentUser.id}`).order('created_at', { ascending: false }).limit(5);
+    document.getElementById('fb-count').textContent = fbData?.length || 0;
+    document.getElementById('debug-fb-data').innerHTML = fbData?.length ? fbData.map(r => renderDebugRow(r, ['id','interaction_id','rating','would_interact_again','from_user_id','to_user_id'])).join('') : '<div class="debug-empty">No feedback</div>';
+
+    // Activity log
+    const { data: actData } = await supabase.from('activity_log').select('id, event_type, summary, created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(10);
+    document.getElementById('act-count').textContent = actData?.length || 0;
+    document.getElementById('debug-act-data').innerHTML = actData?.length ? actData.map(r => renderDebugRow(r, ['event_type','summary','created_at'])).join('') : '<div class="debug-empty">No activity log entries</div>';
+}
+
+function renderDebugRow(obj, fields) {
+    let html = '<div class="debug-row">';
+    fields.forEach(f => {
+        let val = obj[f];
+        let cls = 'value';
+        if (val === null || val === undefined) { val = 'null'; cls = 'value-null'; }
+        else if (val === false) { val = 'false'; cls = 'value-warn'; }
+        else if (val === true) { val = 'true'; cls = 'value'; }
+        else if (typeof val === 'string' && val.length > 30) { val = val.substring(0,28) + '...'; }
+        html += `<span class="field">${f}:</span> <span class="${cls}">${val}</span> `;
+    });
+    html += '</div>';
+    return html;
+}
+
+async function loadAllMyData() {
+    refreshDebug();
+    log('All data refreshed', 'info');
+}
+
+// ============================================================
+// GPS
+// ============================================================
+function getGPS() {
+    if (!navigator.geolocation) return alert('GPS not available');
+    navigator.geolocation.getCurrentPosition(pos => {
+        document.getElementById('sos-lat').value = pos.coords.latitude.toFixed(6);
+        document.getElementById('sos-lng').value = pos.coords.longitude.toFixed(6);
+        log(`GPS: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`, 'ok');
+    }, err => {
+        log(`GPS error: ${err.message}`, 'warn');
+    });
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function showResult(elementId, type, message) {
+    document.getElementById(elementId).innerHTML = `<div class="result-box ${type}"><pre style="white-space:pre-wrap;font-family:inherit;margin:0">${escapeHtml(message)}</pre></div>`;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function setStepState(step, state) {
+    const pip = document.querySelector(`.step-pip[data-step="${step}"]`);
+    if (pip) {
+        pip.classList.remove('active', 'done', 'error');
+        pip.classList.add(state);
+    }
+    // Activate next step
+    if (state === 'done') {
+        const next = document.querySelector(`.step-pip[data-step="${step + 1}"]`);
+        if (next) next.classList.add('active');
+    }
+}
+
+function log(msg, type = 'info') {
+    const el = document.getElementById('event-log');
+    if (!el) return;
+    const time = new Date().toLocaleTimeString();
+    const cls = { ok: 'log-ok', warn: 'log-warn', err: 'log-err', info: 'log-info' }[type] || 'log-info';
+    el.innerHTML = `<div class="log-entry"><span class="log-time">${time}</span><span class="log-msg ${cls}">${escapeHtml(msg)}</span></div>` + el.innerHTML;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+checkSession();
+</script>
+</body>
+</html>
 
