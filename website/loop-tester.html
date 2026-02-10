@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tiriwe Core Loop Tester</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        if (!window.supabase || !window.supabase.createClient) {
+            document.body.innerHTML = '<div style="padding:40px;font-family:monospace"><h2>❌ Supabase library failed to load</h2><p>Try refreshing the page. If the problem persists, check your internet connection.</p></div>';
+        }
+    </script>
     <style>
         :root {
             --green: #2E7D32; --green-light: #43A047; --green-dark: #1B5E20;
@@ -434,13 +439,24 @@
 </div>
 
 <script>
+console.log('🟢 SCRIPT BLOCK STARTED');
 // ============================================================
 // SUPABASE CONNECTION
 // ============================================================
 const SUPABASE_URL = 'https://mozbpccxzfcoswvxjuym.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODY4NTQsImV4cCI6MjA4NDY2Mjg1NH0.lfOM5ojN2B1MV6wMsntGWmI7OWL7fhUJV5E8b6I48N0';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabase;
+try {
+    if (!window.supabase || !window.supabase.createClient) {
+        throw new Error('Supabase library not loaded from CDN');
+    }
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('✅ Supabase client initialized');
+} catch(e) {
+    console.error('❌ Supabase init failed:', e.message);
+    document.getElementById('db-connection-status').innerHTML = '<span class="field">status:</span> <span class="value-error">FAILED: ' + e.message + '</span>';
+}
 
 // ============================================================
 // STATE
@@ -470,6 +486,7 @@ function showAuthError(msg) {
 }
 
 async function doLogin() {
+    if (!supabase) return showAuthError('Supabase failed to load. Try refreshing the page.');
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     if (!email || !password) return showAuthError('Enter email and password');
@@ -483,6 +500,7 @@ async function doLogin() {
 }
 
 async function doSignup() {
+    if (!supabase) return showAuthError('Supabase failed to load. Try refreshing the page.');
     const email = document.getElementById('signup-email').value.trim();
     const password = document.getElementById('signup-password').value;
     if (!email || !password) return showAuthError('Enter email and password');
@@ -543,6 +561,7 @@ function showApp() {
 
 // Check for existing session on load
 async function checkSession() {
+    if (!supabase) { console.warn('Supabase not initialized, skipping session check'); return; }
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
         currentAuthUser = session.user;
@@ -1111,10 +1130,33 @@ function log(msg, type = 'info') {
 }
 
 // ============================================================
+// EXPOSE ALL ONCLICK FUNCTIONS TO GLOBAL SCOPE
+// ============================================================
+window.switchAuthTab = switchAuthTab;
+window.doLogin = doLogin;
+window.doSignup = doSignup;
+window.doLogout = doLogout;
+window.createSOS = createSOS;
+window.getGPS = getGPS;
+window.loadActiveAlerts = loadActiveAlerts;
+window.respondToSOS = respondToSOS;
+window.loadMyAlerts = loadMyAlerts;
+window.resolveSOS = resolveSOS;
+window.loadMyInteractions = loadMyInteractions;
+window.selectInteractionForFeedback = selectInteractionForFeedback;
+window.setRating = setRating;
+window.setWouldAgain = setWouldAgain;
+window.submitFeedback = submitFeedback;
+window.runVerification = runVerification;
+window.refreshDebug = refreshDebug;
+window.loadAllMyData = loadAllMyData;
+
+console.log('🟢 ALL FUNCTIONS REGISTERED');
+
+// ============================================================
 // INIT
 // ============================================================
 checkSession();
 </script>
 </body>
 </html>
-
