@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — Tiriwe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/tiriwe-core.js"></script>
+    <style>
+        :root {
+            --green: #2E7D32;
+            --green-light: #43A047;
+            --green-dark: #1B5E20;
+            --green-pale: #E8F5E9;
+            --orange: #FF9800;
+            --orange-pale: #FFF3E0;
+            --red: #F44336;
+            --white: #ffffff;
+            --off-white: #f8fafc;
+            --cream: #f5f1eb;
+            --text: #1e293b;
+            --text-mid: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text); background: var(--off-white); line-height: 1.6;
+        }
+
+        /* ===== LAYOUT ===== */
+        .settings-container {
+            max-width: 720px; margin: 0 auto;
+            padding: 32px 24px 80px;
+        }
+
+        /* ===== WELCOME BANNER (first time only) ===== */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--green-dark), var(--green));
+            color: white; border-radius: var(--radius); padding: 28px 32px;
+            margin-bottom: 32px; display: none;
+        }
+        .welcome-banner.visible { display: block; }
+        .welcome-banner h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .welcome-banner p { font-size: 15px; opacity: 0.9; line-height: 1.6; }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header { margin-bottom: 32px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; color: var(--text); }
+        .page-header p { color: var(--text-mid); font-size: 15px; margin-top: 4px; }
+
+        /* ===== SECTION CARDS ===== */
+        .settings-section {
+            background: white; border-radius: var(--radius);
+            border: 1px solid var(--border); margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .settings-section.highlight {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 3px rgba(255,152,0,0.1);
+        }
+        .section-header {
+            padding: 20px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .section-header-icon { font-size: 20px; }
+        .section-header h2 { font-size: 16px; font-weight: 700; }
+        .section-header .required-badge {
+            font-size: 11px; font-weight: 600; background: var(--orange-pale);
+            color: #E65100; padding: 2px 8px; border-radius: 4px; margin-left: auto;
+        }
+        .section-body { padding: 24px; }
+
+        /* ===== FORM ELEMENTS ===== */
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            margin-bottom: 20px;
+        }
+        .form-row.full { grid-template-columns: 1fr; }
+        .form-group { margin-bottom: 0; }
+        .form-group.standalone { margin-bottom: 20px; }
+        .form-group label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: var(--text-mid); margin-bottom: 6px;
+        }
+        .form-group label .hint {
+            font-weight: 400; color: var(--text-muted); margin-left: 4px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+            border-radius: 8px; font-family: inherit; font-size: 14px;
+            transition: all 0.2s; background: var(--off-white);
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none; border-color: var(--green);
+            background: white; box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group input:disabled,
+        .form-group select:disabled {
+            background: #f1f5f9; color: var(--text-muted); cursor: not-allowed;
+        }
+
+        /* Location row with GPS button */
+        .location-row {
+            display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px;
+            align-items: end;
+        }
+        .btn-gps {
+            padding: 10px 16px; border-radius: 8px; border: 1.5px solid var(--border);
+            background: white; cursor: pointer; font-size: 14px;
+            display: flex; align-items: center; gap: 6px; white-space: nowrap;
+            transition: all 0.2s; font-family: inherit; font-weight: 500;
+            color: var(--text-mid); height: 42px;
+        }
+        .btn-gps:hover { border-color: var(--green); color: var(--green); background: var(--green-pale); }
+
+        /* Toggle switch */
+        .toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 0; border-bottom: 1px solid var(--border);
+        }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-label { font-size: 14px; font-weight: 500; }
+        .toggle-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .toggle {
+            position: relative; width: 48px; height: 26px; flex-shrink: 0;
+        }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; inset: 0; background: #CBD5E1;
+            border-radius: 26px; cursor: pointer; transition: all 0.3s;
+        }
+        .toggle-slider::before {
+            content: ''; position: absolute; width: 20px; height: 20px;
+            left: 3px; bottom: 3px; background: white; border-radius: 50%;
+            transition: all 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .toggle input:checked + .toggle-slider { background: var(--green); }
+        .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+        /* Slider input */
+        .range-row { margin-bottom: 20px; }
+        .range-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .range-header label { margin-bottom: 0; }
+        .range-value {
+            font-size: 14px; font-weight: 700; color: var(--green);
+            background: var(--green-pale); padding: 2px 10px; border-radius: 4px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 6px;
+            border-radius: 3px; background: #E2E8F0; outline: none;
+            border: none; padding: 0;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px;
+            border-radius: 50%; background: var(--green); cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Avatar preview */
+        .avatar-preview {
+            display: flex; align-items: center; gap: 16px;
+            padding: 16px; background: var(--off-white);
+            border-radius: 8px; margin-bottom: 20px;
+        }
+        .avatar-circle {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+        }
+        .avatar-info { flex: 1; }
+        .avatar-name { font-size: 16px; font-weight: 700; }
+        .avatar-level { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 12px 24px; border-radius: 8px; font-family: inherit;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            border: none; transition: all 0.2s; display: inline-flex;
+            align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--green); color: white; }
+        .btn-primary:hover { background: var(--green-dark); }
+        .btn-primary:disabled { background: #A5D6A7; cursor: not-allowed; }
+        .btn-secondary { background: var(--off-white); color: var(--text-mid); border: 1.5px solid var(--border); }
+        .btn-secondary:hover { background: white; border-color: var(--text-muted); }
+        .btn-danger { background: white; color: var(--red); border: 1.5px solid #FFCDD2; }
+        .btn-danger:hover { background: #FFF0F0; }
+        .btn-large { padding: 14px 32px; font-size: 16px; }
+
+        .save-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 8px;
+        }
+        .save-status {
+            font-size: 13px; color: var(--green); font-weight: 500;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .save-status.visible { opacity: 1; }
+
+        /* ===== DANGER ZONE ===== */
+        .danger-section {
+            border-color: #FFCDD2;
+        }
+        .danger-section .section-header {
+            background: #FFF0F0; border-bottom-color: #FFCDD2;
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading-screen {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 60vh; flex-direction: column; gap: 16px;
+        }
+        .loading-spinner {
+            width: 40px; height: 40px; border: 3px solid var(--border);
+            border-top-color: var(--green); border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-muted); font-size: 14px; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .location-row { grid-template-columns: 1fr; }
+            .btn-gps { width: 100%; justify-content: center; }
+            .settings-container { padding: 16px 16px 80px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Nav injected by tiriwe-core.js -->
+<nav id="tiriwe-nav"></nav>
+
+<!-- Loading state shown until data loads -->
+<div class="settings-container" id="loading-screen">
+    <div class="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading your settings...</div>
+    </div>
+</div>
+
+<!-- Main content (hidden until loaded) -->
+<div class="settings-container" id="settings-content" style="display:none;">
+
+    <!-- Welcome banner for first-time users -->
+    <div class="welcome-banner" id="welcome-banner">
+        <h1>Welcome to Tiriwe!</h1>
+        <p>Let's get you set up. Fill in the basics below so the community can connect with you. You can change anything later.</p>
+    </div>
+
+    <!-- Page header for returning users -->
+    <div class="page-header" id="page-header">
+        <h1>Settings</h1>
+        <p>Manage your profile, availability, and preferences.</p>
+    </div>
+
+    <!-- ===== PROFILE ===== -->
+    <div class="settings-section" id="section-profile">
+        <div class="section-header">
+            <span class="section-header-icon">👤</span>
+            <h2>Profile</h2>
+            <span class="required-badge" id="profile-required" style="display:none">Complete this</span>
+        </div>
+        <div class="section-body">
+            <!-- Avatar preview -->
+            <div class="avatar-preview">
+                <div class="avatar-circle" id="avatar-circle">🦊</div>
+                <div class="avatar-info">
+                    <div class="avatar-name" id="avatar-display-name">Loading...</div>
+                    <div class="avatar-level" id="avatar-level">Unverified</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="display_name" placeholder="e.g. SwiftRiver742" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label>Gender <span class="hint">(optional)</span></label>
+                    <select id="gender">
+                        <option value="">Prefer not to say</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="non-binary">Non-binary</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row full">
+                <div class="form-group">
+                    <label>Bio <span class="hint">(tell the community about yourself)</span></label>
+                    <textarea id="bio" placeholder="Motorcycle tourer, always happy to help fellow riders..." maxlength="500"></textarea>
+                </div>
+            </div>
+
+            <div class="form-row full">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" disabled>
+                </div>
+            </div>
+
+            <div class="form-row full">
+                <div class="form-group">
+                    <label>Phone <span class="hint">(optional — used for emergency contact)</span></label>
+                    <input type="tel" id="phone" placeholder="+64 21 123 4567">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== HOME LOCATION ===== -->
+    <div class="settings-section" id="section-location">
+        <div class="section-header">
+            <span class="section-header-icon">📍</span>
+            <h2>Home Location</h2>
+            <span class="required-badge" id="location-required" style="display:none">Set this</span>
+        </div>
+        <div class="section-body">
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                Your home location is used as the default center for searches. It's shown as a fuzzy area (not your exact address) to other users.
+            </p>
+            <div class="location-row">
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="number" id="home_lat" step="0.0001" placeholder="-36.8485">
+                </div>
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="number" id="home_lng" step="0.0001" placeholder="174.7633">
+                </div>
+                <button class="btn-gps" onclick="useGPS()" id="btn-gps">
+                    📍 Use My GPS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== AVAILABILITY ===== -->
+    <div class="settings-section">
+        <div class="section-header">
+            <span class="section-header-icon">🟢</span>
+            <h2>Availability</h2>
+        </div>
+        <div class="section-body">
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Available to Help</div>
+                    <div class="toggle-desc">When on, nearby travelers can see you and request help</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="is_available">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="range-row" style="margin-top:20px;">
+                <div class="range-header">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-mid);">Help Radius</label>
+                    <span class="range-value" id="radius-value">50 km</span>
+                </div>
+                <input type="range" id="max_help_radius_km" min="5" max="200" value="50" step="5"
+                       oninput="document.getElementById('radius-value').textContent = this.value + ' km'">
+            </div>
+
+            <div class="form-row full">
+                <div class="form-group">
+                    <label>Status Message <span class="hint">(shown to people nearby)</span></label>
+                    <input type="text" id="availability_message" placeholder="Available evenings and weekends" maxlength="255">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PRIVACY ===== -->
+    <div class="settings-section">
+        <div class="section-header">
+            <span class="section-header-icon">🔒</span>
+            <h2>Privacy</h2>
+        </div>
+        <div class="section-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Help Gender Preference</label>
+                    <select id="help_gender_preference">
+                        <option value="any">Anyone</option>
+                        <option value="same">Same as me</option>
+                        <option value="female_only">Female helpers only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Location Precision</label>
+                    <select id="location_precision">
+                        <option value="fuzzy">Fuzzy (recommended)</option>
+                        <option value="precise">Precise (helpers only)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Show on Map</div>
+                    <div class="toggle-desc">When off, you won't appear on the map for other users</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="show_on_map" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== NOTIFICATIONS ===== -->
+    <div class="settings-section">
+        <div class="section-header">
+            <span class="section-header-icon">🔔</span>
+            <h2>Notifications</h2>
+        </div>
+        <div class="section-body">
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Nearby SOS Alerts</div>
+                    <div class="toggle-desc">Get notified when someone nearby needs help</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="notify_sos" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Messages</div>
+                    <div class="toggle-desc">Get notified when you receive a message</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="notify_messages" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Feedback Reminders</div>
+                    <div class="toggle-desc">Remind you when feedback is pending</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="notify_feedback" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ICE PROFILE LINK ===== -->
+    <div class="settings-section">
+        <div class="section-header">
+            <span class="section-header-icon">🏥</span>
+            <h2>ICE Profile</h2>
+        </div>
+        <div class="section-body" style="display:flex; align-items:center; justify-content:space-between;">
+            <div>
+                <p style="font-size:14px; font-weight:500; margin-bottom:4px;">Medical, travel documents & emergency contacts</p>
+                <p style="font-size:13px; color:var(--text-muted);">Blood type, allergies, medications, passport, visa, insurance. You control who sees each field.</p>
+            </div>
+            <a href="ice-profile.html" class="btn btn-secondary" style="white-space:nowrap;">Open ICE Profile →</a>
+        </div>
+    </div>
+
+    <!-- ===== DATA & ACCOUNT ===== -->
+    <div class="settings-section danger-section">
+        <div class="section-header">
+            <span class="section-header-icon">⚠️</span>
+            <h2>Data & Account</h2>
+        </div>
+        <div class="section-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Message Retention</label>
+                    <select id="message_retention">
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="365" selected>1 year</option>
+                        <option value="730">2 years</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Location History Retention</label>
+                    <select id="location_retention">
+                        <option value="7">7 days</option>
+                        <option value="30" selected>30 days</option>
+                        <option value="90">90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:8px;">
+                <button class="btn btn-secondary" onclick="requestDataExport()">📥 Download My Data</button>
+                <button class="btn btn-danger" onclick="requestAccountDeletion()">🗑️ Delete Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SAVE BAR ===== -->
+    <div class="save-bar">
+        <span class="save-status" id="save-status">✅ Settings saved</span>
+        <button class="btn btn-primary btn-large" id="btn-save" onclick="saveSettings()">
+            Save Settings
+        </button>
+    </div>
+</div>
+
+<script>
+    // ====================================================================
+    // SETTINGS PAGE LOGIC
+    // ====================================================================
+
+    let isFirstTime = false;
+
+    // Wait for Tiriwe core to initialise
+    Tiriwe.ready().then(() => {
+        const user = Tiriwe.user;
+        if (!user) return; // Core will redirect if no session
+
+        isFirstTime = !Tiriwe.isProfileComplete(user);
+
+        // Populate form fields from user data
+        populateForm(user);
+
+        // Show appropriate header
+        if (isFirstTime) {
+            document.getElementById('welcome-banner').classList.add('visible');
+            document.getElementById('page-header').style.display = 'none';
+            document.getElementById('section-profile').classList.add('highlight');
+            document.getElementById('section-location').classList.add('highlight');
+            document.getElementById('profile-required').style.display = 'inline';
+            document.getElementById('location-required').style.display = 'inline';
+            // Change save button text
+            document.getElementById('btn-save').textContent = 'Complete Setup & Continue';
+        }
+
+        // Hide loading, show content
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('settings-content').style.display = 'block';
+    });
+
+    /**
+     * Populate form fields from the user's database record
+     */
+    function populateForm(user) {
+        // Profile
+        document.getElementById('display_name').value = user.display_name || '';
+        document.getElementById('gender').value = user.gender || '';
+        document.getElementById('bio').value = user.bio || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('phone').value = user.phone || '';
+
+        // Avatar preview
+        document.getElementById('avatar-circle').textContent = user.avatar_emoji || '👤';
+        document.getElementById('avatar-circle').style.background = user.avatar_color || '#E8F5E9';
+        document.getElementById('avatar-display-name').textContent = user.display_name || 'New User';
+
+        const vInfo = Tiriwe.getVerificationInfo(user.verification_level);
+        document.getElementById('avatar-level').textContent = vInfo.icon + ' ' + vInfo.name;
+
+        // Location — extract lat/lng from PostGIS geography
+        // PostGIS stores as SRID=4326;POINT(lng lat) but Supabase returns as string or object
+        if (user.home_location) {
+            try {
+                // Supabase returns geography as JSON: {"type":"Point","coordinates":[lng,lat]}
+                const loc = typeof user.home_location === 'string'
+                    ? JSON.parse(user.home_location)
+                    : user.home_location;
+                if (loc.coordinates) {
+                    document.getElementById('home_lng').value = loc.coordinates[0];
+                    document.getElementById('home_lat').value = loc.coordinates[1];
+                }
+            } catch (e) {
+                console.warn('Could not parse home_location:', e);
+            }
+        }
+
+        // Availability
+        document.getElementById('is_available').checked = user.is_available || false;
+        document.getElementById('max_help_radius_km').value = user.max_help_radius_km || 50;
+        document.getElementById('radius-value').textContent = (user.max_help_radius_km || 50) + ' km';
+        document.getElementById('availability_message').value = user.availability_message || '';
+
+        // Privacy — stored in metadata
+        const meta = user.metadata || {};
+        document.getElementById('help_gender_preference').value = user.help_gender_preference || 'any';
+        document.getElementById('location_precision').value = meta.location_precision || 'fuzzy';
+        document.getElementById('show_on_map').checked = meta.show_on_map !== false; // default true
+
+        // Notifications — stored in metadata
+        document.getElementById('notify_sos').checked = meta.notify_sos !== false;
+        document.getElementById('notify_messages').checked = meta.notify_messages !== false;
+        document.getElementById('notify_feedback').checked = meta.notify_feedback !== false;
+
+        // Data retention — stored in user_retention_settings or metadata
+        document.getElementById('message_retention').value = meta.message_retention || '365';
+        document.getElementById('location_retention').value = meta.location_retention || '30';
+
+        // Update display name preview as user types
+        document.getElementById('display_name').addEventListener('input', (e) => {
+            document.getElementById('avatar-display-name').textContent = e.target.value || 'New User';
+        });
+    }
+
+    /**
+     * Save all settings to the database
+     */
+    async function saveSettings() {
+        const btn = document.getElementById('btn-save');
+        const status = document.getElementById('save-status');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        status.classList.remove('visible');
+
+        const user = Tiriwe.user;
+        if (!user) return;
+
+        // Gather form values
+        const displayName = document.getElementById('display_name').value.trim();
+        const gender = document.getElementById('gender').value;
+        const bio = document.getElementById('bio').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const homeLat = parseFloat(document.getElementById('home_lat').value);
+        const homeLng = parseFloat(document.getElementById('home_lng').value);
+        const isAvailable = document.getElementById('is_available').checked;
+        const helpRadius = parseInt(document.getElementById('max_help_radius_km').value);
+        const availabilityMessage = document.getElementById('availability_message').value.trim();
+        const helpGenderPref = document.getElementById('help_gender_preference').value;
+
+        // Validation
+        if (!displayName) {
+            Tiriwe.showToast('Please enter a display name', 'error');
+            btn.disabled = false;
+            btn.textContent = isFirstTime ? 'Complete Setup & Continue' : 'Save Settings';
+            return;
+        }
+
+        // Build update object
+        const updates = {
+            display_name: displayName,
+            gender: gender || null,
+            bio: bio || null,
+            phone: phone || null,
+            is_available: isAvailable,
+            max_help_radius_km: helpRadius,
+            availability_message: availabilityMessage || null,
+            help_gender_preference: helpGenderPref,
+            updated_at: new Date().toISOString(),
+        };
+
+        // Home location — build PostGIS point if both lat/lng present
+        if (!isNaN(homeLat) && !isNaN(homeLng)) {
+            // Supabase accepts GeoJSON for geography columns
+            updates.home_location = JSON.stringify({
+                type: 'Point',
+                coordinates: [homeLng, homeLat]
+            });
+            // Also set fuzzy location (offset by ~1-3km random)
+            const fuzzLat = homeLat + (Math.random() - 0.5) * 0.03;
+            const fuzzLng = homeLng + (Math.random() - 0.5) * 0.03;
+            updates.home_location_fuzzy = JSON.stringify({
+                type: 'Point',
+                coordinates: [fuzzLng, fuzzLat]
+            });
+        }
+
+        // Metadata — merge with existing
+        const existingMeta = user.metadata || {};
+        updates.metadata = {
+            ...existingMeta,
+            setup_complete: true,
+            location_precision: document.getElementById('location_precision').value,
+            show_on_map: document.getElementById('show_on_map').checked,
+            notify_sos: document.getElementById('notify_sos').checked,
+            notify_messages: document.getElementById('notify_messages').checked,
+            notify_feedback: document.getElementById('notify_feedback').checked,
+            message_retention: document.getElementById('message_retention').value,
+            location_retention: document.getElementById('location_retention').value,
+        };
+
+        // Save to database
+        const { error } = await Tiriwe.sb
+            .from('users')
+            .update(updates)
+            .eq('id', user.id);
+
+        if (error) {
+            console.error('❌ Save failed:', error);
+            Tiriwe.showToast('Failed to save: ' + error.message, 'error');
+            btn.disabled = false;
+            btn.textContent = isFirstTime ? 'Complete Setup & Continue' : 'Save Settings';
+            return;
+        }
+
+        console.log('✅ Settings saved');
+
+        // If first time, redirect to dashboard
+        if (isFirstTime) {
+            Tiriwe.showToast('Welcome to Tiriwe!', 'success');
+            setTimeout(() => {
+                Tiriwe.navigateTo(Tiriwe.config.PAGE_DASHBOARD);
+            }, 1000);
+            return;
+        }
+
+        // Show success state
+        Tiriwe.showToast('Settings saved', 'success');
+        status.textContent = '✅ Settings saved';
+        status.classList.add('visible');
+        btn.disabled = false;
+        btn.textContent = 'Save Settings';
+
+        // Fade out status after 3 seconds
+        setTimeout(() => { status.classList.remove('visible'); }, 3000);
+    }
+
+    /**
+     * Use GPS to populate home location fields
+     */
+    async function useGPS() {
+        const btn = document.getElementById('btn-gps');
+        btn.textContent = '📍 Locating...';
+        btn.disabled = true;
+
+        const loc = await Tiriwe.getCurrentLocation();
+
+        if (loc) {
+            document.getElementById('home_lat').value = loc.latitude.toFixed(4);
+            document.getElementById('home_lng').value = loc.longitude.toFixed(4);
+            Tiriwe.showToast('Location captured', 'success');
+        } else {
+            Tiriwe.showToast('Could not get your location. Please enter manually.', 'warning');
+        }
+
+        btn.textContent = '📍 Use My GPS';
+        btn.disabled = false;
+    }
+
+    /**
+     * Request data export (placeholder)
+     */
+    function requestDataExport() {
+        Tiriwe.showToast('Data export requested. You\'ll receive an email when ready.', 'info');
+    }
+
+    /**
+     * Request account deletion (placeholder with confirmation)
+     */
+    function requestAccountDeletion() {
+        if (confirm('Are you sure you want to delete your account? This cannot be undone.\n\nAll your data will be permanently removed.')) {
+            if (confirm('Really? This will delete ALL your data, interactions, and feedback. Type "DELETE" in the next prompt to confirm.')) {
+                const response = prompt('Type DELETE to confirm account deletion:');
+                if (response === 'DELETE') {
+                    Tiriwe.showToast('Account deletion requested. You\'ll receive a confirmation email.', 'info');
+                } else {
+                    Tiriwe.showToast('Account deletion cancelled.', 'info');
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
