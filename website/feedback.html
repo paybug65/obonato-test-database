@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription & Plan — Tiriwe</title>
+    <title>Pending Feedback — Tiriwe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
@@ -161,8 +161,8 @@
 
 <section class="page-header">
     <div class="page-header-content">
-        <h1>⭐ Subscription & Plan</h1>
-        <p>Your current plan and billing</p>
+        <h1>⏳ Pending Feedback</h1>
+        <p>Feedback you need to complete</p>
     </div>
 </section>
 <div class="breadcrumb">
@@ -171,24 +171,28 @@
 </div>
 <main class="main">
 
-    <div class="section">
-        <div class="section-hd"><div class="section-title">Current Plan</div></div>
+    <div class="section" style="border-color:#fca5a5;">
+        <div class="section-hd" style="background:var(--orange-pale);">
+            <div class="section-title" style="color:#b45309;">⚠️ Action Required — 2 Pending</div>
+        </div>
         <div class="section-body">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-                <div style="background:var(--green-pale); padding:8px 16px; border-radius:20px; font-weight:700; color:var(--green); font-size:14px;">🆓 Free Plan</div>
-            </div>
-            <p style="font-size:13px; color:var(--text-mid); margin-bottom:12px;">Core safety features are always free. Premium unlocks enhanced features.</p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div style="padding:14px; background:var(--grey-50); border-radius:var(--radius-sm);">
-                    <div style="font-weight:700; font-size:13px;">✅ Included</div>
-                    <div style="font-size:12px; color:var(--text-mid); margin-top:4px;">SOS alerts, Help requests, Messages, Find It, Log It, Feedback, 5 groups</div>
+            <div class="form-hint" style="margin-bottom:16px;">You must complete feedback for all interactions before creating new SOS alerts or responding to requests.</div>
+            <div class="list-item">
+                <div class="list-icon" style="background:var(--orange);">⏳</div>
+                <div class="list-info">
+                    <div class="list-title">Interaction with SwiftTrail099</div>
+                    <div class="list-meta">Yesterday · You helped with directions</div>
                 </div>
-                <div style="padding:14px; background:var(--orange-pale); border-radius:var(--radius-sm);">
-                    <div style="font-weight:700; font-size:13px;">⭐ Premium</div>
-                    <div style="font-size:12px; color:var(--text-mid); margin-top:4px;">Unlimited groups, route planning, offline maps, priority support, analytics</div>
-                </div>
+                <button class="list-action" style="background:var(--orange);">Give Feedback</button>
             </div>
-            <div class="btn-row"><button class="btn btn-primary">⭐ Upgrade to Premium</button></div>
+            <div class="list-item">
+                <div class="list-icon" style="background:var(--orange);">⏳</div>
+                <div class="list-info">
+                    <div class="list-title">Interaction with BoldPeak442</div>
+                    <div class="list-meta">3 days ago · They helped with fuel</div>
+                </div>
+                <button class="list-action" style="background:var(--orange);">Give Feedback</button>
+            </div>
         </div>
     </div>
 

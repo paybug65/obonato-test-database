@@ -3,771 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In Case of Emergency — Tiriwe</title>
+    <title>Emergency Contacts — Tiriwe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="js/tiriwe-core.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --green: #2E7D32; --green-light: #43A047; --green-dark: #1B5E20; --green-pale: #E8F5E9;
-            --orange: #FF9800; --orange-pale: #FFF3E0;
-            --red: #F44336; --red-pale: #FFEBEE;
-            --blue: #1565C0; --blue-pale: #E3F2FD;
-            --white: #ffffff; --off-white: #f8fafc;
+            --blue: #1F4788; --blue-dark: #162f5c; --blue-light: #2a5ba8; --blue-pale: #e8effa;
+            --green: #2E7D32; --green-light: #43A047; --green-pale: #E8F5E9;
+            --orange: #F59E0B; --orange-pale: #FFF8E1;
+            --red: #DC2626; --red-pale: #FEF2F2;
+            --purple: #7B1FA2; --purple-pale: #F3E5F5;
+            --white: #ffffff; --off-white: #d5dfe9;
+            --grey-50: #f8fafc; --grey-100: #f1f5f9; --grey-200: #e2e8f0;
+            --grey-300: #cbd5e1; --grey-400: #94a3b8; --grey-500: #64748b;
+            --grey-600: #475569; --grey-700: #334155; --grey-800: #1e293b;
             --text: #1e293b; --text-mid: #475569; --text-muted: #94a3b8;
-            --border: #e2e8f0; --radius: 12px;
+            --border: #e2e8f0; --radius: 14px; --radius-sm: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; }
+        body { font-family: 'DM Sans', -apple-system, sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; min-height: 100vh; }
 
-        .page-container { max-width: 720px; margin: 0 auto; padding: 32px 24px 80px; }
-        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; margin-bottom: 20px; }
-        .back-link:hover { color: var(--green); }
-        .page-header { margin-bottom: 28px; }
-        .page-header h1 { font-size: 28px; font-weight: 800; }
-        .page-header p { color: var(--text-mid); font-size: 15px; margin-top: 4px; }
+        .top-bar { background: #e8edf3; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .top-bar-upper { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--blue); font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; letter-spacing: -0.5px; }
+        .nav-brand svg { width: 30px; height: 30px; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .nav-user { display: flex; align-items: center; gap: 8px; }
+        .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-light)); display: flex; align-items: center; justify-content: center; font-size: 15px; color: white; }
+        .nav-display-name { font-weight: 600; font-size: 13px; color: var(--text); }
+        .nav-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--grey-500); font-size: 16px; position: relative; }
+        .nav-btn:hover { background: var(--grey-100); color: var(--blue); }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; background: var(--red); color: white; font-size: 9px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+        .tab-nav { display: flex; align-items: center; padding: 0 24px; overflow-x: auto; scrollbar-width: none; }
+        .tab-nav::-webkit-scrollbar { display: none; }
+        .tab-item { display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--grey-600); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+        .tab-item:hover { color: var(--blue); background: var(--blue-pale); }
+        .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .tab-icon { font-size: 16px; }
+        .tab-badge { background: var(--red); color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
 
-        /* Sections */
-        .section { background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px; overflow: hidden; }
-        .section-hdr { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-        .section-hdr-icon { font-size: 20px; }
-        .section-hdr h2 { font-size: 16px; font-weight: 700; flex: 1; }
-        .section-body { padding: 24px; }
-        .section-note { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+        .page-header { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 50%, var(--blue-light) 100%); padding: 24px 24px 20px; color: white; position: relative; overflow: hidden; }
+        .page-header::before { content: ''; position: absolute; top: -50%; right: -20%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%); border-radius: 50%; }
+        .page-header-content { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+        .page-header h1 { font-size: 22px; font-weight: 700; }
+        .page-header p { font-size: 13px; opacity: 0.8; margin-top: 2px; }
 
-        /* Forms */
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-        .form-row.full { grid-template-columns: 1fr; }
-        .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-mid); margin-bottom: 6px; }
-        .form-group label .hint { font-weight: 400; color: var(--text-muted); margin-left: 4px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px;
-            font-family: inherit; font-size: 14px; transition: all 0.2s; background: var(--off-white);
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none; border-color: var(--green); background: white; box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
-        }
-        .form-group textarea { resize: vertical; min-height: 60px; }
+        .breadcrumb { max-width: 800px; margin: 16px auto 0; padding: 0 24px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .breadcrumb a { font-size: 13px; color: var(--blue); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; padding: 6px 14px; background: var(--white); border: 1px solid var(--border); border-radius: 20px; transition: all 0.2s; }
+        .breadcrumb a:hover { background: var(--blue); color: white; }
 
-        /* Visibility selector */
-        .vis-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 10px 14px; background: var(--off-white); border-radius: 8px; }
-        .vis-row label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 0; white-space: nowrap; }
-        .vis-row select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-family: inherit; }
+        .main { max-width: 800px; margin: 16px auto 0; padding: 0 24px 40px; animation: fadeUp 0.5s ease-out; }
+        .section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 18px; overflow: hidden; }
+        .section-hd { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--grey-100); }
+        .section-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .section-body { padding: 20px; }
 
-        /* Data tables */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
-        .data-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 6px; border-bottom: 2px solid var(--border); }
-        .data-table td { padding: 10px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        .data-table td:last-child { text-align: right; width: 36px; }
-        .data-table input, .data-table select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 12px; width: 100%; background: white; }
-        .data-table input:focus, .data-table select:focus { outline: none; border-color: var(--green); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-full { grid-column: 1 / -1; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-label { font-size: 12px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input, .form-select, .form-textarea { padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; background: var(--white); color: var(--text); transition: border-color 0.2s, box-shadow 0.2s; width: 100%; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(31,71,136,0.1); }
+        .form-input:disabled { background: var(--grey-50); color: var(--grey-500); cursor: not-allowed; }
+        .form-textarea { resize: vertical; min-height: 80px; }
+        .form-hint { font-size: 11px; color: var(--text-muted); }
 
-        .expiry-warning { font-size: 11px; font-weight: 600; margin-top: 2px; }
-        .expiry-warning.expired { color: var(--red); }
-        .expiry-warning.soon { color: var(--orange); }
-        .expiry-warning.ok { color: var(--green); }
+        .option-group { display: flex; flex-wrap: wrap; gap: 8px; }
+        .option-pill { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .option-pill:hover { border-color: var(--blue); }
+        .option-pill input { display: none; }
+        .option-pill.selected { background: var(--blue); color: white; border-color: var(--blue); }
 
-        .empty-state { text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px; font-style: italic; }
-        .add-row-bar { display: flex; justify-content: flex-end; margin-top: 12px; }
-
-        .btn { padding: 12px 24px; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+        .btn { padding: 10px 24px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; border: none; }
         .btn-primary { background: var(--green); color: white; }
-        .btn-primary:hover { background: var(--green-dark); }
-        .btn-primary:disabled { background: #A5D6A7; cursor: not-allowed; }
-        .btn-secondary { background: var(--off-white); color: var(--text-mid); border: 1.5px solid var(--border); }
-        .btn-secondary:hover { background: white; border-color: var(--text-muted); }
-        .btn-sm { padding: 8px 14px; font-size: 13px; }
-        .btn-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px; border-radius: 4px; }
-        .btn-remove:hover { color: var(--red); background: var(--red-pale); }
+        .btn-primary:hover { background: var(--green-light); }
+        .btn-secondary { background: var(--white); color: var(--blue); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--blue-pale); }
+        .btn-danger { background: var(--red-pale); color: var(--red); }
+        .btn-danger:hover { background: #fecaca; }
 
-        .save-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-        .save-status { font-size: 13px; color: var(--green); font-weight: 500; opacity: 0; transition: opacity 0.3s; }
-        .save-status.visible { opacity: 1; }
+        .list-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--grey-100); }
+        .list-item:last-child { border-bottom: none; }
+        .list-icon { width: 42px; height: 42px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; color: white; }
+        .list-info { flex: 1; min-width: 0; }
+        .list-title { font-weight: 600; font-size: 13px; }
+        .list-meta { font-size: 11px; color: var(--text-muted); }
+        .list-action { padding: 6px 14px; background: var(--blue); color: white; border: none; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .list-action:hover { background: var(--blue-light); }
 
-        /* Contact type badge */
-        .contact-badge { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
-        .contact-badge.tiriwe { background: var(--green-pale); color: var(--green); }
-        .contact-badge.external { background: var(--blue-pale); color: var(--blue); }
+        .badge-v { color: var(--green); font-size: 11px; margin-left: 3px; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+        .empty-state p { font-size: 14px; margin-bottom: 16px; }
 
-        /* Search user inline */
-        .user-search-wrap { position: relative; }
-        .user-search-results { position: absolute; top: 100%; left: 0; right: 0; z-index: 10; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 4px; display: none; max-height: 160px; overflow-y: auto; }
-        .user-search-results.show { display: block; }
-        .user-search-result { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-        .user-search-result:last-child { border-bottom: none; }
-        .user-search-result:hover { background: var(--green-pale); }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: var(--radius); font-size: 14px; font-weight: 600; z-index: 300; display: none; }
+        .toast.success { background: var(--green); color: white; }
+        .toast.error { background: var(--red); color: white; }
 
-        /* Loading */
-        .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 60vh; flex-direction: column; gap: 16px; }
-        .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; transition: opacity 0.3s; }
+        .settings-overlay.open { display: block; opacity: 1; }
+        .settings-panel { position: fixed; top: 0; right: -380px; width: 360px; max-width: 90vw; height: 100vh; background: var(--white); box-shadow: var(--shadow-lg); z-index: 201; transition: right 0.3s ease; overflow-y: auto; }
+        .settings-panel.open { right: 0; }
+        .settings-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--white); z-index: 1; }
+        .settings-header h2 { font-size: 16px; font-weight: 700; }
+        .settings-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--grey-100); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--grey-500); }
+        .settings-section { padding: 12px 20px; }
+        .settings-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+        .settings-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; border-bottom: 1px solid var(--grey-100); text-decoration: none; color: var(--text); font-size: 13px; font-weight: 500; transition: color 0.15s; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item:hover { color: var(--blue); }
+        .si-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+        .si-icon.green { background: var(--green-pale); } .si-icon.red { background: var(--red-pale); }
+        .si-icon.blue { background: var(--blue-pale); } .si-icon.orange { background: var(--orange-pale); }
+        .si-icon.purple { background: var(--purple-pale); } .si-icon.grey { background: var(--grey-100); }
+        .si-arrow { margin-left: auto; color: var(--grey-300); }
+        .si-badge { background: var(--orange); color: white; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: auto; }
+        .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
+        .settings-logout:hover { background: #fecaca; }
 
-        @media (max-width: 600px) {
-            .form-row, .form-row.triple { grid-template-columns: 1fr; }
-            .page-container { padding: 16px 16px 80px; }
-            .data-table { font-size: 12px; }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .nav-display-name { display: none; }
+            .tab-item { padding: 10px 12px; font-size: 12px; }
+            .breadcrumb { flex-wrap: wrap; }
         }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        
     </style>
 </head>
 <body>
-
-<nav id="tiriwe-nav"></nav>
-
-<div class="page-container" id="loading-screen">
-    <div class="loading-screen">
-        <div class="loading-spinner"></div>
-        <div style="color:var(--text-muted); font-size:14px;">Loading emergency info...</div>
+<header class="top-bar">
+    <div class="top-bar-upper">
+        <a href="dashboard.html" class="nav-brand">
+            <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2.5"/><circle cx="11" cy="13" r="3" fill="currentColor"/><circle cx="21" cy="13" r="3" fill="currentColor"/><path d="M11 16 L16 22 L21 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            Tiriwe
+        </a>
+        <div class="nav-right">
+            <div class="nav-user"><div class="nav-avatar">🏍️</div><span class="nav-display-name">BraveRiver472</span></div>
+            <button class="nav-btn" title="Notifications">🔔<span class="notif-badge">3</span></button>
+            <button class="nav-btn" title="Settings" onclick="openSettings()">⚙️</button>
+        </div>
     </div>
+    <nav class="tab-nav">
+        <a class="tab-item" href="dashboard.html"><span class="tab-icon">🏠</span><span class="tab-text">Dashboard</span></a>
+        <a class="tab-item" href="messages.html"><span class="tab-icon">💬</span><span class="tab-text">Messages</span><span class="tab-badge">2</span></a>
+        <a class="tab-item" href="diary.html"><span class="tab-icon">📔</span><span class="tab-text">Diary</span></a>
+        <a class="tab-item" href="findit.html"><span class="tab-icon">🔍</span><span class="tab-text">Find It</span></a>
+        <a class="tab-item" href="logit.html"><span class="tab-icon">📍</span><span class="tab-text">Log It</span></a>
+        <a class="tab-item" href="help.html"><span class="tab-icon">🆘</span><span class="tab-text">Help</span></a>
+    </nav>
+</header>
+
+<section class="page-header">
+    <div class="page-header-content">
+        <h1>❤️ Emergency Contacts</h1>
+        <p>People to notify in an emergency</p>
+    </div>
+</section>
+<div class="breadcrumb">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="#" onclick="openSettings(); return false;">⚙️ Settings</a>
 </div>
+<main class="main">
 
-<div class="page-container" id="main-content" style="display:none;">
-
-    <a href="settings.html" class="back-link">← Back to Settings</a>
-
-    <div class="page-header">
-        <h1>In Case of Emergency</h1>
-        <p>Medical details, travel documents & emergency contacts. You control who sees each section.</p>
-    </div>
-
-    <!-- ==================== MEDICAL INFO ==================== -->
     <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">🏥</span>
-            <h2>Medical Information</h2>
+        <div class="section-hd">
+            <div class="section-title">Your Emergency Contacts (1)</div>
+            <button class="btn btn-primary" style="padding:6px 16px;" onclick="document.getElementById('addContact').style.display='block'">+ Add Contact</button>
         </div>
         <div class="section-body">
-            <div class="vis-row">
-                <label>Who can see:</label>
-                <select id="vis-medical">
-                    <option value="only_me">Only Me</option>
-                    <option value="friends">Friends</option>
-                    <option value="emergency_contacts" selected>Emergency Contacts</option>
-                    <option value="confirmed_helpers">Confirmed Helpers</option>
-                    <option value="all_verified">All Verified Users</option>
-                </select>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Blood Type</label>
-                    <select id="blood_type">
-                        <option value="">— Select —</option>
-                        <option value="A+">A+</option><option value="A-">A-</option>
-                        <option value="B+">B+</option><option value="B-">B-</option>
-                        <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                        <option value="O+">O+</option><option value="O-">O-</option>
-                    </select>
+            <div class="list-item">
+                <div class="list-icon" style="background:var(--red);">❤️</div>
+                <div class="list-info">
+                    <div class="list-title">Mum</div>
+                    <div class="list-meta">+64 21 555 1234 · Home contact · Auto-notify: On</div>
                 </div>
-                <div class="form-group">
-                    <label>Organ Donor</label>
-                    <select id="organ_donor">
-                        <option value="">— Select —</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                        <option value="unknown">Unknown</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row full">
-                <div class="form-group">
-                    <label>Allergies</label>
-                    <textarea id="allergies" placeholder="e.g. Penicillin, bee stings, peanuts..." rows="2"></textarea>
-                </div>
-            </div>
-            <div class="form-row full">
-                <div class="form-group">
-                    <label>Medical Conditions</label>
-                    <textarea id="conditions" placeholder="e.g. Asthma, diabetes, epilepsy..." rows="2"></textarea>
-                </div>
-            </div>
-            <div class="form-row full">
-                <div class="form-group">
-                    <label>Additional Medical Notes</label>
-                    <textarea id="medical_notes" placeholder="Anything a first responder should know..." rows="2"></textarea>
+                <div style="display:flex;gap:6px;">
+                    <button class="list-action">Edit</button>
+                    <button class="list-action" style="background:var(--red);">Remove</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- ==================== MEDICATIONS ==================== -->
-    <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">💊</span>
-            <h2>Current Medications</h2>
-        </div>
+    <div class="section" id="addContact" style="display:none;">
+        <div class="section-hd"><div class="section-title">Add Emergency Contact</div></div>
         <div class="section-body">
-            <div class="vis-row">
-                <label>Who can see:</label>
-                <select id="vis-medications">
-                    <option value="only_me">Only Me</option>
-                    <option value="friends">Friends</option>
-                    <option value="emergency_contacts" selected>Emergency Contacts</option>
-                    <option value="confirmed_helpers">Confirmed Helpers</option>
-                    <option value="all_verified">All Verified Users</option>
-                </select>
-            </div>
-            <table class="data-table" id="med-table">
-                <thead>
-                    <tr><th>Medication</th><th>Dosage</th><th>Frequency</th><th>Expiry</th><th></th></tr>
-                </thead>
-                <tbody id="med-body"></tbody>
-            </table>
-            <div class="empty-state" id="med-empty">No medications added.</div>
-            <div class="add-row-bar">
-                <button class="btn btn-sm btn-secondary" onclick="addMedRow()">+ Add Medication</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== PASSPORTS ==================== -->
-    <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">🛂</span>
-            <h2>Passports</h2>
-        </div>
-        <div class="section-body">
-            <div class="vis-row">
-                <label>Who can see:</label>
-                <select id="vis-passports">
-                    <option value="only_me" selected>Only Me</option>
-                    <option value="friends">Friends</option>
-                    <option value="emergency_contacts">Emergency Contacts</option>
-                    <option value="confirmed_helpers">Confirmed Helpers</option>
-                    <option value="all_verified">All Verified Users</option>
-                </select>
-            </div>
-            <table class="data-table" id="passport-table">
-                <thead>
-                    <tr><th>Country</th><th>Passport Number</th><th>Expiry Date</th><th></th></tr>
-                </thead>
-                <tbody id="passport-body"></tbody>
-            </table>
-            <div class="empty-state" id="passport-empty">No passports added.</div>
-            <div class="add-row-bar">
-                <button class="btn btn-sm btn-secondary" onclick="addPassportRow()">+ Add Passport</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== VISAS ==================== -->
-    <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">📋</span>
-            <h2>Visas</h2>
-        </div>
-        <div class="section-body">
-            <div class="vis-row">
-                <label>Who can see:</label>
-                <select id="vis-visas">
-                    <option value="only_me" selected>Only Me</option>
-                    <option value="friends">Friends</option>
-                    <option value="emergency_contacts">Emergency Contacts</option>
-                    <option value="confirmed_helpers">Confirmed Helpers</option>
-                    <option value="all_verified">All Verified Users</option>
-                </select>
-            </div>
-            <table class="data-table" id="visa-table">
-                <thead>
-                    <tr><th>Country</th><th>Visa Type</th><th>Expiry Date</th><th></th></tr>
-                </thead>
-                <tbody id="visa-body"></tbody>
-            </table>
-            <div class="empty-state" id="visa-empty">No visas added.</div>
-            <div class="add-row-bar">
-                <button class="btn btn-sm btn-secondary" onclick="addVisaRow()">+ Add Visa</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== TRAVEL INSURANCE ==================== -->
-    <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">🛡️</span>
-            <h2>Travel Insurance</h2>
-        </div>
-        <div class="section-body">
-            <div class="vis-row">
-                <label>Who can see:</label>
-                <select id="vis-insurance">
-                    <option value="only_me">Only Me</option>
-                    <option value="friends">Friends</option>
-                    <option value="emergency_contacts" selected>Emergency Contacts</option>
-                    <option value="confirmed_helpers">Confirmed Helpers</option>
-                    <option value="all_verified">All Verified Users</option>
-                </select>
-            </div>
-            <table class="data-table" id="insurance-table">
-                <thead>
-                    <tr><th>Provider</th><th>Policy No.</th><th>Emergency Phone</th><th>Expiry</th><th></th></tr>
-                </thead>
-                <tbody id="insurance-body"></tbody>
-            </table>
-            <div class="empty-state" id="insurance-empty">No insurance policies added.</div>
-            <div class="add-row-bar">
-                <button class="btn btn-sm btn-secondary" onclick="addInsuranceRow()">+ Add Policy</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== EMERGENCY CONTACTS ==================== -->
-    <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">📞</span>
-            <h2>Emergency Contacts</h2>
-        </div>
-        <div class="section-body">
-            <p class="section-note">Add people to notify in an emergency. You can add external contacts or link existing Tiriwe users by their username.</p>
-
-            <div class="vis-row">
-                <label>Who can see:</label>
-                <select id="vis-contacts">
-                    <option value="only_me">Only Me</option>
-                    <option value="friends">Friends</option>
-                    <option value="emergency_contacts" selected>Emergency Contacts</option>
-                    <option value="confirmed_helpers">Confirmed Helpers</option>
-                    <option value="all_verified">All Verified Users</option>
-                </select>
-            </div>
-
-            <table class="data-table" id="contact-table">
-                <thead>
-                    <tr><th>Name</th><th>Relationship</th><th>Phone</th><th>Type</th><th></th></tr>
-                </thead>
-                <tbody id="contact-body"></tbody>
-            </table>
-            <div class="empty-state" id="contact-empty">No emergency contacts added.</div>
-
-            <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
-                <button class="btn btn-sm btn-secondary" onclick="addContactRow()">+ Add External Contact</button>
-                <button class="btn btn-sm btn-secondary" onclick="showTiriweUserSearch()" style="border-color:var(--green-pale); color:var(--green);">+ Link Tiriwe User</button>
-            </div>
-
-            <!-- Tiriwe user search (hidden by default) -->
-            <div id="tiriwe-user-search" style="display:none; margin-top:16px; padding:16px; background:var(--green-pale); border-radius:8px;">
-                <label style="font-size:13px; font-weight:600; color:var(--green-dark); display:block; margin-bottom:8px;">Search Tiriwe User by Display Name</label>
-                <div class="user-search-wrap">
-                    <input type="text" id="tiriwe-search-input" placeholder="e.g. SwiftRiver742" style="padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; width:100%; font-size:14px;">
-                    <div class="user-search-results" id="tiriwe-search-results"></div>
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label">Name</label><input class="form-input" placeholder="Contact name"></div>
+                <div class="form-group"><label class="form-label">Relationship</label>
+                    <select class="form-select"><option>Family</option><option>Friend</option><option>Travel Buddy</option><option>Partner</option><option>Other</option></select>
+                </div>
+                <div class="form-group"><label class="form-label">Phone</label><input class="form-input" type="tel" placeholder="+64..."></div>
+                <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="email@example.com"></div>
+                <div class="form-group form-full">
+                    <label class="form-label">Link to Tiriwe User</label>
+                    <input class="form-input" placeholder="Search display name (optional)">
+                    <div class="form-hint">If this person is on Tiriwe, link them for faster notification.</div>
                 </div>
             </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="document.getElementById('addContact').style.display='none'">Cancel</button>
+                <button class="btn btn-primary" onclick="showToast('Contact added!','success')">💾 Save Contact</button>
+            </div>
         </div>
     </div>
 
-    <!-- ==================== SAVE ==================== -->
-    <div class="save-bar">
-        <span class="save-status" id="save-status">✅ Saved</span>
-        <button class="btn btn-primary" id="btn-save" onclick="saveEmergencyInfo()" style="padding:14px 32px; font-size:16px;">
-            Save Emergency Info
-        </button>
+</main>
+
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+<aside class="settings-panel" id="settings-panel">
+    <div class="settings-header"><h2>⚙️ Settings</h2><button class="settings-close" onclick="closeSettings()">✕</button></div>
+    <div class="settings-section">
+        <div class="settings-section-title">Profile</div>
+        <a class="settings-item" href="profile.html"><div class="si-icon green">👤</div> My Profile <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="friends.html"><div class="si-icon blue">👥</div> My Friends <span class="si-badge">4</span></a>
+        <a class="settings-item" href="groups.html"><div class="si-icon purple">👪</div> My Groups <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="transport.html"><div class="si-icon orange">🏍️</div> My Transport <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> Emergency Contacts <span class="si-arrow">›</span></a>
     </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Account</div>
+        <a class="settings-item" href="subscription.html"><div class="si-icon orange">⭐</div> Subscription & Plan <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="password.html"><div class="si-icon grey">🔑</div> Change Password <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="twofactor.html"><div class="si-icon blue">🔒</div> Two-Factor Auth <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Availability</div>
+        <a class="settings-item" href="availability.html"><div class="si-icon green">📡</div> Availability Settings <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="helpprefs.html"><div class="si-icon blue">🎯</div> Help Preferences <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Activity</div>
+        <a class="settings-item" href="activity.html"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="feedback.html"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
+        <a class="settings-item" href="interactions.html"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Privacy & Data</div>
+        <a class="settings-item" href="privacy.html"><div class="si-icon purple">📍</div> Location Privacy <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="retention.html"><div class="si-icon grey">🗂️</div> Data Retention <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="download.html"><div class="si-icon blue">⬇️</div> Download My Data <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="blocked.html"><div class="si-icon red">🚫</div> Blocked Users <span class="si-arrow">›</span></a>
+    </div>
+    <button class="settings-logout" onclick="alert('Logged out')">🚪 Log Out</button>
+</aside>
 
-</div>
-
+<div class="toast" id="toast"></div>
 <script>
-// ====================================================================
-// COUNTRY LIST (ISO)
-// ====================================================================
-const COUNTRIES = [
-    'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda','Argentina','Armenia',
-    'Australia','Austria','Azerbaijan','Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium',
-    'Belize','Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria',
-    'Burkina Faso','Burundi','Cabo Verde','Cambodia','Cameroon','Canada','Central African Republic','Chad',
-    'Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia','Cuba','Cyprus','Czech Republic',
-    'Denmark','Djibouti','Dominica','Dominican Republic','Ecuador','Egypt','El Salvador','Equatorial Guinea',
-    'Eritrea','Estonia','Eswatini','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany',
-    'Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana','Haiti','Honduras','Hungary',
-    'Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Jamaica','Japan','Jordan',
-    'Kazakhstan','Kenya','Kiribati','Kosovo','Kuwait','Kyrgyzstan','Laos','Latvia','Lebanon','Lesotho',
-    'Liberia','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malawi','Malaysia','Maldives',
-    'Mali','Malta','Marshall Islands','Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco',
-    'Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nauru','Nepal','Netherlands',
-    'New Zealand','Nicaragua','Niger','Nigeria','North Korea','North Macedonia','Norway','Oman','Pakistan',
-    'Palau','Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines','Poland','Portugal',
-    'Qatar','Romania','Russia','Rwanda','Saint Kitts and Nevis','Saint Lucia','Saint Vincent and the Grenadines',
-    'Samoa','San Marino','Sao Tome and Principe','Saudi Arabia','Senegal','Serbia','Seychelles','Sierra Leone',
-    'Singapore','Slovakia','Slovenia','Solomon Islands','Somalia','South Africa','South Korea','South Sudan',
-    'Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria','Taiwan','Tajikistan','Tanzania',
-    'Thailand','Timor-Leste','Togo','Tonga','Trinidad and Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu',
-    'Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan',
-    'Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'
-];
-
-function countryOptions() {
-    return '<option value="">— Select —</option>' + COUNTRIES.map(c => `<option value="${c}">${c}</option>`).join('');
-}
-
-// ====================================================================
-// DATA STATE
-// ====================================================================
-let medications = [];
-let passports = [];
-let visas = [];
-let insurance = [];
-let contacts = [];
-
-// ====================================================================
-// INIT
-// ====================================================================
-Tiriwe.ready().then(() => {
-    const user = Tiriwe.user;
-    if (!user) return;
-
-    const ice = (user.metadata && user.metadata.ice) || {};
-    const iceVis = (user.metadata && user.metadata.ice_visibility) || {};
-
-    // Medical fields
-    document.getElementById('blood_type').value = ice.blood_type || '';
-    document.getElementById('organ_donor').value = ice.organ_donor || '';
-    document.getElementById('allergies').value = ice.allergies || '';
-    document.getElementById('conditions').value = ice.conditions || '';
-    document.getElementById('medical_notes').value = ice.medical_notes || '';
-
-    // Visibility
-    document.getElementById('vis-medical').value = iceVis.medical || 'emergency_contacts';
-    document.getElementById('vis-medications').value = iceVis.medications || 'emergency_contacts';
-    document.getElementById('vis-passports').value = iceVis.passports || 'only_me';
-    document.getElementById('vis-visas').value = iceVis.visas || 'only_me';
-    document.getElementById('vis-insurance').value = iceVis.insurance || 'emergency_contacts';
-    document.getElementById('vis-contacts').value = iceVis.contacts || 'emergency_contacts';
-
-    // Tables
-    medications = ice.medications || [];
-    passports = ice.passports || [];
-    visas = ice.visas || [];
-    insurance = ice.insurance || [];
-    contacts = ice.contacts || [];
-
-    renderMeds();
-    renderPassports();
-    renderVisas();
-    renderInsurance();
-    renderContacts();
-
-    document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('main-content').style.display = 'block';
-});
-
-// ====================================================================
-// EXPIRY HELPER
-// ====================================================================
-function expiryHtml(dateStr) {
-    if (!dateStr) return '';
-    const exp = new Date(dateStr);
-    const now = new Date();
-    const daysLeft = Math.ceil((exp - now) / (1000*60*60*24));
-
-    if (daysLeft < 0) return '<div class="expiry-warning expired">⚠ Expired</div>';
-    if (daysLeft < 90) return `<div class="expiry-warning soon">⚠ ${daysLeft} days left</div>`;
-    return `<div class="expiry-warning ok">✓ ${daysLeft} days</div>`;
-}
-
-// ====================================================================
-// MEDICATIONS
-// ====================================================================
-function renderMeds() {
-    const tbody = document.getElementById('med-body');
-    const empty = document.getElementById('med-empty');
-    tbody.innerHTML = '';
-    if (medications.length === 0) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-
-    medications.forEach((m, i) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><input value="${esc(m.name)}" onchange="medications[${i}].name=this.value" placeholder="Name"></td>
-            <td><input value="${esc(m.dosage)}" onchange="medications[${i}].dosage=this.value" placeholder="e.g. 10mg"></td>
-            <td><input value="${esc(m.frequency)}" onchange="medications[${i}].frequency=this.value" placeholder="e.g. Daily"></td>
-            <td style="min-width:110px;"><input type="date" value="${m.expiry||''}" onchange="medications[${i}].expiry=this.value; renderMeds()">${expiryHtml(m.expiry)}</td>
-            <td><button class="btn-remove" onclick="medications.splice(${i},1); renderMeds()">✕</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function addMedRow() {
-    medications.push({ name: '', dosage: '', frequency: '', expiry: '', notes: '' });
-    renderMeds();
-}
-
-// ====================================================================
-// PASSPORTS
-// ====================================================================
-function renderPassports() {
-    const tbody = document.getElementById('passport-body');
-    const empty = document.getElementById('passport-empty');
-    tbody.innerHTML = '';
-    if (passports.length === 0) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-
-    passports.forEach((p, i) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><select onchange="passports[${i}].country=this.value">${countryOptions()}</select></td>
-            <td><input value="${esc(p.number)}" onchange="passports[${i}].number=this.value" placeholder="Number"></td>
-            <td style="min-width:110px;"><input type="date" value="${p.expiry||''}" onchange="passports[${i}].expiry=this.value; renderPassports()">${expiryHtml(p.expiry)}</td>
-            <td><button class="btn-remove" onclick="passports.splice(${i},1); renderPassports()">✕</button></td>
-        `;
-        // Set country dropdown value after render
-        const sel = tr.querySelector('select');
-        sel.value = p.country || '';
-        tbody.appendChild(tr);
-    });
-}
-
-function addPassportRow() {
-    passports.push({ country: '', number: '', expiry: '' });
-    renderPassports();
-}
-
-// ====================================================================
-// VISAS
-// ====================================================================
-function renderVisas() {
-    const tbody = document.getElementById('visa-body');
-    const empty = document.getElementById('visa-empty');
-    tbody.innerHTML = '';
-    if (visas.length === 0) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-
-    visas.forEach((v, i) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><select onchange="visas[${i}].country=this.value">${countryOptions()}</select></td>
-            <td><input value="${esc(v.type)}" onchange="visas[${i}].type=this.value" placeholder="e.g. Working Holiday"></td>
-            <td style="min-width:110px;"><input type="date" value="${v.expiry||''}" onchange="visas[${i}].expiry=this.value; renderVisas()">${expiryHtml(v.expiry)}</td>
-            <td><button class="btn-remove" onclick="visas.splice(${i},1); renderVisas()">✕</button></td>
-        `;
-        tr.querySelector('select').value = v.country || '';
-        tbody.appendChild(tr);
-    });
-}
-
-function addVisaRow() {
-    visas.push({ country: '', type: '', expiry: '' });
-    renderVisas();
-}
-
-// ====================================================================
-// INSURANCE
-// ====================================================================
-function renderInsurance() {
-    const tbody = document.getElementById('insurance-body');
-    const empty = document.getElementById('insurance-empty');
-    tbody.innerHTML = '';
-    if (insurance.length === 0) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-
-    insurance.forEach((ins, i) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><input value="${esc(ins.provider)}" onchange="insurance[${i}].provider=this.value" placeholder="Provider"></td>
-            <td><input value="${esc(ins.policy)}" onchange="insurance[${i}].policy=this.value" placeholder="Policy #"></td>
-            <td><input value="${esc(ins.phone)}" onchange="insurance[${i}].phone=this.value" placeholder="+1 800..."></td>
-            <td style="min-width:110px;"><input type="date" value="${ins.expiry||''}" onchange="insurance[${i}].expiry=this.value; renderInsurance()">${expiryHtml(ins.expiry)}</td>
-            <td><button class="btn-remove" onclick="insurance.splice(${i},1); renderInsurance()">✕</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function addInsuranceRow() {
-    insurance.push({ provider: '', policy: '', phone: '', expiry: '' });
-    renderInsurance();
-}
-
-// ====================================================================
-// EMERGENCY CONTACTS
-// ====================================================================
-function renderContacts() {
-    const tbody = document.getElementById('contact-body');
-    const empty = document.getElementById('contact-empty');
-    tbody.innerHTML = '';
-    if (contacts.length === 0) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-
-    contacts.forEach((c, i) => {
-        const tr = document.createElement('tr');
-        const isTiriwe = c.tiriwe_user_id ? true : false;
-        const badge = isTiriwe
-            ? '<span class="contact-badge tiriwe">Tiriwe</span>'
-            : '<span class="contact-badge external">External</span>';
-
-        if (isTiriwe) {
-            tr.innerHTML = `
-                <td style="font-weight:500;">${esc(c.name)} ${badge}</td>
-                <td><input value="${esc(c.relationship)}" onchange="contacts[${i}].relationship=this.value" placeholder="Relationship"></td>
-                <td style="color:var(--text-muted); font-size:12px;">Via Tiriwe</td>
-                <td></td>
-                <td><button class="btn-remove" onclick="contacts.splice(${i},1); renderContacts()">✕</button></td>
-            `;
-        } else {
-            tr.innerHTML = `
-                <td><input value="${esc(c.name)}" onchange="contacts[${i}].name=this.value" placeholder="Name"> ${badge}</td>
-                <td><input value="${esc(c.relationship)}" onchange="contacts[${i}].relationship=this.value" placeholder="e.g. Partner"></td>
-                <td><input value="${esc(c.phone)}" onchange="contacts[${i}].phone=this.value" placeholder="+64..."></td>
-                <td></td>
-                <td><button class="btn-remove" onclick="contacts.splice(${i},1); renderContacts()">✕</button></td>
-            `;
-        }
-        tbody.appendChild(tr);
-    });
-}
-
-function addContactRow() {
-    contacts.push({ name: '', relationship: '', phone: '', email: '', type: 'external' });
-    renderContacts();
-}
-
-// ====================================================================
-// TIRIWE USER SEARCH
-// ====================================================================
-function showTiriweUserSearch() {
-    const el = document.getElementById('tiriwe-user-search');
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    if (el.style.display === 'block') {
-        document.getElementById('tiriwe-search-input').focus();
+    function openSettings() {
+        document.getElementById('settings-overlay').classList.add('open');
+        document.getElementById('settings-panel').classList.add('open');
+        document.body.style.overflow = 'hidden';
     }
-}
-
-let tiriweSearchTimeout = null;
-document.getElementById('tiriwe-search-input').addEventListener('input', (e) => {
-    clearTimeout(tiriweSearchTimeout);
-    const q = e.target.value.trim();
-    if (q.length < 3) { document.getElementById('tiriwe-search-results').classList.remove('show'); return; }
-    tiriweSearchTimeout = setTimeout(() => searchTiriweUser(q), 400);
-});
-
-async function searchTiriweUser(query) {
-    const resultsEl = document.getElementById('tiriwe-search-results');
-    resultsEl.innerHTML = '<div class="user-search-result" style="color:var(--text-muted);">Searching...</div>';
-    resultsEl.classList.add('show');
-
-    try {
-        const { data, error } = await Tiriwe.sb
-            .from('users')
-            .select('id, display_name, avatar_emoji')
-            .ilike('display_name', `%${query}%`)
-            .neq('id', Tiriwe.user.id)
-            .is('deleted_at', null)
-            .limit(5);
-
-        if (error || !data || data.length === 0) {
-            resultsEl.innerHTML = '<div class="user-search-result" style="color:var(--text-muted);">No users found</div>';
-            return;
-        }
-
-        resultsEl.innerHTML = '';
-        data.forEach(u => {
-            const div = document.createElement('div');
-            div.className = 'user-search-result';
-            div.innerHTML = `<span>${u.avatar_emoji || '👤'}</span> <strong>${esc(u.display_name)}</strong>`;
-            div.addEventListener('click', () => linkTiriweUser(u));
-            resultsEl.appendChild(div);
-        });
-    } catch (err) {
-        resultsEl.innerHTML = '<div class="user-search-result" style="color:var(--red);">Search failed</div>';
+    function closeSettings() {
+        document.getElementById('settings-overlay').classList.remove('open');
+        document.getElementById('settings-panel').classList.remove('open');
+        document.body.style.overflow = '';
     }
-}
-
-function linkTiriweUser(user) {
-    if (contacts.find(c => c.tiriwe_user_id === user.id)) {
-        Tiriwe.showToast('Already added', 'warning');
-        return;
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
     }
-    contacts.push({
-        name: user.display_name,
-        relationship: '',
-        phone: '',
-        email: '',
-        type: 'tiriwe',
-        tiriwe_user_id: user.id,
-        avatar_emoji: user.avatar_emoji
-    });
-    renderContacts();
-    document.getElementById('tiriwe-search-results').classList.remove('show');
-    document.getElementById('tiriwe-search-input').value = '';
-    Tiriwe.showToast('Linked ' + user.display_name, 'success');
-}
-
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.user-search-wrap')) {
-        document.getElementById('tiriwe-search-results').classList.remove('show');
+    function selectPill(pill, groupId) {
+        document.querySelectorAll('#' + groupId + ' .option-pill').forEach(p => p.classList.remove('selected'));
+        pill.classList.add('selected');
+        pill.querySelector('input').checked = true;
     }
-});
-
-// ====================================================================
-// SAVE
-// ====================================================================
-async function saveEmergencyInfo() {
-    const btn = document.getElementById('btn-save');
-    const status = document.getElementById('save-status');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-    status.classList.remove('visible');
-
-    const user = Tiriwe.user;
-    if (!user) return;
-
-    const existingMeta = user.metadata || {};
-
-    const ice = {
-        blood_type: document.getElementById('blood_type').value || null,
-        organ_donor: document.getElementById('organ_donor').value || null,
-        allergies: document.getElementById('allergies').value.trim() || null,
-        conditions: document.getElementById('conditions').value.trim() || null,
-        medical_notes: document.getElementById('medical_notes').value.trim() || null,
-        medications: medications,
-        passports: passports,
-        visas: visas,
-        insurance: insurance,
-        contacts: contacts,
-    };
-
-    const iceVis = {
-        medical: document.getElementById('vis-medical').value,
-        medications: document.getElementById('vis-medications').value,
-        passports: document.getElementById('vis-passports').value,
-        visas: document.getElementById('vis-visas').value,
-        insurance: document.getElementById('vis-insurance').value,
-        contacts: document.getElementById('vis-contacts').value,
-    };
-
-    const updates = {
-        metadata: {
-            ...existingMeta,
-            ice: ice,
-            ice_visibility: iceVis,
-        },
-        updated_at: new Date().toISOString(),
-    };
-
-    const { error } = await Tiriwe.sb.from('users').update(updates).eq('id', user.id);
-
-    if (error) {
-        Tiriwe.showToast('Failed to save: ' + error.message, 'error');
-        btn.disabled = false;
-        btn.textContent = 'Save Emergency Info';
-        return;
+    function togglePill(pill) {
+        const cb = pill.querySelector('input');
+        cb.checked = !cb.checked;
+        pill.classList.toggle('selected', cb.checked);
     }
-
-    Tiriwe.showToast('Emergency info saved', 'success');
-    status.textContent = '✅ Saved';
-    status.classList.add('visible');
-    btn.disabled = false;
-    btn.textContent = 'Save Emergency Info';
-    setTimeout(() => status.classList.remove('visible'), 3000);
-}
-
-// ====================================================================
-// UTILS
-// ====================================================================
-function esc(str) {
-    if (!str) return '';
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 </script>
-
 </body>
 </html>

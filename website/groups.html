@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Groups — Tiriwe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #1F4788; --blue-dark: #162f5c; --blue-light: #2a5ba8; --blue-pale: #e8effa;
+            --green: #2E7D32; --green-light: #43A047; --green-pale: #E8F5E9;
+            --orange: #F59E0B; --orange-pale: #FFF8E1;
+            --red: #DC2626; --red-pale: #FEF2F2;
+            --purple: #7B1FA2; --purple-pale: #F3E5F5;
+            --white: #ffffff; --off-white: #d5dfe9;
+            --grey-50: #f8fafc; --grey-100: #f1f5f9; --grey-200: #e2e8f0;
+            --grey-300: #cbd5e1; --grey-400: #94a3b8; --grey-500: #64748b;
+            --grey-600: #475569; --grey-700: #334155; --grey-800: #1e293b;
+            --text: #1e293b; --text-mid: #475569; --text-muted: #94a3b8;
+            --border: #e2e8f0; --radius: 14px; --radius-sm: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', -apple-system, sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; min-height: 100vh; }
+
+        /* TOP BAR */
+        .top-bar { background: #e8edf3; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .top-bar-upper { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--blue); font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; letter-spacing: -0.5px; }
+        .nav-brand svg { width: 30px; height: 30px; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .nav-user { display: flex; align-items: center; gap: 8px; }
+        .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-light)); display: flex; align-items: center; justify-content: center; font-size: 15px; color: white; }
+        .nav-display-name { font-weight: 600; font-size: 13px; color: var(--text); }
+        .nav-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--grey-500); font-size: 16px; position: relative; }
+        .nav-btn:hover { background: var(--grey-100); color: var(--blue); }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; background: var(--red); color: white; font-size: 9px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+        .tab-nav { display: flex; align-items: center; padding: 0 24px; overflow-x: auto; scrollbar-width: none; }
+        .tab-nav::-webkit-scrollbar { display: none; }
+        .tab-item { display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--grey-600); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+        .tab-item:hover { color: var(--blue); background: var(--blue-pale); }
+        .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .tab-icon { font-size: 16px; }
+        .tab-badge { background: var(--red); color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+
+        /* PAGE HEADER */
+        .page-header { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 50%, var(--blue-light) 100%); padding: 24px 24px 20px; color: white; position: relative; overflow: hidden; }
+        .page-header::before { content: ''; position: absolute; top: -50%; right: -20%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%); border-radius: 50%; }
+        .page-header-content { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+        .page-header h1 { font-size: 22px; font-weight: 700; }
+        .page-header p { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+
+        /* BREADCRUMB */
+        .breadcrumb { max-width: 900px; margin: 16px auto 0; padding: 0 24px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .breadcrumb a { font-size: 13px; color: var(--blue); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; padding: 6px 14px; background: var(--white); border: 1px solid var(--border); border-radius: 20px; transition: all 0.2s; }
+        .breadcrumb a:hover { background: var(--blue); color: white; }
+
+        /* MAIN */
+        .main { max-width: 900px; margin: 16px auto 0; padding: 0 24px 40px; }
+
+        /* CARDS */
+        .section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 18px; overflow: hidden; }
+        .section-hd { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--grey-100); flex-wrap: wrap; gap: 10px; }
+        .section-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .section-body { padding: 20px; }
+
+        /* GROUP GRID */
+        .group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+        .group-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .group-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--blue); }
+        .group-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .group-avatar { width: 48px; height: 48px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .group-info { flex: 1; min-width: 0; }
+        .group-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .group-type-badge { display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+        .group-type-badge.trip { background: var(--blue-pale); color: var(--blue); }
+        .group-type-badge.social { background: var(--orange-pale); color: #b45309; }
+        .group-type-badge.family { background: var(--green-pale); color: var(--green); }
+        .group-type-badge.other { background: var(--grey-100); color: var(--grey-600); }
+        .group-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .group-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--grey-100); }
+        .group-members-row { display: flex; align-items: center; }
+        .group-member-mini { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid var(--white); margin-left: -6px; }
+        .group-member-mini:first-child { margin-left: 0; }
+        .group-member-count { font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+        .group-unread { background: var(--blue); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+        .group-owner-badge { position: absolute; top: 10px; right: 10px; font-size: 10px; color: var(--orange); font-weight: 700; background: var(--orange-pale); padding: 2px 8px; border-radius: 10px; }
+        .group-dates { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+
+        /* INVITE CARDS */
+        .invite-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--grey-100); }
+        .invite-item:last-child { border-bottom: none; }
+        .invite-avatar { width: 44px; height: 44px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .invite-info { flex: 1; }
+        .invite-name { font-weight: 700; font-size: 14px; }
+        .invite-meta { font-size: 12px; color: var(--text-muted); }
+        .invite-actions { display: flex; gap: 8px; }
+
+        /* BUTTONS */
+        .btn { padding: 10px 24px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: var(--green); color: white; }
+        .btn-primary:hover { background: var(--green-light); }
+        .btn-secondary { background: var(--white); color: var(--blue); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--blue-pale); }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-accept { background: var(--green); color: white; }
+        .btn-accept:hover { background: var(--green-light); }
+        .btn-decline { background: var(--grey-100); color: var(--grey-600); }
+        .btn-decline:hover { background: var(--grey-200); }
+        .btn-create { display: flex; align-items: center; gap: 6px; padding: 10px 20px; background: var(--blue); color: white; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .btn-create:hover { background: var(--blue-light); }
+
+        /* CREATE FORM */
+        .create-form { display: none; }
+        .create-form.open { display: block; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-full { grid-column: 1 / -1; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-label { font-size: 12px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input, .form-select, .form-textarea { padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; background: var(--white); color: var(--text); transition: border-color 0.2s; width: 100%; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(31,71,136,0.1); }
+        .form-textarea { resize: vertical; min-height: 70px; }
+        .form-hint { font-size: 11px; color: var(--text-muted); }
+
+        /* TOGGLES */
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--grey-100); }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-label { font-size: 13px; font-weight: 600; }
+        .toggle-hint { font-size: 11px; color: var(--text-muted); }
+        .toggle { position: relative; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-track { position: absolute; inset: 0; background: var(--grey-300); border-radius: 24px; transition: 0.3s; }
+        .toggle-track::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+        .toggle input:checked + .toggle-track { background: var(--green); }
+        .toggle input:checked + .toggle-track::before { transform: translateX(20px); }
+
+        /* EMOJI PICKER */
+        .emoji-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+        .emoji-opt { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: all 0.15s; }
+        .emoji-opt:hover { border-color: var(--blue); transform: scale(1.1); }
+        .emoji-opt.selected { border-color: var(--blue); background: var(--blue-pale); }
+
+        /* PREMIUM HINT */
+        .premium-hint { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--orange-pale); border: 1px solid #fde68a; border-radius: var(--radius-sm); font-size: 12px; color: #92400e; margin-top: 16px; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: var(--radius); font-size: 14px; font-weight: 600; z-index: 300; display: none; animation: slideUp 0.3s ease-out; }
+        .toast.success { background: var(--green); color: white; }
+        .toast.error { background: var(--red); color: white; }
+        @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .main { animation: fadeUp 0.5s ease-out; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .group-grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .nav-display-name { display: none; }
+            .tab-item { padding: 10px 12px; font-size: 12px; }
+            .invite-item { flex-wrap: wrap; }
+            .invite-actions { width: 100%; justify-content: flex-end; }
+        }
+
+        /* SETTINGS PANEL */
+        .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; transition: opacity 0.3s; }
+        .settings-overlay.open { display: block; opacity: 1; }
+        .settings-panel { position: fixed; top: 0; right: -380px; width: 360px; max-width: 90vw; height: 100vh; background: var(--white); box-shadow: var(--shadow-lg); z-index: 201; transition: right 0.3s ease; overflow-y: auto; }
+        .settings-panel.open { right: 0; }
+        .settings-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--white); z-index: 1; }
+        .settings-header h2 { font-size: 16px; font-weight: 700; }
+        .settings-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--grey-100); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--grey-500); }
+        .settings-section { padding: 12px 20px; }
+        .settings-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+        .settings-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; border-bottom: 1px solid var(--grey-100); text-decoration: none; color: var(--text); font-size: 13px; font-weight: 500; transition: color 0.15s; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item:hover { color: var(--blue); }
+        .si-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+        .si-icon.green { background: var(--green-pale); } .si-icon.red { background: var(--red-pale); }
+        .si-icon.blue { background: var(--blue-pale); } .si-icon.orange { background: var(--orange-pale); }
+        .si-icon.purple { background: var(--purple-pale); } .si-icon.grey { background: var(--grey-100); }
+        .si-arrow { margin-left: auto; color: var(--grey-300); }
+        .si-badge { background: var(--orange); color: white; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: auto; }
+        .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
+        .settings-logout:hover { background: #fecaca; }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top-bar">
+    <div class="top-bar-upper">
+        <a href="dashboard.html" class="nav-brand">
+            <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2.5"/><circle cx="11" cy="13" r="3" fill="currentColor"/><circle cx="21" cy="13" r="3" fill="currentColor"/><path d="M11 16 L16 22 L21 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            Tiriwe
+        </a>
+        <div class="nav-right">
+            <div class="nav-user"><div class="nav-avatar">🏍️</div><span class="nav-display-name">BraveRiver472</span></div>
+            <button class="nav-btn" title="Notifications">🔔<span class="notif-badge">3</span></button>
+            <button class="nav-btn" title="Settings" onclick="openSettings()">⚙️</button>
+        </div>
+    </div>
+    <nav class="tab-nav">
+        <a class="tab-item" href="dashboard.html"><span class="tab-icon">🏠</span><span class="tab-text">Dashboard</span></a>
+        <a class="tab-item" href="messages.html"><span class="tab-icon">💬</span><span class="tab-text">Messages</span><span class="tab-badge">2</span></a>
+        <a class="tab-item" href="diary.html"><span class="tab-icon">📔</span><span class="tab-text">Diary</span></a>
+        <a class="tab-item" href="findit.html"><span class="tab-icon">🔍</span><span class="tab-text">Find It</span></a>
+        <a class="tab-item" href="logit.html"><span class="tab-icon">📍</span><span class="tab-text">Log It</span></a>
+        <a class="tab-item" href="help.html"><span class="tab-icon">🆘</span><span class="tab-text">Help</span></a>
+    </nav>
+</header>
+
+<!-- PAGE HEADER -->
+<section class="page-header">
+    <div class="page-header-content">
+        <h1>👪 My Groups</h1>
+        <p>Coordinate trips, share locations, and stay connected with your crew</p>
+    </div>
+</section>
+
+<!-- BREADCRUMBS -->
+<div class="breadcrumb">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="#" onclick="openSettings(); return false;">⚙️ Settings</a>
+</div>
+
+<main class="main">
+
+    <!-- ═══ PENDING INVITES ═══ -->
+    <div class="section" id="invitesSection">
+        <div class="section-hd">
+            <div class="section-title">📩 Pending Invitations <span style="background:var(--orange);color:white;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;">2</span></div>
+        </div>
+        <div class="section-body">
+            <div class="invite-item">
+                <div class="invite-avatar" style="background: var(--blue-pale);">🗺️</div>
+                <div class="invite-info">
+                    <div class="invite-name">West Coast Adventure</div>
+                    <div class="invite-meta">Trip group · Invited by WildMeadow234 · 2 hours ago</div>
+                </div>
+                <div class="invite-actions">
+                    <button class="btn btn-accept btn-sm" onclick="acceptInvite(this)">✓ Accept</button>
+                    <button class="btn btn-decline btn-sm" onclick="declineInvite(this)">✕ Decline</button>
+                </div>
+            </div>
+            <div class="invite-item">
+                <div class="invite-avatar" style="background: var(--orange-pale);">🍻</div>
+                <div class="invite-info">
+                    <div class="invite-name">Kaikoura Meetup Crew</div>
+                    <div class="invite-meta">Social group · Invited by KindValley891 · 1 day ago</div>
+                </div>
+                <div class="invite-actions">
+                    <button class="btn btn-accept btn-sm" onclick="acceptInvite(this)">✓ Accept</button>
+                    <button class="btn btn-decline btn-sm" onclick="declineInvite(this)">✕ Decline</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ YOUR GROUPS ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">👥 Your Groups (3 of 5)</div>
+            <button class="btn-create" onclick="toggleCreateForm()">+ Create Group</button>
+        </div>
+        <div class="section-body">
+            <div class="group-grid">
+
+                <!-- Group 1: Trip -->
+                <div class="group-card" onclick="showToast('Opens group detail view','success')">
+                    <div class="group-owner-badge">👑 Owner</div>
+                    <div class="group-top">
+                        <div class="group-avatar" style="background: var(--blue-pale);">🏍️</div>
+                        <div class="group-info">
+                            <div class="group-name">South Island Loop</div>
+                            <span class="group-type-badge trip">🗺️ Trip</span>
+                        </div>
+                    </div>
+                    <div class="group-dates">📅 10 Feb – 22 Feb 2026</div>
+                    <div class="group-meta">Planning our SI motorcycle trip. Route confirmed!</div>
+                    <div class="group-footer">
+                        <div class="group-members-row">
+                            <div class="group-member-mini" style="background:#5C6BC0;color:white;">🦁</div>
+                            <div class="group-member-mini" style="background:#26A69A;color:white;">🐨</div>
+                            <div class="group-member-mini" style="background:#EF5350;color:white;">🚴</div>
+                            <div class="group-member-mini" style="background:var(--blue);color:white;">🏍️</div>
+                            <span class="group-member-count">4 members</span>
+                        </div>
+                        <span class="group-unread">3 new</span>
+                    </div>
+                </div>
+
+                <!-- Group 2: Family -->
+                <div class="group-card" onclick="showToast('Opens group detail view','success')">
+                    <div class="group-top">
+                        <div class="group-avatar" style="background: var(--green-pale);">👨‍👩‍👧‍👦</div>
+                        <div class="group-info">
+                            <div class="group-name">Family Safety</div>
+                            <span class="group-type-badge family">👨‍👩‍👧 Family</span>
+                        </div>
+                    </div>
+                    <div class="group-meta">Location sharing with family while on the road.</div>
+                    <div class="group-footer">
+                        <div class="group-members-row">
+                            <div class="group-member-mini" style="background:var(--blue);color:white;">🏍️</div>
+                            <div class="group-member-mini" style="background:#FF7043;color:white;">👩</div>
+                            <div class="group-member-mini" style="background:#AB47BC;color:white;">👦</div>
+                            <span class="group-member-count">3 members</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 3: Social -->
+                <div class="group-card" onclick="showToast('Opens group detail view','success')">
+                    <div class="group-top">
+                        <div class="group-avatar" style="background: var(--orange-pale);">🏍️</div>
+                        <div class="group-info">
+                            <div class="group-name">BMW R1200GS Riders NZ</div>
+                            <span class="group-type-badge social">🍻 Social</span>
+                        </div>
+                    </div>
+                    <div class="group-meta">Local GS riders, parts sharing, ride meetups.</div>
+                    <div class="group-footer">
+                        <div class="group-members-row">
+                            <div class="group-member-mini" style="background:#5C6BC0;color:white;">🦁</div>
+                            <div class="group-member-mini" style="background:var(--blue);color:white;">🏍️</div>
+                            <div class="group-member-mini" style="background:#7CB342;color:white;">🐺</div>
+                            <div class="group-member-mini" style="background:#FF7043;color:white;">🦅</div>
+                            <span class="group-member-count">+4 more</span>
+                        </div>
+                        <span class="group-unread">12 new</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="premium-hint">⭐ <strong>Free plan:</strong> Up to 5 groups, 10 members each. Upgrade for unlimited groups and 50 members.</div>
+        </div>
+    </div>
+
+    <!-- ═══ CREATE GROUP FORM ═══ -->
+    <div class="section create-form" id="createForm">
+        <div class="section-hd">
+            <div class="section-title">✨ Create New Group</div>
+            <button class="btn btn-secondary btn-sm" onclick="toggleCreateForm()">✕ Cancel</button>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+                <div class="form-group form-full">
+                    <label class="form-label">Group Name</label>
+                    <input class="form-input" id="groupName" placeholder="e.g. South Island Loop 2026" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Group Type</label>
+                    <select class="form-select" id="groupType">
+                        <option value="trip">🗺️ Trip</option>
+                        <option value="social">🍻 Social</option>
+                        <option value="family">👨‍👩‍👧 Family</option>
+                        <option value="other">👥 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Group Emoji</label>
+                    <div class="emoji-grid">
+                        <div class="emoji-opt selected" onclick="selectEmoji(this)">🏍️</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">🚴</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">🚗</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">⛵</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">🥾</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">🗺️</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">🏕️</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">🍻</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">👨‍👩‍👧‍👦</div>
+                        <div class="emoji-opt" onclick="selectEmoji(this)">🌍</div>
+                    </div>
+                </div>
+                <div class="form-group form-full">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="groupDesc" placeholder="What's this group about?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trip Start Date (optional)</label>
+                    <input class="form-input" id="tripStart" type="date">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trip End Date (optional)</label>
+                    <input class="form-input" id="tripEnd" type="date">
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <div class="form-label" style="margin-bottom:8px;">Group Settings</div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">📍 Enable Location Sharing</div>
+                        <div class="toggle-hint">Members can opt-in to share their location with the group</div>
+                    </div>
+                    <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">🆘 Share SOS Alerts</div>
+                        <div class="toggle-hint">SOS alerts from members are automatically shared with the group</div>
+                    </div>
+                    <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <div class="form-label" style="margin-bottom:8px;">Invite Friends</div>
+                <div class="form-hint" style="margin-bottom:8px;">You can invite friends after creating the group, or add them now.</div>
+                <input class="form-input" placeholder="Search friends to invite..." style="margin-bottom:8px;">
+                <div style="font-size:12px; color:var(--text-muted);">No friends selected yet</div>
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button class="btn btn-secondary" onclick="toggleCreateForm()">Cancel</button>
+                <button class="btn btn-primary" onclick="createGroup()">✨ Create Group</button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+<aside class="settings-panel" id="settings-panel">
+    <div class="settings-header"><h2>⚙️ Settings</h2><button class="settings-close" onclick="closeSettings()">✕</button></div>
+    <div class="settings-section">
+        <div class="settings-section-title">Profile</div>
+        <a class="settings-item" href="profile.html"><div class="si-icon green">👤</div> My Profile <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="friends.html"><div class="si-icon blue">👥</div> My Friends <span class="si-badge">4</span></a>
+        <a class="settings-item" href="groups.html"><div class="si-icon purple">👪</div> My Groups <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="transport.html"><div class="si-icon orange">🏍️</div> My Transport <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> Emergency Contacts <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Account</div>
+        <a class="settings-item" href="subscription.html"><div class="si-icon orange">⭐</div> Subscription & Plan <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">🔑</div> Change Password <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">🔒</div> Two-Factor Auth <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Availability</div>
+        <a class="settings-item" href="#"><div class="si-icon green">📡</div> Availability Settings <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">🎯</div> Help Preferences <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Activity</div>
+        <a class="settings-item" href="#"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Privacy & Data</div>
+        <a class="settings-item" href="#"><div class="si-icon purple">📍</div> Location Privacy <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">🗂️</div> Data Retention <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">⬇️</div> Download My Data <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon red">🚫</div> Blocked Users <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">App</div>
+        <a class="settings-item" href="#"><div class="si-icon grey">🌐</div> Language & Region <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">ℹ️</div> About Tiriwe <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon green">💬</div> Help & Support <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">📄</div> Terms & Privacy <span class="si-arrow">›</span></a>
+    </div>
+    <button class="settings-logout">🚪 Log Out</button>
+</aside>
+
+<script>
+    function toggleCreateForm() {
+        const form = document.getElementById('createForm');
+        form.classList.toggle('open');
+        if (form.classList.contains('open')) {
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function selectEmoji(el) {
+        document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function acceptInvite(btn) {
+        const item = btn.closest('.invite-item');
+        const name = item.querySelector('.invite-name').textContent;
+        item.style.transition = 'opacity 0.3s, transform 0.3s';
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(20px)';
+        setTimeout(() => item.remove(), 300);
+        showToast('Joined "' + name + '"!', 'success');
+    }
+
+    function declineInvite(btn) {
+        const item = btn.closest('.invite-item');
+        item.style.transition = 'opacity 0.3s, transform 0.3s';
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        setTimeout(() => item.remove(), 300);
+        showToast('Invitation declined', 'error');
+    }
+
+    function createGroup() {
+        const name = document.getElementById('groupName').value;
+        if (!name) return showToast('Please enter a group name', 'error');
+        showToast('Group "' + name + '" created!', 'success');
+        toggleCreateForm();
+    }
+
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    function openSettings() {
+        document.getElementById('settings-overlay').classList.add('open');
+        document.getElementById('settings-panel').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSettings() {
+        document.getElementById('settings-overlay').classList.remove('open');
+        document.getElementById('settings-panel').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+</script>
+</body>
+</html>
