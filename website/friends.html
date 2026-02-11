@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Friends — Tiriwe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue:#1F4788;--blue-dark:#162f5c;--blue-light:#2a5ba8;--blue-pale:#e8effa;
+            --green:#2E7D32;--green-light:#43A047;--green-pale:#E8F5E9;
+            --orange:#F59E0B;--orange-pale:#FFF8E1;
+            --red:#DC2626;--red-pale:#FEF2F2;
+            --purple:#7B1FA2;--purple-pale:#F3E5F5;
+            --white:#ffffff;--off-white:#d5dfe9;
+            --grey-50:#f8fafc;--grey-100:#f1f5f9;--grey-200:#e2e8f0;
+            --grey-300:#cbd5e1;--grey-400:#94a3b8;--grey-500:#64748b;
+            --grey-600:#475569;--grey-700:#334155;--grey-800:#1e293b;
+            --text:#1e293b;--text-mid:#475569;--text-muted:#94a3b8;
+            --border:#e2e8f0;--radius:14px;--radius-sm:8px;
+            --shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md:0 4px 16px rgba(0,0,0,0.08);--shadow-lg:0 8px 30px rgba(0,0,0,0.12);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',-apple-system,sans-serif;color:var(--text);background:var(--off-white);line-height:1.6;min-height:100vh;}
+
+        .top-bar{background:#e8edf3;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);}
+        .top-bar-upper{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;}
+        .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--blue);font-family:'Fraunces',serif;font-weight:700;font-size:22px;letter-spacing:-0.5px;}
+        .nav-brand svg{width:30px;height:30px;}
+        .nav-right{display:flex;align-items:center;gap:12px;}
+        .nav-user{display:flex;align-items:center;gap:8px;}
+        .nav-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-light));display:flex;align-items:center;justify-content:center;font-size:15px;color:white;}
+        .nav-display-name{font-weight:600;font-size:13px;color:var(--text);}
+        .nav-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--grey-500);font-size:16px;position:relative;text-decoration:none;}
+        .nav-btn:hover{background:var(--grey-100);color:var(--blue);}
+        .notif-badge{position:absolute;top:-2px;right:-2px;width:16px;height:16px;background:var(--red);color:white;font-size:9px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;}
+        .tab-nav{display:flex;align-items:center;padding:0 24px;overflow-x:auto;scrollbar-width:none;}
+        .tab-nav::-webkit-scrollbar{display:none;}
+        .tab-item{display:flex;align-items:center;gap:6px;padding:12px 18px;font-size:13px;font-weight:600;color:var(--grey-600);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.2s;}
+        .tab-item:hover{color:var(--blue);background:var(--blue-pale);}
+        .tab-item.active{color:var(--blue);border-bottom-color:var(--blue);}
+        .tab-icon{font-size:16px;}.tab-badge{background:var(--red);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;}
+
+        .page-header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 50%,var(--blue-light) 100%);padding:24px 24px 20px;color:white;position:relative;overflow:hidden;}
+        .page-header::before{content:'';position:absolute;top:-50%;right:-20%;width:500px;height:500px;background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%);border-radius:50%;}
+        .page-header-content{max-width:800px;margin:0 auto;position:relative;z-index:1;}
+        .page-header h1{font-size:22px;font-weight:700;}
+        .page-header p{font-size:13px;opacity:0.8;margin-top:2px;}
+
+        .breadcrumb{max-width:800px;margin:16px auto 0;padding:0 24px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+        .breadcrumb a{font-size:13px;color:var(--blue);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px;padding:6px 14px;background:var(--white);border:1px solid var(--border);border-radius:20px;transition:all 0.2s;}
+        .breadcrumb a:hover{background:var(--blue);color:white;}
+
+        .main{max-width:800px;margin:16px auto 0;padding:0 24px 40px;animation:fadeUp 0.5s ease-out;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+        .section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-bottom:18px;overflow:hidden;}
+        .section-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--grey-100);flex-wrap:wrap;gap:10px;}
+        .section-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+        .section-body{padding:20px;}
+
+        .search-bar{display:flex;gap:10px;margin-bottom:16px;}
+        .search-input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;}
+        .search-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(31,71,136,0.1);}
+
+        /* FRIEND REQUEST */
+        .request-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--grey-100);transition:all 0.3s;}
+        .request-item:last-child{border-bottom:none;}
+        .req-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;color:white;}
+        .req-info{flex:1;}
+        .req-name{font-weight:700;font-size:14px;}
+        .req-meta{font-size:12px;color:var(--text-muted);}
+        .req-actions{display:flex;gap:8px;}
+        .btn{padding:10px 24px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all 0.2s;border:none;}
+        .btn-sm{padding:6px 14px;font-size:12px;}
+        .btn-accept{background:var(--green);color:white;}.btn-accept:hover{background:var(--green-light);}
+        .btn-decline{background:var(--grey-100);color:var(--grey-600);}.btn-decline:hover{background:var(--grey-200);}
+        .btn-primary{background:var(--green);color:white;}.btn-primary:hover{background:var(--green-light);}
+        .btn-secondary{background:var(--white);color:var(--blue);border:1px solid var(--border);}.btn-secondary:hover{background:var(--blue-pale);}
+        .btn-danger{background:var(--red-pale);color:var(--red);}.btn-danger:hover{background:#fecaca;}
+
+        /* FRIEND CARDS */
+        .friend-card{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;transition:all 0.2s;}
+        .friend-card:hover{box-shadow:var(--shadow-md);}
+        .friend-card.travel-buddy{border-left:4px solid var(--green);}
+        .friend-summary{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;transition:background 0.15s;}
+        .friend-summary:hover{background:var(--grey-50);}
+        .friend-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;color:white;position:relative;}
+        .online-dot{position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;border:2px solid white;}
+        .online-dot.online{background:var(--green);}
+        .online-dot.offline{background:var(--grey-300);}
+        .friend-main{flex:1;min-width:0;}
+        .friend-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+        .friend-real-name{font-weight:400;color:var(--text-mid);font-size:13px;}
+        .friend-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
+        .friend-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+        .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
+        .badge-buddy{background:var(--green-pale);color:var(--green);}
+        .badge-loc{background:var(--blue-pale);color:var(--blue);}
+        .badge-verif{background:var(--orange-pale);color:#b45309;}
+        .badge-v1{background:var(--green-pale);color:var(--green);}
+        .badge-v2{background:var(--green-pale);color:var(--green);}
+        .friend-expand{color:var(--grey-300);font-size:18px;transition:transform 0.3s;padding:0 4px;}
+        .friend-card.open .friend-expand{transform:rotate(180deg);}
+
+        /* FRIEND DETAIL */
+        .friend-detail{display:none;padding:0 20px 20px;border-top:1px solid var(--grey-100);background:var(--grey-50);}
+        .friend-card.open .friend-detail{display:block;animation:slideDown 0.3s ease-out;}
+        @keyframes slideDown{from{opacity:0;max-height:0;}to{opacity:1;max-height:500px;}}
+
+        .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+        .detail-item{padding:10px 14px;background:var(--white);border-radius:var(--radius-sm);border:1px solid var(--border);}
+        .detail-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);}
+        .detail-value{font-size:14px;font-weight:600;margin-top:2px;}
+
+        .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--white);border-radius:var(--radius-sm);border:1px solid var(--border);}
+        .toggle-left{flex:1;}
+        .toggle-label{font-size:13px;font-weight:600;}
+        .toggle-hint{font-size:11px;color:var(--text-muted);}
+        .toggle{position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0;}
+        .toggle input{opacity:0;width:0;height:0;}
+        .toggle-track{position:absolute;inset:0;background:var(--grey-300);border-radius:24px;transition:0.3s;}
+        .toggle-track::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;}
+        .toggle input:checked+.toggle-track{background:var(--green);}
+        .toggle input:checked+.toggle-track::before{transform:translateX(20px);}
+
+        .note-area{margin-top:12px;}
+        .note-area textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;resize:vertical;min-height:60px;}
+        .note-area textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(31,71,136,0.1);}
+        .note-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px;}
+
+        .detail-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+
+        .interaction-summary{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+        .int-stat{padding:6px 12px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;text-align:center;}
+        .int-stat strong{display:block;font-size:16px;color:var(--blue);}
+
+        /* INFO BOX */
+        .info-box{padding:14px 18px;background:var(--blue-pale);border:1px solid #c5d4ea;border-radius:var(--radius-sm);font-size:13px;color:var(--blue-dark);}
+
+        /* TRAVEL BUDDY STATES */
+        .buddy-status{padding:12px 14px;background:var(--white);border-radius:var(--radius-sm);border:1px solid var(--border);}
+        .buddy-status .buddy-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+        .buddy-label{font-size:13px;font-weight:600;}
+        .buddy-hint{font-size:11px;color:var(--text-muted);margin-top:2px;}
+        .buddy-active{border-color:var(--green);background:var(--green-pale);}
+        .buddy-active .buddy-label{color:var(--green);}
+        .buddy-active .buddy-since{font-size:11px;color:var(--green);margin-top:4px;}
+        .buddy-pending{border-color:var(--orange);background:var(--orange-pale);}
+        .buddy-pending .buddy-label{color:#92400e;}
+        .btn-buddy-request{padding:6px 16px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+        .btn-buddy-request:hover{background:var(--blue-light);}
+        .btn-buddy-deactivate{padding:4px 12px;background:var(--white);color:var(--red);border:1px solid var(--red);border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+        .btn-buddy-deactivate:hover{background:var(--red-pale);}
+        .btn-buddy-cancel{padding:4px 12px;background:var(--white);color:var(--grey-600);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+        /* REQUEST FILTER PILLS */
+        .filter-pills{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+        .filter-pill{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--white);color:var(--text-mid);cursor:pointer;transition:all 0.2s;font-family:inherit;}
+        .filter-pill:hover{border-color:var(--blue);color:var(--blue);}
+        .filter-pill.active{background:var(--blue);color:white;border-color:var(--blue);}
+        .filter-pill .pill-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:10px;font-size:10px;font-weight:700;margin-left:4px;padding:0 4px;}
+        .filter-pill.active .pill-count{background:rgba(255,255,255,0.3);color:white;}
+        .filter-pill:not(.active) .pill-count{background:var(--grey-200);color:var(--grey-600);}
+        .req-type-badge{display:inline-flex;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:6px;}
+        .req-type-badge.friend{background:var(--blue-pale);color:var(--blue);}
+        .req-type-badge.buddy{background:var(--green-pale);color:var(--green);}
+
+        /* SHARED GROUPS DROPDOWN */
+        .groups-dropdown-wrap{position:relative;display:inline-block;}
+        .groups-dropdown{display:none;position:absolute;bottom:calc(100% + 6px);left:0;width:260px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:50;overflow:hidden;}
+        .groups-dropdown.open{display:block;animation:fadeIn 0.2s ease-out;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+        .gd-header{padding:10px 14px;border-bottom:1px solid var(--grey-100);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);}
+        .gd-item{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--grey-100);transition:background 0.15s;}
+        .gd-item:last-child{border-bottom:none;}
+        .gd-item:hover{background:var(--grey-50);}
+        .gd-emoji{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+        .gd-info{flex:1;min-width:0;}
+        .gd-name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .gd-type{font-size:10px;color:var(--text-muted);}
+        .gd-divider{padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);background:var(--grey-50);border-bottom:1px solid var(--grey-100);}
+        .gd-invite{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;transition:background 0.15s;}
+        .gd-invite:hover{background:var(--blue-pale);}
+
+        /* TOAST */
+        .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:var(--radius);font-size:14px;font-weight:600;z-index:300;display:none;animation:slideUp 0.3s ease-out;}
+        .toast.success{background:var(--green);color:white;}
+        .toast.error{background:var(--red);color:white;}
+        @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+
+        @media(max-width:768px){
+            .detail-grid{grid-template-columns:1fr;}
+            .nav-display-name{display:none;}
+            .tab-item{padding:10px 12px;font-size:12px;}
+            .friend-summary{padding:12px 14px;}
+            .search-bar{flex-direction:column;}
+        }
+
+        /* SETTINGS PANEL */
+        .settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;opacity:0;transition:opacity 0.3s;}
+        .settings-overlay.open{display:block;opacity:1;}
+        .settings-panel{position:fixed;top:0;right:-380px;width:360px;max-width:90vw;height:100vh;background:var(--white);box-shadow:var(--shadow-lg);z-index:201;transition:right 0.3s ease;overflow-y:auto;}
+        .settings-panel.open{right:0;}
+        .settings-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--white);z-index:1;}
+        .settings-header h2{font-size:16px;font-weight:700;}
+        .settings-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--grey-100);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--grey-500);}
+        .settings-section{padding:12px 20px;}
+        .settings-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px;}
+        .settings-item{display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;border-bottom:1px solid var(--grey-100);text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:color 0.15s;}
+        .settings-item:last-child{border-bottom:none;}.settings-item:hover{color:var(--blue);}
+        .si-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+        .si-icon.green{background:var(--green-pale);}.si-icon.red{background:var(--red-pale);}
+        .si-icon.blue{background:var(--blue-pale);}.si-icon.orange{background:var(--orange-pale);}
+        .si-icon.purple{background:var(--purple-pale);}.si-icon.grey{background:var(--grey-100);}
+        .si-arrow{margin-left:auto;color:var(--grey-300);}
+        .si-badge{background:var(--orange);color:white;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:auto;}
+        .settings-logout{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 40px);margin:12px 20px 20px;padding:12px;background:var(--red-pale);color:var(--red);border:none;border-radius:var(--radius);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;}
+        .settings-logout:hover{background:#fecaca;}
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top-bar">
+    <div class="top-bar-upper">
+        <a href="dashboard.html" class="nav-brand">
+            <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2.5"/><circle cx="11" cy="13" r="3" fill="currentColor"/><circle cx="21" cy="13" r="3" fill="currentColor"/><path d="M11 16 L16 22 L21 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            Tiriwe
+        </a>
+        <div class="nav-right">
+            <div class="nav-user"><div class="nav-avatar">🏍️</div><span class="nav-display-name">BraveRiver472</span></div>
+            <a class="nav-btn" href="friends.html" title="My Friends">👥<span class="notif-badge" style="background:var(--blue);">4</span></a>
+            <a class="nav-btn" href="groups.html" title="My Groups">👪</a>
+            <button class="nav-btn" title="Notifications">🔔<span class="notif-badge">3</span></button>
+            <button class="nav-btn" title="Settings" onclick="openSettings()">⚙️</button>
+        </div>
+    </div>
+    <nav class="tab-nav">
+        <a class="tab-item" href="dashboard.html"><span class="tab-icon">🏠</span><span class="tab-text">Dashboard</span></a>
+        <a class="tab-item" href="messages.html"><span class="tab-icon">💬</span><span class="tab-text">Messages</span><span class="tab-badge">2</span></a>
+        <a class="tab-item" href="diary.html"><span class="tab-icon">📔</span><span class="tab-text">Diary</span></a>
+        <a class="tab-item" href="findit.html"><span class="tab-icon">🔍</span><span class="tab-text">Find It</span></a>
+        <a class="tab-item" href="logit.html"><span class="tab-icon">📍</span><span class="tab-text">Log It</span></a>
+        <a class="tab-item" href="help.html"><span class="tab-icon">🆘</span><span class="tab-text">Help</span></a>
+    </nav>
+</header>
+
+<section class="page-header">
+    <div class="page-header-content">
+        <h1>👥 My Friends</h1>
+        <p>Manage your connections, travel buddies, and location sharing</p>
+    </div>
+</section>
+
+<div class="breadcrumb">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="#" onclick="openSettings(); return false;">⚙️ Settings</a>
+</div>
+
+<main class="main">
+
+    <!-- HOW IT WORKS -->
+    <div class="section">
+        <div class="section-body">
+            <div class="info-box">
+                💡 <strong>How friends work:</strong> After a real-world interaction with mandatory feedback, either party can send a friend request. Friends can see each other's traveler type and verification level. Travel Buddy is a mutual safety commitment — both parties must agree. Friend requests expire after 30 days, Travel Buddy requests after 7 days.
+            </div>
+        </div>
+    </div>
+
+    <!-- PENDING REQUESTS -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">📩 Pending Requests <span style="background:var(--orange);color:white;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;">4</span></div>
+        </div>
+        <div class="section-body">
+            <div class="filter-pills">
+                <button class="filter-pill active" onclick="filterRequests('all', this)">All<span class="pill-count">4</span></button>
+                <button class="filter-pill" onclick="filterRequests('friend', this)">👥 Friend Requests<span class="pill-count">2</span></button>
+                <button class="filter-pill" onclick="filterRequests('buddy', this)">🛡️ Travel Buddy<span class="pill-count">2</span></button>
+            </div>
+
+            <!-- Friend Request 1 -->
+            <div class="request-item" id="req1" data-type="friend">
+                <div class="req-avatar" style="background:#FF7043;">🧗</div>
+                <div class="req-info">
+                    <div class="req-name">BoldPeak442 <span class="req-type-badge friend">👥 Friend Request</span></div>
+                    <div class="req-meta">🥾 Hiker · ✓ Verified x1 · Helped you on 8 Feb near Kaikoura</div>
+                    <div class="req-meta" style="color:var(--grey-500);">⏳ Expires in 26 days</div>
+                </div>
+                <div class="req-actions">
+                    <button class="btn btn-accept btn-sm" onclick="acceptRequest('req1')">✓ Accept</button>
+                    <button class="btn btn-decline btn-sm" onclick="declineRequest('req1')">✕ Decline</button>
+                </div>
+            </div>
+
+            <!-- Friend Request 2 -->
+            <div class="request-item" id="req2" data-type="friend">
+                <div class="req-avatar" style="background:#AB47BC;">🐬</div>
+                <div class="req-info">
+                    <div class="req-name">DeepHorizon117 <span class="req-type-badge friend">👥 Friend Request</span></div>
+                    <div class="req-meta">⛵ Sailor · ⭐ Community Verified · Met at Nelson Marina, 5 Feb</div>
+                    <div class="req-meta" style="color:var(--grey-500);">⏳ Expires in 23 days</div>
+                </div>
+                <div class="req-actions">
+                    <button class="btn btn-accept btn-sm" onclick="acceptRequest('req2')">✓ Accept</button>
+                    <button class="btn btn-decline btn-sm" onclick="declineRequest('req2')">✕ Decline</button>
+                </div>
+            </div>
+
+            <!-- Travel Buddy Request 1 -->
+            <div class="request-item" id="req3" data-type="buddy">
+                <div class="req-avatar" style="background:#EF5350;">🚴</div>
+                <div class="req-info">
+                    <div class="req-name">SwiftTrail099 <span class="req-type-badge buddy">🛡️ Travel Buddy</span></div>
+                    <div class="req-meta">Already friends · 🚴 Cyclist · 1 interaction · Sent 1 day ago</div>
+                    <div class="req-meta" style="color:var(--orange);">⏳ Expires in 6 days</div>
+                </div>
+                <div class="req-actions">
+                    <button class="btn btn-accept btn-sm" onclick="acceptRequest('req3')">✓ Accept</button>
+                    <button class="btn btn-decline btn-sm" onclick="declineRequest('req3')">✕ Decline</button>
+                </div>
+            </div>
+
+            <!-- Travel Buddy Request 2 -->
+            <div class="request-item" id="req4" data-type="buddy">
+                <div class="req-avatar" style="background:#26A69A;">🐨</div>
+                <div class="req-info">
+                    <div class="req-name">KindValley891 <span class="req-type-badge buddy">🛡️ Travel Buddy</span></div>
+                    <div class="req-meta">Already friends · 🚐 RV / Grey Nomad · 5 interactions · Sent 3 hours ago</div>
+                    <div class="req-meta" style="color:var(--grey-500);">⏳ Expires in 7 days</div>
+                </div>
+                <div class="req-actions">
+                    <button class="btn btn-accept btn-sm" onclick="acceptRequest('req4')">✓ Accept</button>
+                    <button class="btn btn-decline btn-sm" onclick="declineRequest('req4')">✕ Decline</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FRIENDS LIST -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">👥 Friends (4)</div>
+        </div>
+        <div class="section-body">
+            <div class="search-bar">
+                <input class="search-input" placeholder="Filter your friends by name or traveler type..." oninput="filterFriends(this.value)">
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin:-10px 0 16px;display:flex;align-items:center;gap:6px;">🔒 New friends can only be added after a real-world interaction with completed feedback.</div>
+
+            <!-- FRIEND 1: Travel Buddy -->
+            <div class="friend-card travel-buddy" data-name="WildMeadow234 motorcyclist" id="f1">
+                <div class="friend-summary" onclick="toggleFriend('f1')">
+                    <div class="friend-avatar" style="background:#5C6BC0;">🦁
+                        <div class="online-dot online"></div>
+                    </div>
+                    <div class="friend-main">
+                        <div class="friend-name">
+                            WildMeadow234
+                            <span class="friend-real-name">· Sam</span>
+                        </div>
+                        <div class="friend-meta">🏍️ Motorcyclist · Last active 12 min ago · Friends since Jan 2026</div>
+                        <div class="friend-badges">
+                            <span class="badge badge-buddy">🛡️ Travel Buddy</span>
+                            <span class="badge badge-loc">📍 Sharing Location</span>
+                            <span class="badge badge-v2">✓✓ Verified x2</span>
+                        </div>
+                    </div>
+                    <span class="friend-expand">▼</span>
+                </div>
+                <div class="friend-detail">
+                    <div class="detail-grid">
+                        <div class="buddy-status buddy-active">
+                            <div class="buddy-header">
+                                <div>
+                                    <div class="buddy-label">🛡️ Travel Buddy — Active</div>
+                                    <div class="buddy-hint">Mutual SOS alerts, welfare checks & location sharing enabled</div>
+                                    <div class="buddy-since">Buddies since 15 Jan 2026</div>
+                                </div>
+                                <button class="btn-buddy-deactivate" onclick="deactivateBuddy(this, 'WildMeadow234')">Deactivate</button>
+                            </div>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-left">
+                                <div class="toggle-label">📍 Share My Location</div>
+                                <div class="toggle-hint">They can see your live position</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                        </div>
+                    </div>
+                    <div class="interaction-summary">
+                        <div class="int-stat"><strong>3</strong>interactions</div>
+                        <div class="int-stat"><strong>3</strong>positive</div>
+                        <div class="int-stat"><strong>0</strong>neutral</div>
+                        <div class="int-stat"><strong>0</strong>negative</div>
+                    </div>
+                    <div class="note-area">
+                        <div class="note-label">Private Note</div>
+                        <textarea placeholder="Add a private note about this friend...">Rides a 2020 R1250GS, based in Christchurch. Great mechanic.</textarea>
+                    </div>
+                    <div class="detail-actions">
+                        <a class="btn btn-secondary btn-sm" href="messages.html?user=WildMeadow234" style="text-decoration:none;">💬 Message</a>
+                        <div class="groups-dropdown-wrap">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleGroupsDropdown(this)">👪 Shared Groups (2)</button>
+                            <div class="groups-dropdown">
+                                <div class="gd-header">Groups in common</div>
+                                <div class="gd-item">
+                                    <div class="gd-emoji" style="background:var(--blue-pale);">🏍️</div>
+                                    <div class="gd-info"><div class="gd-name">South Island Loop</div><div class="gd-type">🗺️ Trip</div></div>
+                                </div>
+                                <div class="gd-item">
+                                    <div class="gd-emoji" style="background:var(--orange-pale);">🏍️</div>
+                                    <div class="gd-info"><div class="gd-name">BMW R1200GS Riders NZ</div><div class="gd-type">🍻 Social</div></div>
+                                </div>
+                                <div class="gd-divider">Invite to group</div>
+                                <div class="gd-invite" onclick="showToast('Invite sent to Family Safety group','success'); closeAllDropdowns();">
+                                    <div class="gd-emoji" style="background:var(--green-pale);">👨‍👩‍👧‍👦</div>
+                                    <div class="gd-info"><div class="gd-name">+ Family Safety</div><div class="gd-type">👨‍👩‍👧 Family</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="showToast('Saved!','success')">💾 Save Note</button>
+                        <button class="btn btn-danger btn-sm" onclick="confirm('Remove WildMeadow234 as a friend?') && showToast('Friend removed','error')">🚫 Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRIEND 2 -->
+            <div class="friend-card" data-name="KindValley891 rv grey nomad" id="f2">
+                <div class="friend-summary" onclick="toggleFriend('f2')">
+                    <div class="friend-avatar" style="background:#26A69A;">🐨
+                        <div class="online-dot online"></div>
+                    </div>
+                    <div class="friend-main">
+                        <div class="friend-name">KindValley891</div>
+                        <div class="friend-meta">🚐 RV / Grey Nomad · Last active 1 hr ago · Friends since Dec 2025</div>
+                        <div class="friend-badges">
+                            <span class="badge" style="background:var(--orange-pale);color:#92400e;">🛡️ Buddy Pending</span>
+                            <span class="badge badge-verif">⭐ Community Verified</span>
+                        </div>
+                    </div>
+                    <span class="friend-expand">▼</span>
+                </div>
+                <div class="friend-detail">
+                    <div class="detail-grid">
+                        <div class="buddy-status buddy-pending">
+                            <div class="buddy-header">
+                                <div>
+                                    <div class="buddy-label">🛡️ Travel Buddy — Request Sent</div>
+                                    <div class="buddy-hint">Waiting for KindValley891 to accept · Sent 3 days ago</div>
+                                </div>
+                                <button class="btn-buddy-cancel" onclick="cancelBuddyRequest(this, 'KindValley891')">Cancel</button>
+                            </div>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-left">
+                                <div class="toggle-label">📍 Share My Location</div>
+                                <div class="toggle-hint">Available once Travel Buddy is active</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" disabled><span class="toggle-track"></span></label>
+                        </div>
+                    </div>
+                    <div class="interaction-summary">
+                        <div class="int-stat"><strong>5</strong>interactions</div>
+                        <div class="int-stat"><strong>4</strong>positive</div>
+                        <div class="int-stat"><strong>1</strong>neutral</div>
+                        <div class="int-stat"><strong>0</strong>negative</div>
+                    </div>
+                    <div class="note-area">
+                        <div class="note-label">Private Note</div>
+                        <textarea placeholder="Add a private note about this friend...">Met at Queenstown campsite. Knows all the best free camping spots.</textarea>
+                    </div>
+                    <div class="detail-actions">
+                        <a class="btn btn-secondary btn-sm" href="messages.html?user=KindValley891" style="text-decoration:none;">💬 Message</a>
+                        <div class="groups-dropdown-wrap">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleGroupsDropdown(this)">👪 Shared Groups (0)</button>
+                            <div class="groups-dropdown">
+                                <div class="gd-header">No groups in common</div>
+                                <div class="gd-divider">Invite to group</div>
+                                <div class="gd-invite" onclick="showToast('Invite sent to South Island Loop','success'); closeAllDropdowns();">
+                                    <div class="gd-emoji" style="background:var(--blue-pale);">🏍️</div>
+                                    <div class="gd-info"><div class="gd-name">+ South Island Loop</div><div class="gd-type">🗺️ Trip</div></div>
+                                </div>
+                                <div class="gd-invite" onclick="showToast('Invite sent to Family Safety','success'); closeAllDropdowns();">
+                                    <div class="gd-emoji" style="background:var(--green-pale);">👨‍👩‍👧‍👦</div>
+                                    <div class="gd-info"><div class="gd-name">+ Family Safety</div><div class="gd-type">👨‍👩‍👧 Family</div></div>
+                                </div>
+                                <div class="gd-invite" onclick="showToast('Invite sent to BMW R1200GS Riders NZ','success'); closeAllDropdowns();">
+                                    <div class="gd-emoji" style="background:var(--orange-pale);">🏍️</div>
+                                    <div class="gd-info"><div class="gd-name">+ BMW R1200GS Riders NZ</div><div class="gd-type">🍻 Social</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="showToast('Saved!','success')">💾 Save Note</button>
+                        <button class="btn btn-danger btn-sm" onclick="confirm('Remove KindValley891?')">🚫 Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRIEND 3 -->
+            <div class="friend-card" data-name="SwiftTrail099 cyclist" id="f3">
+                <div class="friend-summary" onclick="toggleFriend('f3')">
+                    <div class="friend-avatar" style="background:#EF5350;">🚴
+                        <div class="online-dot offline"></div>
+                    </div>
+                    <div class="friend-main">
+                        <div class="friend-name">SwiftTrail099</div>
+                        <div class="friend-meta">🚴 Cyclist · Last active 3 days ago · Friends since Jan 2026</div>
+                        <div class="friend-badges">
+                            <span class="badge badge-v1">✓ Verified x1</span>
+                        </div>
+                    </div>
+                    <span class="friend-expand">▼</span>
+                </div>
+                <div class="friend-detail">
+                    <div class="detail-grid">
+                        <div class="buddy-status">
+                            <div class="buddy-header">
+                                <div>
+                                    <div class="buddy-label">🛡️ Travel Buddy</div>
+                                    <div class="buddy-hint">Request mutual SOS alerts, welfare checks & location sharing</div>
+                                </div>
+                                <button class="btn-buddy-request" onclick="requestBuddy(this, 'SwiftTrail099')">🛡️ Request</button>
+                            </div>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-left">
+                                <div class="toggle-label">📍 Share My Location</div>
+                                <div class="toggle-hint">Available once Travel Buddy is active</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" disabled><span class="toggle-track"></span></label>
+                        </div>
+                    </div>
+                    <div class="interaction-summary">
+                        <div class="int-stat"><strong>1</strong>interactions</div>
+                        <div class="int-stat"><strong>1</strong>positive</div>
+                        <div class="int-stat"><strong>0</strong>neutral</div>
+                        <div class="int-stat"><strong>0</strong>negative</div>
+                    </div>
+                    <div class="note-area">
+                        <div class="note-label">Private Note</div>
+                        <textarea placeholder="Add a private note about this friend..."></textarea>
+                    </div>
+                    <div class="detail-actions">
+                        <a class="btn btn-secondary btn-sm" href="messages.html?user=SwiftTrail099" style="text-decoration:none;">💬 Message</a>
+                        <div class="groups-dropdown-wrap">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleGroupsDropdown(this)">👪 Shared Groups (0)</button>
+                            <div class="groups-dropdown">
+                                <div class="gd-header">No groups in common</div>
+                                <div class="gd-divider">Invite to group</div>
+                                <div class="gd-invite" onclick="showToast('Invite sent to South Island Loop','success'); closeAllDropdowns();">
+                                    <div class="gd-emoji" style="background:var(--blue-pale);">🏍️</div>
+                                    <div class="gd-info"><div class="gd-name">+ South Island Loop</div><div class="gd-type">🗺️ Trip</div></div>
+                                </div>
+                                <div class="gd-invite" onclick="showToast('Invite sent to Family Safety','success'); closeAllDropdowns();">
+                                    <div class="gd-emoji" style="background:var(--green-pale);">👨‍👩‍👧‍👦</div>
+                                    <div class="gd-info"><div class="gd-name">+ Family Safety</div><div class="gd-type">👨‍👩‍👧 Family</div></div>
+                                </div>
+                                <div class="gd-invite" onclick="showToast('Invite sent to BMW R1200GS Riders NZ','success'); closeAllDropdowns();">
+                                    <div class="gd-emoji" style="background:var(--orange-pale);">🏍️</div>
+                                    <div class="gd-info"><div class="gd-name">+ BMW R1200GS Riders NZ</div><div class="gd-type">🍻 Social</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="showToast('Saved!','success')">💾 Save Note</button>
+                        <button class="btn btn-danger btn-sm" onclick="confirm('Remove SwiftTrail099?')">🚫 Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRIEND 4 -->
+            <div class="friend-card travel-buddy" data-name="CalmOcean483 motorcyclist" id="f4">
+                <div class="friend-summary" onclick="toggleFriend('f4')">
+                    <div class="friend-avatar" style="background:#7CB342;">🦅
+                        <div class="online-dot offline"></div>
+                    </div>
+                    <div class="friend-main">
+                        <div class="friend-name">
+                            CalmOcean483
+                            <span class="friend-real-name">· Pete</span>
+                        </div>
+                        <div class="friend-meta">🏍️ Motorcyclist · Last active 1 day ago · Friends since Nov 2025</div>
+                        <div class="friend-badges">
+                            <span class="badge badge-buddy">🛡️ Travel Buddy</span>
+                            <span class="badge badge-v2">✓✓ Verified x2</span>
+                        </div>
+                    </div>
+                    <span class="friend-expand">▼</span>
+                </div>
+                <div class="friend-detail">
+                    <div class="detail-grid">
+                        <div class="buddy-status buddy-active">
+                            <div class="buddy-header">
+                                <div>
+                                    <div class="buddy-label">🛡️ Travel Buddy — Active</div>
+                                    <div class="buddy-hint">Mutual SOS alerts, welfare checks & location sharing enabled</div>
+                                    <div class="buddy-since">Buddies since 20 Nov 2025</div>
+                                </div>
+                                <button class="btn-buddy-deactivate" onclick="deactivateBuddy(this, 'CalmOcean483')">Deactivate</button>
+                            </div>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-left">
+                                <div class="toggle-label">📍 Share My Location</div>
+                                <div class="toggle-hint">They can see your live position</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+                        </div>
+                    </div>
+                    <div class="interaction-summary">
+                        <div class="int-stat"><strong>7</strong>interactions</div>
+                        <div class="int-stat"><strong>6</strong>positive</div>
+                        <div class="int-stat"><strong>1</strong>neutral</div>
+                        <div class="int-stat"><strong>0</strong>negative</div>
+                    </div>
+                    <div class="note-area">
+                        <div class="note-label">Private Note</div>
+                        <textarea placeholder="Add a private note about this friend...">Old riding mate from Auckland. Has a workshop in Ponsonby. BMW specialist.</textarea>
+                    </div>
+                    <div class="detail-actions">
+                        <a class="btn btn-secondary btn-sm" href="messages.html?user=CalmOcean483" style="text-decoration:none;">💬 Message</a>
+                        <div class="groups-dropdown-wrap">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleGroupsDropdown(this)">👪 Shared Groups (2)</button>
+                            <div class="groups-dropdown">
+                                <div class="gd-header">Groups in common</div>
+                                <div class="gd-item">
+                                    <div class="gd-emoji" style="background:var(--blue-pale);">🏍️</div>
+                                    <div class="gd-info"><div class="gd-name">South Island Loop</div><div class="gd-type">🗺️ Trip</div></div>
+                                </div>
+                                <div class="gd-item">
+                                    <div class="gd-emoji" style="background:var(--orange-pale);">🏍️</div>
+                                    <div class="gd-info"><div class="gd-name">BMW R1200GS Riders NZ</div><div class="gd-type">🍻 Social</div></div>
+                                </div>
+                                <div class="gd-divider">Invite to group</div>
+                                <div class="gd-invite" onclick="showToast('Invite sent to Family Safety','success'); closeAllDropdowns();">
+                                    <div class="gd-emoji" style="background:var(--green-pale);">👨‍👩‍👧‍👦</div>
+                                    <div class="gd-info"><div class="gd-name">+ Family Safety</div><div class="gd-type">👨‍👩‍👧 Family</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="showToast('Saved!','success')">💾 Save Note</button>
+                        <button class="btn btn-danger btn-sm" onclick="confirm('Remove CalmOcean483?')">🚫 Remove</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+<aside class="settings-panel" id="settings-panel">
+    <div class="settings-header"><h2>⚙️ Settings</h2><button class="settings-close" onclick="closeSettings()">✕</button></div>
+    <div class="settings-section"><div class="settings-section-title">Profile</div>
+        <a class="settings-item" href="profile.html"><div class="si-icon green">👤</div> My Profile <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="friends.html"><div class="si-icon blue">👥</div> My Friends <span class="si-badge">4</span></a>
+        <a class="settings-item" href="groups.html"><div class="si-icon purple">👪</div> My Groups <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="vehicles.html"><div class="si-icon orange">🏍️</div> My Vehicles <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> Emergency Contacts <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section"><div class="settings-section-title">Account</div>
+        <a class="settings-item" href="subscription.html"><div class="si-icon orange">⭐</div> Subscription & Plan <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">🔑</div> Change Password <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">🔒</div> Two-Factor Auth <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section"><div class="settings-section-title">Availability</div>
+        <a class="settings-item" href="#"><div class="si-icon green">📡</div> Availability Settings <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">🎯</div> Help Preferences <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section"><div class="settings-section-title">Activity</div>
+        <a class="settings-item" href="#"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section"><div class="settings-section-title">Privacy & Data</div>
+        <a class="settings-item" href="#"><div class="si-icon purple">📍</div> Location Privacy <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">🗂️</div> Data Retention <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">⬇️</div> Download My Data <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon red">🚫</div> Blocked Users <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section"><div class="settings-section-title">App</div>
+        <a class="settings-item" href="#"><div class="si-icon grey">🌐</div> Language & Region <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">ℹ️</div> About Tiriwe <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon green">💬</div> Help & Support <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">📄</div> Terms & Privacy <span class="si-arrow">›</span></a>
+    </div>
+    <button class="settings-logout">🚪 Log Out</button>
+</aside>
+
+<script>
+    function toggleGroupsDropdown(btn) {
+        const dropdown = btn.nextElementSibling;
+        const wasOpen = dropdown.classList.contains('open');
+        closeAllDropdowns();
+        if (!wasOpen) dropdown.classList.add('open');
+    }
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('.groups-dropdown').forEach(d => d.classList.remove('open'));
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.groups-dropdown-wrap')) closeAllDropdowns();
+    });
+
+    function filterRequests(type, btn) {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.request-item').forEach(item => {
+            if (type === 'all') {
+                item.style.display = '';
+            } else {
+                item.style.display = item.dataset.type === type ? '' : 'none';
+            }
+        });
+    }
+
+    function toggleFriend(id) {
+        const card = document.getElementById(id);
+        card.classList.toggle('open');
+    }
+
+    function filterFriends(q) {
+        q = q.toLowerCase();
+        document.querySelectorAll('.friend-card').forEach(card => {
+            card.style.display = card.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+
+    function acceptRequest(id) {
+        const el = document.getElementById(id);
+        el.style.transition = 'opacity 0.3s, transform 0.3s';
+        el.style.opacity = '0'; el.style.transform = 'translateX(20px)';
+        setTimeout(() => el.remove(), 300);
+        showToast('Friend request accepted!', 'success');
+    }
+
+    function declineRequest(id) {
+        const el = document.getElementById(id);
+        el.style.transition = 'opacity 0.3s, transform 0.3s';
+        el.style.opacity = '0'; el.style.transform = 'translateX(-20px)';
+        setTimeout(() => el.remove(), 300);
+        showToast('Request declined', 'error');
+    }
+
+    function requestBuddy(btn, name) {
+        const status = btn.closest('.buddy-status');
+        status.classList.add('buddy-pending');
+        status.innerHTML = `
+            <div class="buddy-header">
+                <div>
+                    <div class="buddy-label">🛡️ Travel Buddy — Request Sent</div>
+                    <div class="buddy-hint">Waiting for ${name} to accept · Sent just now</div>
+                </div>
+                <button class="btn-buddy-cancel" onclick="cancelBuddyRequest(this, '${name}')">Cancel</button>
+            </div>`;
+        showToast('Travel Buddy request sent to ' + name, 'success');
+    }
+
+    function deactivateBuddy(btn, name) {
+        if (!confirm('Deactivate Travel Buddy with ' + name + '? They will be notified.')) return;
+        const status = btn.closest('.buddy-status');
+        status.classList.remove('buddy-active');
+        status.innerHTML = `
+            <div class="buddy-header">
+                <div>
+                    <div class="buddy-label">🛡️ Travel Buddy</div>
+                    <div class="buddy-hint">Request mutual SOS alerts, welfare checks & location sharing</div>
+                </div>
+                <button class="btn-buddy-request" onclick="requestBuddy(this, '${name}')">🛡️ Request</button>
+            </div>`;
+        // Remove buddy badge from card
+        const card = status.closest('.friend-card');
+        card.classList.remove('travel-buddy');
+        const buddyBadge = card.querySelector('.badge-buddy');
+        if (buddyBadge) buddyBadge.remove();
+        showToast('Travel Buddy deactivated with ' + name, 'error');
+    }
+
+    function cancelBuddyRequest(btn, name) {
+        const status = btn.closest('.buddy-status');
+        status.classList.remove('buddy-pending');
+        status.innerHTML = `
+            <div class="buddy-header">
+                <div>
+                    <div class="buddy-label">🛡️ Travel Buddy</div>
+                    <div class="buddy-hint">Request mutual SOS alerts, welfare checks & location sharing</div>
+                </div>
+                <button class="btn-buddy-request" onclick="requestBuddy(this, '${name}')">🛡️ Request</button>
+            </div>`;
+        showToast('Buddy request cancelled', 'error');
+    }
+
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.className = 'toast ' + type; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    function openSettings() {
+        document.getElementById('settings-overlay').classList.add('open');
+        document.getElementById('settings-panel').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSettings() {
+        document.getElementById('settings-overlay').classList.remove('open');
+        document.getElementById('settings-panel').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+</script>
+</body>
+</html>
