@@ -393,23 +393,12 @@
                     <span class="tiriwe-nav-dot"></span>
                     ${CONFIG.BRAND_NAME}
                 </a>
-                <div class="tiriwe-nav-links">
-                    <a href="${CONFIG.PAGE_DASHBOARD}" class="tiriwe-nav-link ${currentPage === CONFIG.PAGE_DASHBOARD ? 'active' : ''}">
-                        🏠 Dashboard
-                    </a>
-                    <a href="${CONFIG.PAGE_SOS}" class="tiriwe-nav-link ${currentPage === CONFIG.PAGE_SOS ? 'active' : ''}">
-                        🚨 SOS
-                    </a>
-                    <a href="${CONFIG.PAGE_INTERACTIONS}" class="tiriwe-nav-link ${currentPage === CONFIG.PAGE_INTERACTIONS ? 'active' : ''}">
-                        🤝 Interactions
-                    </a>
-                </div>
                 <div class="tiriwe-nav-user">
-                    <a href="${CONFIG.PAGE_PROFILE}" class="tiriwe-nav-profile ${currentPage === CONFIG.PAGE_PROFILE ? 'active' : ''}">
+                    <a href="${CONFIG.PAGE_DASHBOARD}" class="tiriwe-nav-profile" title="Dashboard">
                         <span class="tiriwe-nav-avatar">${avatarEmoji}</span>
                         <span class="tiriwe-nav-name">${displayName}</span>
                     </a>
-                    <a href="${CONFIG.PAGE_SETTINGS}" class="tiriwe-nav-settings ${currentPage === CONFIG.PAGE_SETTINGS ? 'active' : ''}" title="Settings">
+                    <a href="${CONFIG.PAGE_SETTINGS}" class="tiriwe-nav-settings ${currentPage === CONFIG.PAGE_SETTINGS || currentPage === CONFIG.PAGE_PROFILE || currentPage === CONFIG.PAGE_EMERGENCY || currentPage === CONFIG.PAGE_TRANSPORT || currentPage === CONFIG.PAGE_SUBSCRIPTION ? 'active' : ''}" title="Settings">
                         ⚙️
                     </a>
                     <button class="tiriwe-nav-logout" onclick="Tiriwe.logOut()" title="Log out">
