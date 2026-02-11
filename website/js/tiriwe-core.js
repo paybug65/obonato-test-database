@@ -25,7 +25,7 @@
 
     const CONFIG = {
         SUPABASE_URL: 'https://mozbpccxzfcoswvxjuym.supabase.co',
-        SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2OTI1OTgsImV4cCI6MjA1MzI2ODU5OH0.smSmIFOsTCXEiNBEFuHFm1039VGjMh-kMBqjSFSgrFo',
+        SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vemJwY2N4emZjb3N3dnhqdXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODY4NTQsImV4cCI6MjA4NDY2Mjg1NH0.lfOM5ojN2B1MV6wMsntGWmI7OWL7fhUJV5E8b6I48N0',
 
         // Pages
         PAGE_LANDING: 'index.html',
