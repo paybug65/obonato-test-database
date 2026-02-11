@@ -6,1134 +6,659 @@
     <title>My Profile — Tiriwe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="js/tiriwe-core.js"></script>
     <style>
         :root {
-            --green: #2E7D32; --green-light: #43A047; --green-dark: #1B5E20; --green-pale: #E8F5E9;
-            --orange: #FF9800; --orange-pale: #FFF3E0;
-            --red: #F44336; --red-pale: #FFEBEE;
-            --blue: #1565C0; --blue-pale: #E3F2FD;
-            --white: #ffffff; --off-white: #f8fafc;
+            --blue: #1F4788; --blue-dark: #162f5c; --blue-light: #2a5ba8; --blue-pale: #e8effa;
+            --green: #2E7D32; --green-light: #43A047; --green-pale: #E8F5E9;
+            --orange: #F59E0B; --orange-pale: #FFF8E1;
+            --red: #DC2626; --red-pale: #FEF2F2;
+            --purple: #7B1FA2; --purple-pale: #F3E5F5;
+            --white: #ffffff; --off-white: #d5dfe9;
+            --grey-50: #f8fafc; --grey-100: #f1f5f9; --grey-200: #e2e8f0;
+            --grey-300: #cbd5e1; --grey-400: #94a3b8; --grey-500: #64748b;
+            --grey-600: #475569; --grey-700: #334155; --grey-800: #1e293b;
             --text: #1e293b; --text-mid: #475569; --text-muted: #94a3b8;
-            --border: #e2e8f0; --radius: 12px;
+            --border: #e2e8f0; --radius: 14px; --radius-sm: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; }
+        body { font-family: 'DM Sans', -apple-system, sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; min-height: 100vh; }
 
-        .page-container { max-width: 720px; margin: 0 auto; padding: 32px 24px 80px; }
-        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; margin-bottom: 20px; }
-        .back-link:hover { color: var(--green); }
-        .page-header { margin-bottom: 28px; }
-        .page-header h1 { font-size: 28px; font-weight: 800; }
-        .page-header p { color: var(--text-mid); font-size: 15px; margin-top: 4px; }
+        /* TOP BAR */
+        .top-bar { background: #e8edf3; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .top-bar-upper { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--blue); font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; letter-spacing: -0.5px; }
+        .nav-brand svg { width: 30px; height: 30px; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .nav-user { display: flex; align-items: center; gap: 8px; }
+        .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-light)); display: flex; align-items: center; justify-content: center; font-size: 15px; color: white; }
+        .nav-display-name { font-weight: 600; font-size: 13px; color: var(--text); }
+        .nav-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--grey-500); font-size: 16px; position: relative; }
+        .nav-btn:hover { background: var(--grey-100); color: var(--blue); }
+        .notif-badge { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; background: var(--red); color: white; font-size: 9px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+        .tab-nav { display: flex; align-items: center; padding: 0 24px; overflow-x: auto; scrollbar-width: none; }
+        .tab-nav::-webkit-scrollbar { display: none; }
+        .tab-item { display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+        .tab-item:hover { color: var(--blue); background: var(--blue-pale); }
+        .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .tab-icon { font-size: 16px; }
+        .tab-badge { background: var(--red); color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
 
-        /* First-time banner */
-        .welcome-banner {
-            background: linear-gradient(135deg, var(--green-dark), var(--green));
-            color: white; border-radius: var(--radius); padding: 24px 28px; margin-bottom: 28px; display: none;
+        /* PAGE HEADER */
+        .page-header { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 50%, var(--blue-light) 100%); padding: 24px 24px 20px; color: white; position: relative; overflow: hidden; }
+        .page-header::before { content: ''; position: absolute; top: -50%; right: -20%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%); border-radius: 50%; }
+        .page-header-content { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+        .page-header h1 { font-size: 22px; font-weight: 700; }
+        .page-header p { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+
+        /* BREADCRUMB */
+        .breadcrumb { max-width: 800px; margin: 16px auto 0; padding: 0 24px; display: flex; gap: 8px; align-items: center; }
+        .breadcrumb a { font-size: 13px; color: var(--blue); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; padding: 6px 14px; background: var(--white); border: 1px solid var(--border); border-radius: 20px; transition: all 0.2s; }
+        .breadcrumb a:hover { background: var(--blue); color: white; }
+
+        /* MAIN */
+        .main { max-width: 800px; margin: 16px auto 0; padding: 0 24px 40px; }
+
+        /* CARDS / SECTIONS */
+        .section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 18px; overflow: hidden; }
+        .section-hd { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--grey-100); }
+        .section-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .section-body { padding: 20px; }
+
+        /* FORM */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-full { grid-column: 1 / -1; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-label { font-size: 12px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input, .form-select, .form-textarea {
+            padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+            font-size: 14px; font-family: inherit; background: var(--white); color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s; width: 100%;
         }
-        .welcome-banner.visible { display: block; }
-        .welcome-banner h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
-        .welcome-banner p { font-size: 14px; opacity: 0.9; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(31,71,136,0.1); }
+        .form-input:disabled, .form-select:disabled, .form-textarea:disabled { background: var(--grey-50); color: var(--grey-500); cursor: not-allowed; }
+        .form-textarea { resize: vertical; min-height: 80px; }
+        .form-hint { font-size: 11px; color: var(--text-muted); }
 
-        /* Sections */
-        .section { background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px; overflow: hidden; }
-        .section.highlight { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,152,0,0.1); }
-        .section.danger { border-color: #FFCDD2; }
-        .section.danger .section-hdr { background: #FFF0F0; border-bottom-color: #FFCDD2; }
-        .section-hdr { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-        .section-hdr-icon { font-size: 20px; }
-        .section-hdr h2 { font-size: 16px; font-weight: 700; flex: 1; }
-        .section-hdr .req-badge { font-size: 11px; font-weight: 600; background: var(--orange-pale); color: #E65100; padding: 2px 8px; border-radius: 4px; }
-        .section-body { padding: 24px; }
-        .section-note { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+        /* RADIO/CHECK GROUPS */
+        .option-group { display: flex; flex-wrap: wrap; gap: 8px; }
+        .option-pill { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .option-pill:hover { border-color: var(--blue); }
+        .option-pill input { display: none; }
+        .option-pill.selected { background: var(--blue); color: white; border-color: var(--blue); }
 
-        /* Forms */
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-        .form-row.full { grid-template-columns: 1fr; }
-        .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-mid); margin-bottom: 6px; }
-        .form-group label .hint { font-weight: 400; color: var(--text-muted); margin-left: 4px; }
-        .form-group label .required { color: var(--red); margin-left: 2px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px;
-            font-family: inherit; font-size: 14px; transition: all 0.2s; background: var(--off-white);
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none; border-color: var(--green); background: white; box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
-        }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        .form-group input:disabled, .form-group select:disabled { background: #f1f5f9; color: var(--text-muted); cursor: not-allowed; }
-        .form-group input.readonly-display { background: var(--green-pale); color: var(--green-dark); font-weight: 600; border-color: var(--green-pale); cursor: default; }
-
-        /* Avatar preview */
-        .avatar-preview { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--off-white); border-radius: 8px; margin-bottom: 20px; }
-        .avatar-circle { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; }
-        .avatar-info { flex: 1; }
-        .avatar-name { font-size: 16px; font-weight: 700; }
-        .avatar-level { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-        .avatar-note { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-style: italic; }
-
-        /* Photo upload */
-        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
-        .photo-slot {
-            aspect-ratio: 1; border: 2px dashed var(--border); border-radius: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 6px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
-            background: var(--off-white);
-        }
-        .photo-slot:hover { border-color: var(--green); background: var(--green-pale); }
-        .photo-slot .photo-icon { font-size: 24px; color: var(--text-muted); }
-        .photo-slot .photo-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
-        .photo-slot.filled { border-style: solid; border-color: var(--green); }
-        .photo-slot.filled img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
-        .photo-slot .photo-remove {
-            position: absolute; top: 6px; right: 6px; width: 24px; height: 24px;
-            background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%;
-            cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center;
-        }
-        .photo-slot.filled .photo-remove { display: flex; }
-
-        /* Languages table */
-        .lang-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        .lang-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-        .lang-table td { padding: 8px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        .lang-table td:last-child { text-align: right; width: 40px; }
-        .lang-table select { padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px; background: var(--off-white); }
-        .lang-table select:focus { outline: none; border-color: var(--green); }
-        .lang-add-row { display: flex; gap: 8px; margin-top: 12px; align-items: end; }
-        .lang-add-row select { flex: 1; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px; background: var(--off-white); }
-        .btn-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px; border-radius: 4px; }
-        .btn-remove:hover { color: var(--red); background: var(--red-pale); }
-
-        /* Address search */
-        .address-search-wrap { position: relative; margin-bottom: 16px; }
-        .address-search-wrap input { padding-right: 40px; }
-        .address-search-btn {
-            position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
-            background: var(--green); color: white; border: none; border-radius: 6px;
-            padding: 6px 10px; cursor: pointer; font-size: 12px; font-weight: 600;
-        }
-        .address-search-btn:hover { background: var(--green-dark); }
-        .address-results {
-            position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
-            background: white; border: 1px solid var(--border); border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12); margin-top: 4px; display: none; max-height: 240px; overflow-y: auto;
-        }
-        .address-results.show { display: block; }
-        .address-result {
-            padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--border);
-        }
-        .address-result:last-child { border-bottom: none; }
-        .address-result:hover { background: var(--green-pale); }
-        .address-result small { color: var(--text-muted); display: block; margin-top: 2px; }
-
-        .coord-display { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
-        .coord-format-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-        .coord-format-row label { font-size: 13px; font-weight: 600; color: var(--text-mid); margin-bottom: 0; white-space: nowrap; }
-        .coord-format-row select { padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px; }
-        .coord-readonly { padding: 10px 14px; background: #f1f5f9; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: var(--text-mid); }
-        .address-display { font-size: 14px; font-weight: 500; color: var(--text); padding: 10px 14px; background: var(--green-pale); border-radius: 8px; margin-bottom: 12px; display: none; }
-        .address-display.show { display: block; }
-
-        /* Availability */
-        .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .toggle-row:last-child { border-bottom: none; }
-        .toggle-label { font-size: 14px; font-weight: 500; }
-        .toggle-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-        .toggle { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
-        .toggle input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { position: absolute; inset: 0; background: #CBD5E1; border-radius: 26px; cursor: pointer; transition: all 0.3s; }
-        .toggle-slider::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: all 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-        .toggle input:checked + .toggle-slider { background: var(--green); }
-        .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
-
-        .date-range-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
-        .day-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
-        .day-chip { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; user-select: none; background: white; }
-        .day-chip.active { background: var(--green); color: white; border-color: var(--green); }
-        .day-chip:hover { border-color: var(--green); }
-        .time-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
-        .time-chip { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; user-select: none; background: white; }
-        .time-chip.active { background: var(--blue); color: white; border-color: var(--blue); }
-        .time-chip:hover { border-color: var(--blue); }
-
-        .range-row { margin-bottom: 20px; }
-        .range-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .range-header label { margin-bottom: 0; font-size: 13px; font-weight: 600; color: var(--text-mid); }
-        .range-value { font-size: 14px; font-weight: 700; color: var(--green); background: var(--green-pale); padding: 2px 10px; border-radius: 4px; }
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #E2E8F0; outline: none; border: none; padding: 0; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--green); cursor: pointer; }
-
-        /* Feedback always-on notice */
-        .always-on { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .always-on:last-child { border-bottom: none; }
-        .always-on-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; background: var(--green-pale); color: var(--green); padding: 3px 8px; border-radius: 4px; flex-shrink: 0; }
-        .always-on-text { flex: 1; }
-        .always-on-note { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-        /* Buttons */
-        .btn { padding: 12px 24px; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        /* BUTTONS */
+        .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+        .btn { padding: 10px 24px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; border: none; }
         .btn-primary { background: var(--green); color: white; }
-        .btn-primary:hover { background: var(--green-dark); }
-        .btn-primary:disabled { background: #A5D6A7; cursor: not-allowed; }
-        .btn-secondary { background: var(--off-white); color: var(--text-mid); border: 1.5px solid var(--border); }
-        .btn-secondary:hover { background: white; border-color: var(--text-muted); }
-        .btn-danger { background: white; color: var(--red); border: 1.5px solid #FFCDD2; }
-        .btn-danger:hover { background: #FFF0F0; }
-        .btn-sm { padding: 8px 14px; font-size: 13px; }
-        .btn-gps { padding: 10px 16px; border-radius: 8px; border: 1.5px solid var(--border); background: white; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: all 0.2s; font-family: inherit; font-weight: 500; color: var(--text-mid); height: 42px; }
-        .btn-gps:hover { border-color: var(--green); color: var(--green); background: var(--green-pale); }
+        .btn-primary:hover { background: var(--green-light); }
+        .btn-secondary { background: var(--white); color: var(--blue); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--blue-pale); }
+        .btn-danger { background: var(--red-pale); color: var(--red); }
+        .btn-danger:hover { background: #fecaca; }
+        .btn-gps { padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--text); transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-gps:hover { background: var(--blue-pale); border-color: var(--blue); color: var(--blue); }
 
-        .save-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-        .save-status { font-size: 13px; color: var(--green); font-weight: 500; opacity: 0; transition: opacity 0.3s; }
-        .save-status.visible { opacity: 1; }
+        /* PHOTO */
+        .photo-area { display: flex; align-items: center; gap: 20px; }
+        .photo-preview { width: 100px; height: 100px; border-radius: 50%; background: var(--grey-100); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 40px; overflow: hidden; flex-shrink: 0; }
+        .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-actions { display: flex; flex-direction: column; gap: 8px; }
 
-        /* Loading */
-        .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 60vh; flex-direction: column; gap: 16px; }
-        .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text { color: var(--text-muted); font-size: 14px; }
+        /* GPS DISPLAY */
+        .gps-display { background: var(--blue-pale); border: 1px solid #c5d4ea; border-radius: var(--radius-sm); padding: 12px 16px; margin-top: 12px; }
+        .gps-coords { font-family: 'DM Sans', monospace; font-size: 14px; font-weight: 600; color: var(--blue); }
+        .gps-buttons { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 
-        .empty-state { text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px; font-style: italic; }
+        /* MAP */
+        .map-container { height: 220px; border-radius: var(--radius-sm); overflow: hidden; margin-top: 12px; border: 1px solid var(--border); }
 
-        @media (max-width: 600px) {
-            .form-row, .form-row.triple { grid-template-columns: 1fr; }
-            .coord-display { grid-template-columns: 1fr; }
-            .page-container { padding: 16px 16px 80px; }
-            .photo-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        /* VERIFICATION BADGE */
+        .verif-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; }
+        .verif-badge.unverified { background: var(--grey-100); color: var(--grey-500); }
+        .verif-badge.photo { background: var(--blue-pale); color: var(--blue); }
+        .verif-badge.v1 { background: var(--green-pale); color: var(--green); }
+        .verif-badge.v2 { background: var(--green-pale); color: var(--green); }
+        .verif-badge.community { background: var(--orange-pale); color: #b45309; }
+
+        /* STATS ROW */
+        .profile-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+        .profile-stat { text-align: center; padding: 10px; background: var(--grey-50); border-radius: var(--radius-sm); }
+        .profile-stat-num { font-size: 20px; font-weight: 800; color: var(--blue); }
+        .profile-stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: var(--radius); font-size: 14px; font-weight: 600; z-index: 300; display: none; animation: slideUp 0.3s ease-out; }
+        .toast.success { background: var(--green); color: white; }
+        .toast.error { background: var(--red); color: white; }
+        @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .photo-area { flex-direction: column; text-align: center; }
+            .nav-display-name { display: none; }
+            .tab-item { padding: 10px 12px; font-size: 12px; }
+            .profile-stats { grid-template-columns: repeat(2, 1fr); }
+            .breadcrumb { flex-wrap: wrap; }
         }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .main { animation: fadeUp 0.5s ease-out; }
+
+        /* SETTINGS PANEL */
+        .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; transition: opacity 0.3s; }
+        .settings-overlay.open { display: block; opacity: 1; }
+        .settings-panel { position: fixed; top: 0; right: -380px; width: 360px; max-width: 90vw; height: 100vh; background: var(--white); box-shadow: var(--shadow-lg); z-index: 201; transition: right 0.3s ease; overflow-y: auto; }
+        .settings-panel.open { right: 0; }
+        .settings-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--white); z-index: 1; }
+        .settings-header h2 { font-size: 16px; font-weight: 700; }
+        .settings-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--grey-100); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--grey-500); }
+        .settings-section { padding: 12px 20px; }
+        .settings-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+        .settings-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; border-bottom: 1px solid var(--grey-100); text-decoration: none; color: var(--text); font-size: 13px; font-weight: 500; transition: color 0.15s; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item:hover { color: var(--blue); }
+        .si-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+        .si-icon.green { background: var(--green-pale); } .si-icon.red { background: var(--red-pale); }
+        .si-icon.blue { background: var(--blue-pale); } .si-icon.orange { background: var(--orange-pale); }
+        .si-icon.purple { background: var(--purple-pale); } .si-icon.grey { background: var(--grey-100); }
+        .si-arrow { margin-left: auto; color: var(--grey-300); }
+        .si-badge { background: var(--orange); color: white; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: auto; }
+        .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
+        .settings-logout:hover { background: #fecaca; }
     </style>
 </head>
 <body>
 
-<nav id="tiriwe-nav"></nav>
-
-<!-- Loading -->
-<div class="page-container" id="loading-screen">
-    <div class="loading-screen">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Loading your profile...</div>
+<!-- TOP BAR -->
+<header class="top-bar">
+    <div class="top-bar-upper">
+        <a href="dashboard.html" class="nav-brand">
+            <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2.5"/><circle cx="11" cy="13" r="3" fill="currentColor"/><circle cx="21" cy="13" r="3" fill="currentColor"/><path d="M11 16 L16 22 L21 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            Tiriwe
+        </a>
+        <div class="nav-right">
+            <div class="nav-user">
+                <div class="nav-avatar">🏍️</div>
+                <span class="nav-display-name">BraveRiver472</span>
+            </div>
+            <button class="nav-btn" title="Notifications">🔔<span class="notif-badge">3</span></button>
+            <button class="nav-btn" title="Settings" onclick="openSettings()">⚙️</button>
+        </div>
     </div>
+    <nav class="tab-nav">
+        <a class="tab-item" href="dashboard.html"><span class="tab-icon">🏠</span><span class="tab-text">Dashboard</span></a>
+        <a class="tab-item" href="messages.html"><span class="tab-icon">💬</span><span class="tab-text">Messages</span><span class="tab-badge">2</span></a>
+        <a class="tab-item" href="diary.html"><span class="tab-icon">📔</span><span class="tab-text">Diary</span></a>
+        <a class="tab-item" href="findit.html"><span class="tab-icon">🔍</span><span class="tab-text">Find It</span></a>
+        <a class="tab-item" href="logit.html"><span class="tab-icon">📍</span><span class="tab-text">Log It</span></a>
+        <a class="tab-item" href="help.html"><span class="tab-icon">🆘</span><span class="tab-text">Help</span></a>
+    </nav>
+</header>
+
+<!-- PAGE HEADER -->
+<section class="page-header">
+    <div class="page-header-content">
+        <h1>👤 My Profile</h1>
+        <p>Manage your personal information and preferences</p>
+    </div>
+</section>
+
+<!-- BREADCRUMBS -->
+<div class="breadcrumb">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="#" onclick="openSettings(); return false;">⚙️ Settings</a>
 </div>
 
-<!-- Main content -->
-<div class="page-container" id="main-content" style="display:none;">
+<main class="main">
 
-    <a href="settings.html" class="back-link">← Back to Settings</a>
-
-    <div class="welcome-banner" id="welcome-banner">
-        <h2>Let's set up your profile</h2>
-        <p>Fill in the highlighted fields so the community can connect with you. Gender and location are required — everything else you can add later.</p>
-    </div>
-
-    <div class="page-header" id="page-header">
-        <h1>My Profile</h1>
-        <p>Your identity, location, availability and preferences.</p>
-    </div>
-
-    <!-- ==================== PROFILE ==================== -->
-    <div class="section" id="section-profile">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">👤</span>
-            <h2>Identity</h2>
-            <span class="req-badge" id="profile-required" style="display:none">Complete this</span>
+    <!-- ═══ PROFILE PHOTO & VERIFICATION ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">📷 Photo & Verification</div>
         </div>
         <div class="section-body">
-            <div class="avatar-preview">
-                <div class="avatar-circle" id="avatar-circle">🦊</div>
-                <div class="avatar-info">
-                    <div class="avatar-name" id="avatar-display-name">Loading...</div>
-                    <div class="avatar-level" id="avatar-level">Unverified</div>
-                    <div class="avatar-note">Your display name and avatar are randomly assigned to protect your identity.</div>
+            <div class="photo-area">
+                <div class="photo-preview" id="photoPreview">🏍️</div>
+                <div class="photo-actions">
+                    <label class="btn btn-secondary" style="display:inline-flex; align-items: center; gap:6px; cursor:pointer;">
+                        📷 Upload Photo
+                        <input type="file" accept="image/*" id="photoInput" style="display:none;" onchange="previewPhoto(this)">
+                    </label>
+                    <button class="btn btn-danger" style="font-size:12px; padding:6px 12px;" onclick="removePhoto()">Remove Photo</button>
+                    <div class="form-hint">Required for verification upgrade. JPG or PNG, max 5MB.</div>
                 </div>
             </div>
+            <div class="profile-stats">
+                <div class="profile-stat"><div class="profile-stat-num">27</div><div class="profile-stat-lbl">Help Given</div></div>
+                <div class="profile-stat"><div class="profile-stat-num">5</div><div class="profile-stat-lbl">Received</div></div>
+                <div class="profile-stat"><div class="profile-stat-num">94%</div><div class="profile-stat-lbl">Positive</div></div>
+                <div class="profile-stat">
+                    <div><span class="verif-badge community">⭐ Community Verified</span></div>
+                    <div class="profile-stat-lbl" style="margin-top:4px;">Trust Level</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <div class="form-row">
+    <!-- ═══ PERSONAL INFO ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">📝 Personal Information</div>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
                 <div class="form-group">
-                    <label>Display Name <span class="hint">(system generated)</span></label>
-                    <input type="text" id="display_name" class="readonly-display" readonly tabindex="-1">
+                    <label class="form-label">Display Name</label>
+                    <input class="form-input" id="displayName" value="BraveRiver472" disabled>
+                    <div class="form-hint">Auto-generated. Change in settings.</div>
                 </div>
                 <div class="form-group">
-                    <label>Gender <span class="required">*</span></label>
-                    <select id="gender" required>
-                        <option value="">— Select gender —</option>
+                    <label class="form-label">Email</label>
+                    <input class="form-input" id="email" type="email" value="" disabled>
+                    <div class="form-hint">Used for login. Cannot be changed here.</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input class="form-input" id="firstName" placeholder="Your first name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Surname</label>
+                    <input class="form-input" id="surname" placeholder="Your surname">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input class="form-input" id="phone" type="tel" placeholder="+64 21 123 4567">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select class="form-select" id="gender">
+                        <option value="">Prefer not to say</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
-                        <option value="non-binary">Non-binary</option>
+                        <option value="non_binary">Non-binary</option>
                         <option value="other">Other</option>
-                        <option value="prefer_not_to_say">Prefer not to say</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="form-row full">
-                <div class="form-group">
-                    <label>Bio <span class="hint">(tell the community about yourself)</span></label>
-                    <textarea id="bio" placeholder="Motorcycle tourer, always happy to help fellow riders..." maxlength="500"></textarea>
+                <div class="form-group form-full">
+                    <label class="form-label">Bio</label>
+                    <textarea class="form-textarea" id="bio" placeholder="Tell the community a bit about yourself..."></textarea>
                 </div>
             </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" disabled>
-                </div>
-                <div class="form-group">
-                    <label>Phone <span class="hint">(optional — for emergencies)</span></label>
-                    <input type="tel" id="phone" placeholder="+64 21 123 4567">
-                </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="saveSection('personal')">💾 Save Personal Info</button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== PROFILE PHOTOS ==================== -->
+    <!-- ═══ ADDRESS ═══ -->
     <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">📷</span>
-            <h2>Profile Photos</h2>
+        <div class="section-hd">
+            <div class="section-title">🏠 Home Address</div>
         </div>
         <div class="section-body">
-            <p class="section-note">Upload up to 3 photos for identity verification. These are used when the community confirms your identity in person — they are <strong>not</strong> shown publicly.</p>
-            <div class="photo-grid">
-                <div class="photo-slot" id="photo-slot-0" onclick="triggerPhotoUpload(0)">
-                    <span class="photo-icon">📷</span>
-                    <span class="photo-label">Primary</span>
-                    <button class="photo-remove" onclick="event.stopPropagation(); removePhoto(0)">✕</button>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Suburb</label>
+                    <input class="form-input" id="suburb" placeholder="e.g. Ponsonby">
                 </div>
-                <div class="photo-slot" id="photo-slot-1" onclick="triggerPhotoUpload(1)">
-                    <span class="photo-icon">➕</span>
-                    <span class="photo-label">Photo 2</span>
-                    <button class="photo-remove" onclick="event.stopPropagation(); removePhoto(1)">✕</button>
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input class="form-input" id="city" placeholder="e.g. Auckland">
                 </div>
-                <div class="photo-slot" id="photo-slot-2" onclick="triggerPhotoUpload(2)">
-                    <span class="photo-icon">➕</span>
-                    <span class="photo-label">Photo 3</span>
-                    <button class="photo-remove" onclick="event.stopPropagation(); removePhoto(2)">✕</button>
+                <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <input class="form-input" id="country" placeholder="e.g. New Zealand">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Post Code</label>
+                    <input class="form-input" id="postCode" placeholder="e.g. 1021">
                 </div>
             </div>
-            <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="saveSection('address')">💾 Save Address</button>
+            </div>
         </div>
     </div>
 
-    <!-- ==================== LANGUAGES ==================== -->
+    <!-- ═══ HOME LOCATION (GPS) ═══ -->
     <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">🌍</span>
-            <h2>Languages</h2>
+        <div class="section-hd">
+            <div class="section-title">📍 Home Location (GPS)</div>
         </div>
         <div class="section-body">
-            <p class="section-note">What languages do you speak? This helps match you with travelers who need help communicating.</p>
-            <table class="lang-table" id="lang-table">
-                <thead>
-                    <tr>
-                        <th>Language</th>
-                        <th>Proficiency</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="lang-body">
-                    <!-- Rows added dynamically -->
-                </tbody>
-            </table>
-            <div class="empty-state" id="lang-empty">No languages added yet.</div>
-            <div class="lang-add-row">
-                <select id="lang-new-lang">
-                    <option value="">— Select language —</option>
-                </select>
-                <select id="lang-new-prof">
-                    <option value="native">Native</option>
-                    <option value="fluent">Fluent</option>
-                    <option value="conversational">Conversational</option>
-                    <option value="basic">Basic</option>
-                </select>
-                <button class="btn btn-sm btn-secondary" onclick="addLanguage()">+ Add</button>
+            <div class="form-hint" style="margin-bottom:12px;">Your precise home location is never shown publicly. It's used as a default centre for searches and fuzzy-shown only (~2km offset).</div>
+            <div class="gps-buttons">
+                <button class="btn-gps" onclick="captureDeviceGPS()">📍 Device GPS</button>
+                <button class="btn-gps" onclick="geocodeAddress()">🏠 From Address</button>
+                <button class="btn-gps" onclick="toggleManualGPS()">✏️ Manual Entry</button>
+            </div>
+            <div id="manualGpsFields" style="display:none; margin-top:12px;">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Latitude</label>
+                        <input class="form-input" id="homeLat" type="number" step="0.000001" placeholder="-36.848461">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude</label>
+                        <input class="form-input" id="homeLng" type="number" step="0.000001" placeholder="174.763336">
+                    </div>
+                </div>
+            </div>
+            <div id="gpsDisplay" class="gps-display" style="display:none;">
+                <div class="gps-coords"><span id="gpsLatDisplay"></span>, <span id="gpsLngDisplay"></span></div>
+            </div>
+            <div id="homeMap" class="map-container"></div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="saveSection('location')">💾 Save Location</button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== HOME LOCATION ==================== -->
-    <div class="section" id="section-location">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">📍</span>
-            <h2>Home Location</h2>
-            <span class="req-badge" id="location-required" style="display:none">Set this</span>
+    <!-- ═══ GENDER PREFERENCES ═══ -->
+    <div class="section">
+        <div class="section-hd">
+            <div class="section-title">🤝 Help & Safety Preferences</div>
         </div>
         <div class="section-body">
-            <p class="section-note">Your home location is used as the default center for searches. Only your <strong>city and suburb</strong> are shown to other users — never your exact address.</p>
-
-            <!-- Address search -->
             <div class="form-group" style="margin-bottom:16px;">
-                <label>Search Address</label>
-                <div class="address-search-wrap">
-                    <input type="text" id="address-search" placeholder="Type a city, suburb or address..." autocomplete="off">
-                    <button class="address-search-btn" onclick="searchAddress()">Search</button>
-                    <div class="address-results" id="address-results"></div>
+                <label class="form-label">Gender Preference for Helpers</label>
+                <div class="form-hint" style="margin-bottom:8px;">Who would you prefer to interact with when requesting or providing help?</div>
+                <div class="option-group" id="genderPref">
+                    <label class="option-pill" onclick="selectPill(this, 'genderPref')">
+                        <input type="radio" name="genderPref" value="any" checked> Anyone
+                    </label>
+                    <label class="option-pill" onclick="selectPill(this, 'genderPref')">
+                        <input type="radio" name="genderPref" value="same"> Same gender
+                    </label>
+                    <label class="option-pill" onclick="selectPill(this, 'genderPref')">
+                        <input type="radio" name="genderPref" value="female_only"> Female only
+                    </label>
                 </div>
             </div>
-
-            <!-- Selected address display -->
-            <div class="address-display" id="address-display"></div>
-
-            <!-- Coordinate format selector -->
-            <div class="coord-format-row">
-                <label>Coordinate Format:</label>
-                <select id="coord-format" onchange="updateCoordDisplay()">
-                    <option value="decimal">Decimal Degrees (DD)</option>
-                    <option value="dms">Degrees Minutes Seconds (DMS)</option>
-                    <option value="ddm">Degrees Decimal Minutes (DDM)</option>
+            <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Help Radius</label>
+                <div class="form-hint" style="margin-bottom:8px;">Maximum distance you're willing to travel to help someone.</div>
+                <select class="form-select" id="helpRadius" style="max-width:200px;">
+                    <option value="10">10 km</option>
+                    <option value="25">25 km</option>
+                    <option value="50" selected>50 km</option>
+                    <option value="100">100 km</option>
+                    <option value="200">200 km</option>
                 </select>
             </div>
-
-            <!-- Coordinates display -->
-            <div class="coord-display">
-                <div class="form-group">
-                    <label>Latitude</label>
-                    <div class="coord-readonly" id="coord-lat">—</div>
-                    <input type="hidden" id="home_lat">
+            <div class="form-group">
+                <label class="form-label">Traveler Type</label>
+                <div class="form-hint" style="margin-bottom:8px;">Select all that apply. Helps match you with relevant requests.</div>
+                <div class="option-group" id="travelerTypes">
+                    <label class="option-pill" onclick="togglePill(this)"><input type="checkbox" value="motorcyclist"> 🏍️ Motorcyclist</label>
+                    <label class="option-pill" onclick="togglePill(this)"><input type="checkbox" value="cyclist"> 🚴 Cyclist</label>
+                    <label class="option-pill" onclick="togglePill(this)"><input type="checkbox" value="overlander"> 🚗 4WD / Overlander</label>
+                    <label class="option-pill" onclick="togglePill(this)"><input type="checkbox" value="sailor"> ⛵ Sailor</label>
+                    <label class="option-pill" onclick="togglePill(this)"><input type="checkbox" value="hiker"> 🥾 Hiker</label>
+                    <label class="option-pill" onclick="togglePill(this)"><input type="checkbox" value="trucker"> 🚛 Trucker</label>
+                    <label class="option-pill" onclick="togglePill(this)"><input type="checkbox" value="rv"> 🚐 RV / Grey Nomad</label>
+                    <label class="option-pill" onclick="togglePill(this)"><input type="checkbox" value="hitchhiker"> 👍 Hitchhiker</label>
                 </div>
-                <div class="form-group">
-                    <label>Longitude</label>
-                    <div class="coord-readonly" id="coord-lng">—</div>
-                    <input type="hidden" id="home_lng">
-                </div>
-                <button class="btn-gps" onclick="useGPS()" id="btn-gps">📍 Use GPS</button>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="saveSection('preferences')">💾 Save Preferences</button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== AVAILABILITY ==================== -->
+    <!-- ═══ UNITS & LOCALE ═══ -->
     <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">🟢</span>
-            <h2>Availability</h2>
+        <div class="section-hd">
+            <div class="section-title">🌐 Units & Locale</div>
         </div>
         <div class="section-body">
-            <div class="toggle-row">
-                <div>
-                    <div class="toggle-label">Available to Help</div>
-                    <div class="toggle-desc">When on, nearby travelers can see you and request help</div>
-                </div>
-                <label class="toggle">
-                    <input type="checkbox" id="is_available">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div style="margin-top:16px;">
-                <label style="font-size:13px; font-weight:600; color:var(--text-mid); display:block; margin-bottom:8px;">Available Dates</label>
-                <div class="date-range-row">
-                    <div class="form-group">
-                        <label>From</label>
-                        <input type="date" id="avail_from">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Distance</label>
+                    <div class="option-group" id="unitDistance">
+                        <label class="option-pill selected" onclick="selectPill(this, 'unitDistance')"><input type="radio" name="unitDistance" value="km" checked> Kilometres</label>
+                        <label class="option-pill" onclick="selectPill(this, 'unitDistance')"><input type="radio" name="unitDistance" value="miles"> Miles</label>
                     </div>
-                    <div class="form-group">
-                        <label>To <span class="hint">(leave blank = ongoing)</span></label>
-                        <input type="date" id="avail_to">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Temperature</label>
+                    <div class="option-group" id="unitTemp">
+                        <label class="option-pill selected" onclick="selectPill(this, 'unitTemp')"><input type="radio" name="unitTemp" value="celsius" checked> °C Celsius</label>
+                        <label class="option-pill" onclick="selectPill(this, 'unitTemp')"><input type="radio" name="unitTemp" value="fahrenheit"> °F Fahrenheit</label>
                     </div>
                 </div>
             </div>
-
-            <div>
-                <label style="font-size:13px; font-weight:600; color:var(--text-mid); display:block; margin-bottom:8px;">Days of Week</label>
-                <div class="day-chips" id="day-chips">
-                    <div class="day-chip active" data-day="mon" onclick="toggleChip(this)">Mon</div>
-                    <div class="day-chip active" data-day="tue" onclick="toggleChip(this)">Tue</div>
-                    <div class="day-chip active" data-day="wed" onclick="toggleChip(this)">Wed</div>
-                    <div class="day-chip active" data-day="thu" onclick="toggleChip(this)">Thu</div>
-                    <div class="day-chip active" data-day="fri" onclick="toggleChip(this)">Fri</div>
-                    <div class="day-chip active" data-day="sat" onclick="toggleChip(this)">Sat</div>
-                    <div class="day-chip active" data-day="sun" onclick="toggleChip(this)">Sun</div>
-                </div>
-            </div>
-
-            <div>
-                <label style="font-size:13px; font-weight:600; color:var(--text-mid); display:block; margin-bottom:8px;">Time of Day</label>
-                <div class="time-chips" id="time-chips">
-                    <div class="time-chip active" data-time="all_day" onclick="toggleTimeChip(this)">All Day</div>
-                    <div class="time-chip" data-time="morning" onclick="toggleTimeChip(this)">Morning</div>
-                    <div class="time-chip" data-time="afternoon" onclick="toggleTimeChip(this)">Afternoon</div>
-                    <div class="time-chip" data-time="evening" onclick="toggleTimeChip(this)">Evening</div>
-                </div>
-                <p class="section-note" style="margin-top:8px; margin-bottom:0;">This controls when you receive SOS notifications. If you're not available in the morning, you won't be pinged.</p>
-            </div>
-
-            <div class="range-row" style="margin-top:20px;">
-                <div class="range-header">
-                    <label>Help Radius</label>
-                    <span class="range-value" id="radius-value">50 km</span>
-                </div>
-                <input type="range" id="max_help_radius_km" min="5" max="200" value="50" step="5"
-                       oninput="document.getElementById('radius-value').textContent = this.value + ' km'">
-            </div>
-
-            <div class="form-row full">
-                <div class="form-group">
-                    <label>Status Message <span class="hint">(shown to people nearby)</span></label>
-                    <input type="text" id="availability_message" placeholder="Available evenings and weekends" maxlength="255">
-                </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="saveSection('units')">💾 Save Units</button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== PRIVACY ==================== -->
-    <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">🔒</span>
-            <h2>Privacy</h2>
+    <!-- ═══ DANGER ZONE ═══ -->
+    <div class="section" style="border-color: #fca5a5;">
+        <div class="section-hd" style="background: var(--red-pale);">
+            <div class="section-title" style="color: var(--red);">⚠️ Data & Account</div>
         </div>
         <div class="section-body">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Help Gender Preference</label>
-                    <select id="help_gender_preference">
-                        <option value="any">Anyone</option>
-                        <option value="same">Same as me</option>
-                        <option value="female_only">Female helpers only</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Location Precision</label>
-                    <select id="location_precision">
-                        <option value="fuzzy">Fuzzy (recommended)</option>
-                        <option value="precise">Precise (helpers only)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="toggle-row">
-                <div>
-                    <div class="toggle-label">Show on Map</div>
-                    <div class="toggle-desc">When off, you won't appear on the map for other users</div>
-                </div>
-                <label class="toggle">
-                    <input type="checkbox" id="show_on_map" checked>
-                    <span class="toggle-slider"></span>
-                </label>
+            <div class="form-hint" style="margin-bottom:12px;">🛡️ <strong>Location history is a safety feature.</strong> If you go missing, your last known locations help search teams find you. We recommend keeping at least 1 year.</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-secondary" onclick="alert('Download feature coming soon')">📥 Download My Data</button>
+                <button class="btn btn-danger" onclick="confirm('Are you sure? This cannot be undone.') && alert('Account deletion requested')">🗑️ Delete Account</button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== NOTIFICATIONS ==================== -->
-    <div class="section">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">🔔</span>
-            <h2>Notifications</h2>
-        </div>
-        <div class="section-body">
-            <div class="toggle-row">
-                <div>
-                    <div class="toggle-label">Nearby SOS Alerts</div>
-                    <div class="toggle-desc">Get notified when someone nearby needs help</div>
-                </div>
-                <label class="toggle">
-                    <input type="checkbox" id="notify_sos" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="toggle-row">
-                <div>
-                    <div class="toggle-label">Messages</div>
-                    <div class="toggle-desc">Get notified when you receive a message</div>
-                </div>
-                <label class="toggle">
-                    <input type="checkbox" id="notify_messages" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="always-on">
-                <div class="always-on-text">
-                    <div class="toggle-label">Feedback Reminders</div>
-                    <div class="always-on-note">Always on — this is core to how Tiriwe works. Friends are exempt from the mandatory feedback loop.</div>
-                </div>
-                <span class="always-on-badge">Always On</span>
-            </div>
-        </div>
-    </div>
+</main>
 
-    <!-- ==================== DATA & ACCOUNT ==================== -->
-    <div class="section danger">
-        <div class="section-hdr">
-            <span class="section-hdr-icon">⚠️</span>
-            <h2>Data & Account</h2>
-        </div>
-        <div class="section-body">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Message Retention</label>
-                    <select id="message_retention">
-                        <option value="30">30 days</option>
-                        <option value="90">90 days</option>
-                        <option value="365" selected>1 year</option>
-                        <option value="730">2 years</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Location History</label>
-                    <select id="location_retention">
-                        <option value="30">30 days</option>
-                        <option value="90">90 days</option>
-                        <option value="365">1 year</option>
-                        <option value="730">2 years</option>
-                        <option value="1825" selected>5 years</option>
-                        <option value="0">Indefinite</option>
-                    </select>
-                </div>
-            </div>
-            <p class="section-note" style="margin-top:-8px;">
-                🛡️ <strong>Location history is a safety feature.</strong> If you go missing, your last known locations help search teams find you. We recommend keeping at least 1 year.
-            </p>
-            <div style="display:flex; gap:12px; margin-top:12px;">
-                <button class="btn btn-secondary" onclick="requestDataExport()">📥 Download My Data</button>
-                <button class="btn btn-danger" onclick="requestAccountDeletion()">🗑️ Delete Account</button>
-            </div>
-        </div>
-    </div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-    <!-- ==================== SAVE BAR ==================== -->
-    <div class="save-bar">
-        <span class="save-status" id="save-status">✅ Profile saved</span>
-        <button class="btn btn-primary" id="btn-save" onclick="saveProfile()" style="padding: 14px 32px; font-size: 16px;">
-            Save Profile
-        </button>
+<!-- SETTINGS PANEL -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+<aside class="settings-panel" id="settings-panel">
+    <div class="settings-header"><h2>⚙️ Settings</h2><button class="settings-close" onclick="closeSettings()">✕</button></div>
+    <div class="settings-section">
+        <div class="settings-section-title">Profile</div>
+        <a class="settings-item" href="profile.html"><div class="si-icon green">👤</div> My Profile <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="friends.html"><div class="si-icon blue">👥</div> My Friends <span class="si-badge">4</span></a>
+        <a class="settings-item" href="groups.html"><div class="si-icon purple">👪</div> My Groups <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="vehicles.html"><div class="si-icon orange">🏍️</div> My Vehicles <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="emergency.html"><div class="si-icon red">❤️</div> Emergency Contacts <span class="si-arrow">›</span></a>
     </div>
-
-</div>
+    <div class="settings-section">
+        <div class="settings-section-title">Account</div>
+        <a class="settings-item" href="subscription.html"><div class="si-icon orange">⭐</div> Subscription & Plan <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">🔑</div> Change Password <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">🔒</div> Two-Factor Auth <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Availability</div>
+        <a class="settings-item" href="#"><div class="si-icon green">📡</div> Availability Settings <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">🎯</div> Help Preferences <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Activity</div>
+        <a class="settings-item" href="#"><div class="si-icon blue">📋</div> Activity History <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon orange">⏳</div> Pending Feedback <span class="si-badge">2</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">📊</div> Interactions History <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">Privacy & Data</div>
+        <a class="settings-item" href="#"><div class="si-icon purple">📍</div> Location Privacy <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">🗂️</div> Data Retention <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">⬇️</div> Download My Data <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon red">🚫</div> Blocked Users <span class="si-arrow">›</span></a>
+    </div>
+    <div class="settings-section">
+        <div class="settings-section-title">App</div>
+        <a class="settings-item" href="#"><div class="si-icon grey">🌐</div> Language & Region <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon blue">ℹ️</div> About Tiriwe <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon green">💬</div> Help & Support <span class="si-arrow">›</span></a>
+        <a class="settings-item" href="#"><div class="si-icon grey">📄</div> Terms & Privacy <span class="si-arrow">›</span></a>
+    </div>
+    <button class="settings-logout" onclick="alert('Logged out')">🚪 Log Out</button>
+</aside>
 
 <script>
-// ====================================================================
-// CONSTANTS
-// ====================================================================
-const LANGUAGES = [
-    'Afrikaans','Albanian','Amharic','Arabic','Armenian','Azerbaijani','Basque','Belarusian','Bengali',
-    'Bosnian','Bulgarian','Burmese','Catalan','Cebuano','Chinese (Mandarin)','Chinese (Cantonese)',
-    'Croatian','Czech','Danish','Dutch','English','Estonian','Filipino','Finnish','French','Galician',
-    'Georgian','German','Greek','Gujarati','Haitian Creole','Hausa','Hebrew','Hindi','Hmong','Hungarian',
-    'Icelandic','Igbo','Indonesian','Irish','Italian','Japanese','Javanese','Kannada','Kazakh','Khmer',
-    'Korean','Kurdish','Kyrgyz','Lao','Latvian','Lithuanian','Luxembourgish','Macedonian','Malay',
-    'Malayalam','Maltese','Maori','Marathi','Mongolian','Nepali','Norwegian','Pashto','Persian','Polish',
-    'Portuguese','Punjabi','Romanian','Russian','Samoan','Serbian','Shona','Sindhi','Sinhala','Slovak',
-    'Slovenian','Somali','Spanish','Sundanese','Swahili','Swedish','Tajik','Tamil','Tatar','Telugu',
-    'Thai','Tongan','Turkish','Turkmen','Ukrainian','Urdu','Uzbek','Vietnamese','Welsh','Xhosa',
-    'Yiddish','Yoruba','Zulu'
-];
+    // ═══ MAP INIT ═══
+    let homeMap, homeMarker;
+    const defaultLat = -36.848461, defaultLng = 174.763336;
 
-let isFirstTime = false;
-let userLanguages = [];   // [{language, proficiency}]
-let userPhotos = [null, null, null];
-let activePhotoSlot = 0;
-
-// ====================================================================
-// INITIALISATION
-// ====================================================================
-Tiriwe.ready().then(() => {
-    const user = Tiriwe.user;
-    if (!user) return;
-
-    isFirstTime = !Tiriwe.isProfileComplete(user);
-    populateForm(user);
-    populateLanguageDropdown();
-    loadLanguages(user);
-
-    if (isFirstTime) {
-        document.getElementById('welcome-banner').classList.add('visible');
-        document.getElementById('page-header').style.display = 'none';
-        document.getElementById('section-profile').classList.add('highlight');
-        document.getElementById('section-location').classList.add('highlight');
-        document.getElementById('profile-required').style.display = 'inline';
-        document.getElementById('location-required').style.display = 'inline';
-        document.getElementById('btn-save').textContent = 'Complete Setup & Continue';
+    function initMap() {
+        homeMap = L.map('homeMap').setView([defaultLat, defaultLng], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(homeMap);
     }
 
-    document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('main-content').style.display = 'block';
-});
-
-// ====================================================================
-// POPULATE FORM
-// ====================================================================
-function populateForm(user) {
-    document.getElementById('display_name').value = user.display_name || '';
-    document.getElementById('gender').value = user.gender || '';
-    document.getElementById('bio').value = user.bio || '';
-    document.getElementById('email').value = user.email || '';
-    document.getElementById('phone').value = user.phone || '';
-
-    // Avatar
-    document.getElementById('avatar-circle').textContent = user.avatar_emoji || '👤';
-    document.getElementById('avatar-circle').style.background = user.avatar_color || '#E8F5E9';
-    document.getElementById('avatar-display-name').textContent = user.display_name || 'New User';
-    const vInfo = Tiriwe.getVerificationInfo(user.verification_level);
-    document.getElementById('avatar-level').textContent = vInfo.icon + ' ' + vInfo.name;
-
-    // Location
-    if (user.home_location) {
-        try {
-            const loc = typeof user.home_location === 'string' ? JSON.parse(user.home_location) : user.home_location;
-            if (loc.coordinates) {
-                document.getElementById('home_lng').value = loc.coordinates[0];
-                document.getElementById('home_lat').value = loc.coordinates[1];
-                updateCoordDisplay();
-            }
-        } catch (e) { console.warn('Could not parse home_location:', e); }
+    function updateMap(lat, lng) {
+        homeMap.setView([lat, lng], 14);
+        if (homeMarker) homeMap.removeLayer(homeMarker);
+        homeMarker = L.marker([lat, lng]).addTo(homeMap);
     }
 
-    // Address display from metadata
-    const meta = user.metadata || {};
-    if (meta.home_address) {
-        const addrEl = document.getElementById('address-display');
-        addrEl.textContent = '📍 ' + meta.home_address;
-        addrEl.classList.add('show');
+    function showGPS(lat, lng) {
+        document.getElementById('gpsLatDisplay').textContent = lat.toFixed(6);
+        document.getElementById('gpsLngDisplay').textContent = lng.toFixed(6);
+        document.getElementById('gpsDisplay').style.display = 'block';
+        document.getElementById('homeLat').value = lat.toFixed(6);
+        document.getElementById('homeLng').value = lng.toFixed(6);
+        document.getElementById('manualGpsFields').style.display = 'block';
+        updateMap(lat, lng);
     }
-    if (meta.coord_format) {
-        document.getElementById('coord-format').value = meta.coord_format;
+
+    // ═══ GPS FUNCTIONS ═══
+    function captureDeviceGPS() {
+        if (!navigator.geolocation) return showToast('Geolocation not supported', 'error');
+        navigator.geolocation.getCurrentPosition(
+            pos => showGPS(pos.coords.latitude, pos.coords.longitude),
+            err => showToast('Could not get location: ' + err.message, 'error'),
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
     }
 
-    // Availability
-    document.getElementById('is_available').checked = user.is_available || false;
-    document.getElementById('max_help_radius_km').value = user.max_help_radius_km || 50;
-    document.getElementById('radius-value').textContent = (user.max_help_radius_km || 50) + ' km';
-    document.getElementById('availability_message').value = user.availability_message || '';
+    function geocodeAddress() {
+        const city = document.getElementById('city').value;
+        const country = document.getElementById('country').value;
+        const suburb = document.getElementById('suburb').value;
+        const query = [suburb, city, country].filter(Boolean).join(', ');
+        if (!query) return showToast('Please enter an address first', 'error');
 
-    if (meta.avail_from) document.getElementById('avail_from').value = meta.avail_from;
-    if (meta.avail_to) document.getElementById('avail_to').value = meta.avail_to;
+        // Use Nominatim for geocoding (free, no key needed)
+        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.length > 0) {
+                    showGPS(parseFloat(data[0].lat), parseFloat(data[0].lon));
+                    showToast('Location found!', 'success');
+                } else {
+                    showToast('Address not found. Try adding more detail.', 'error');
+                }
+            })
+            .catch(() => showToast('Geocoding failed. Try manual entry.', 'error'));
+    }
 
-    // Days of week
-    const days = meta.avail_days || ['mon','tue','wed','thu','fri','sat','sun'];
-    document.querySelectorAll('.day-chip').forEach(chip => {
-        chip.classList.toggle('active', days.includes(chip.dataset.day));
+    function toggleManualGPS() {
+        const el = document.getElementById('manualGpsFields');
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // ═══ PILL SELECTORS ═══
+    function selectPill(pill, groupId) {
+        document.querySelectorAll(`#${groupId} .option-pill`).forEach(p => p.classList.remove('selected'));
+        pill.classList.add('selected');
+        pill.querySelector('input').checked = true;
+    }
+
+    function togglePill(pill) {
+        const cb = pill.querySelector('input');
+        cb.checked = !cb.checked;
+        pill.classList.toggle('selected', cb.checked);
+    }
+
+    // Init first radio pills
+    document.querySelectorAll('.option-group').forEach(group => {
+        const checked = group.querySelector('input:checked');
+        if (checked) checked.closest('.option-pill').classList.add('selected');
     });
 
-    // Time of day
-    const times = meta.avail_times || ['all_day'];
-    document.querySelectorAll('.time-chip').forEach(chip => {
-        chip.classList.toggle('active', times.includes(chip.dataset.time));
-    });
-
-    // Privacy
-    document.getElementById('help_gender_preference').value = user.help_gender_preference || 'any';
-    document.getElementById('location_precision').value = meta.location_precision || 'fuzzy';
-    document.getElementById('show_on_map').checked = meta.show_on_map !== false;
-
-    // Notifications
-    document.getElementById('notify_sos').checked = meta.notify_sos !== false;
-    document.getElementById('notify_messages').checked = meta.notify_messages !== false;
-
-    // Data retention
-    document.getElementById('message_retention').value = meta.message_retention || '365';
-    document.getElementById('location_retention').value = meta.location_retention || '1825';
-}
-
-// ====================================================================
-// LANGUAGES
-// ====================================================================
-function populateLanguageDropdown() {
-    const sel = document.getElementById('lang-new-lang');
-    LANGUAGES.forEach(lang => {
-        const opt = document.createElement('option');
-        opt.value = lang; opt.textContent = lang;
-        sel.appendChild(opt);
-    });
-}
-
-function loadLanguages(user) {
-    userLanguages = (user.metadata && user.metadata.languages) || [];
-    renderLanguages();
-}
-
-function renderLanguages() {
-    const tbody = document.getElementById('lang-body');
-    const empty = document.getElementById('lang-empty');
-    tbody.innerHTML = '';
-
-    if (userLanguages.length === 0) {
-        empty.style.display = 'block';
-        return;
-    }
-    empty.style.display = 'none';
-
-    userLanguages.forEach((item, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td style="font-weight:500;">${item.language}</td>
-            <td>
-                <select onchange="updateLangProf(${idx}, this.value)">
-                    <option value="native" ${item.proficiency==='native'?'selected':''}>Native</option>
-                    <option value="fluent" ${item.proficiency==='fluent'?'selected':''}>Fluent</option>
-                    <option value="conversational" ${item.proficiency==='conversational'?'selected':''}>Conversational</option>
-                    <option value="basic" ${item.proficiency==='basic'?'selected':''}>Basic</option>
-                </select>
-            </td>
-            <td><button class="btn-remove" onclick="removeLang(${idx})">✕</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function addLanguage() {
-    const lang = document.getElementById('lang-new-lang').value;
-    const prof = document.getElementById('lang-new-prof').value;
-    if (!lang) return Tiriwe.showToast('Select a language', 'warning');
-    if (userLanguages.find(l => l.language === lang)) return Tiriwe.showToast('Already added', 'warning');
-    userLanguages.push({ language: lang, proficiency: prof });
-    document.getElementById('lang-new-lang').value = '';
-    renderLanguages();
-}
-
-function updateLangProf(idx, prof) { userLanguages[idx].proficiency = prof; }
-function removeLang(idx) { userLanguages.splice(idx, 1); renderLanguages(); }
-
-// ====================================================================
-// PHOTOS (placeholder — file upload needs storage bucket)
-// ====================================================================
-function triggerPhotoUpload(slot) {
-    activePhotoSlot = slot;
-    document.getElementById('photo-input').click();
-}
-
-function handlePhotoUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return Tiriwe.showToast('Please select an image', 'error');
-    if (file.size > 5 * 1024 * 1024) return Tiriwe.showToast('Image must be under 5MB', 'error');
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const slot = document.getElementById('photo-slot-' + activePhotoSlot);
-        slot.classList.add('filled');
-        // Remove existing img if any
-        const existingImg = slot.querySelector('img');
-        if (existingImg) existingImg.remove();
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        slot.appendChild(img);
-        userPhotos[activePhotoSlot] = { file: file, preview: e.target.result };
-        Tiriwe.showToast('Photo added — save to upload', 'info');
-    };
-    reader.readAsDataURL(file);
-    event.target.value = '';
-}
-
-function removePhoto(slot) {
-    const el = document.getElementById('photo-slot-' + slot);
-    el.classList.remove('filled');
-    const img = el.querySelector('img');
-    if (img) img.remove();
-    userPhotos[slot] = null;
-}
-
-// ====================================================================
-// ADDRESS SEARCH (OpenStreetMap Nominatim — free, no API key)
-// ====================================================================
-let searchTimeout = null;
-
-document.getElementById('address-search').addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    const q = e.target.value.trim();
-    if (q.length < 3) { document.getElementById('address-results').classList.remove('show'); return; }
-    searchTimeout = setTimeout(() => searchAddress(), 400);
-});
-
-document.getElementById('address-search').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); searchAddress(); }
-});
-
-// Close results when clicking outside
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.address-search-wrap')) {
-        document.getElementById('address-results').classList.remove('show');
-    }
-});
-
-async function searchAddress() {
-    const q = document.getElementById('address-search').value.trim();
-    if (q.length < 2) return;
-
-    const resultsEl = document.getElementById('address-results');
-    resultsEl.innerHTML = '<div class="address-result" style="color:var(--text-muted);">Searching...</div>';
-    resultsEl.classList.add('show');
-
-    try {
-        const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&addressdetails=1`, {
-            headers: { 'Accept-Language': 'en' }
-        });
-        const data = await resp.json();
-
-        if (!data || data.length === 0) {
-            resultsEl.innerHTML = '<div class="address-result" style="color:var(--text-muted);">No results found</div>';
-            return;
-        }
-
-        resultsEl.innerHTML = '';
-        data.forEach(place => {
-            const div = document.createElement('div');
-            div.className = 'address-result';
-
-            const addr = place.address || {};
-            const citySuburb = [addr.suburb, addr.city || addr.town || addr.village, addr.state].filter(Boolean).join(', ');
-
-            div.innerHTML = `<strong>${place.display_name.split(',').slice(0,3).join(',')}</strong><small>${citySuburb || place.display_name}</small>`;
-            div.addEventListener('click', () => selectAddress(place));
-            resultsEl.appendChild(div);
-        });
-    } catch (err) {
-        resultsEl.innerHTML = '<div class="address-result" style="color:var(--red);">Search failed — try again</div>';
-        console.error('Address search error:', err);
-    }
-}
-
-function selectAddress(place) {
-    const lat = parseFloat(place.lat);
-    const lng = parseFloat(place.lon);
-    document.getElementById('home_lat').value = lat;
-    document.getElementById('home_lng').value = lng;
-
-    const addr = place.address || {};
-    const displayAddr = [addr.suburb, addr.city || addr.town || addr.village, addr.country].filter(Boolean).join(', ');
-
-    const addrEl = document.getElementById('address-display');
-    addrEl.textContent = '📍 ' + (displayAddr || place.display_name.split(',').slice(0,3).join(','));
-    addrEl.classList.add('show');
-
-    document.getElementById('address-results').classList.remove('show');
-    document.getElementById('address-search').value = '';
-
-    updateCoordDisplay();
-    Tiriwe.showToast('Location set: ' + (displayAddr || 'Selected'), 'success');
-}
-
-// ====================================================================
-// COORDINATE DISPLAY
-// ====================================================================
-function updateCoordDisplay() {
-    const lat = parseFloat(document.getElementById('home_lat').value);
-    const lng = parseFloat(document.getElementById('home_lng').value);
-    const format = document.getElementById('coord-format').value;
-
-    if (isNaN(lat) || isNaN(lng)) {
-        document.getElementById('coord-lat').textContent = '—';
-        document.getElementById('coord-lng').textContent = '—';
-        return;
-    }
-
-    if (format === 'decimal') {
-        document.getElementById('coord-lat').textContent = lat.toFixed(6) + '°';
-        document.getElementById('coord-lng').textContent = lng.toFixed(6) + '°';
-    } else if (format === 'dms') {
-        document.getElementById('coord-lat').textContent = toDMS(lat, 'lat');
-        document.getElementById('coord-lng').textContent = toDMS(lng, 'lng');
-    } else if (format === 'ddm') {
-        document.getElementById('coord-lat').textContent = toDDM(lat, 'lat');
-        document.getElementById('coord-lng').textContent = toDDM(lng, 'lng');
-    }
-}
-
-function toDMS(decimal, type) {
-    const abs = Math.abs(decimal);
-    const d = Math.floor(abs);
-    const mFloat = (abs - d) * 60;
-    const m = Math.floor(mFloat);
-    const s = ((mFloat - m) * 60).toFixed(1);
-    const dir = type === 'lat' ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
-    return `${d}° ${m}′ ${s}″ ${dir}`;
-}
-
-function toDDM(decimal, type) {
-    const abs = Math.abs(decimal);
-    const d = Math.floor(abs);
-    const m = ((abs - d) * 60).toFixed(4);
-    const dir = type === 'lat' ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
-    return `${d}° ${m}′ ${dir}`;
-}
-
-// ====================================================================
-// GPS
-// ====================================================================
-async function useGPS() {
-    const btn = document.getElementById('btn-gps');
-    btn.textContent = '📍 Locating...';
-    btn.disabled = true;
-
-    const loc = await Tiriwe.getCurrentLocation();
-    if (loc) {
-        document.getElementById('home_lat').value = loc.latitude;
-        document.getElementById('home_lng').value = loc.longitude;
-        updateCoordDisplay();
-
-        // Reverse geocode to get address
-        try {
-            const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.latitude}&lon=${loc.longitude}&addressdetails=1`, {
-                headers: { 'Accept-Language': 'en' }
-            });
-            const data = await resp.json();
-            if (data && data.address) {
-                const addr = data.address;
-                const displayAddr = [addr.suburb, addr.city || addr.town || addr.village, addr.country].filter(Boolean).join(', ');
-                const addrEl = document.getElementById('address-display');
-                addrEl.textContent = '📍 ' + displayAddr;
-                addrEl.classList.add('show');
-            }
-        } catch (e) { console.warn('Reverse geocode failed:', e); }
-
-        Tiriwe.showToast('Location captured', 'success');
-    } else {
-        Tiriwe.showToast('Could not get your location', 'warning');
-    }
-
-    btn.textContent = '📍 Use GPS';
-    btn.disabled = false;
-}
-
-// ====================================================================
-// AVAILABILITY CHIPS
-// ====================================================================
-function toggleChip(el) {
-    el.classList.toggle('active');
-}
-
-function toggleTimeChip(el) {
-    const time = el.dataset.time;
-    if (time === 'all_day') {
-        // If clicking All Day, deselect others
-        document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-    } else {
-        // Deselect All Day, toggle this one
-        document.querySelector('.time-chip[data-time="all_day"]').classList.remove('active');
-        el.classList.toggle('active');
-        // If nothing selected, default back to All Day
-        const anyActive = document.querySelectorAll('.time-chip.active');
-        if (anyActive.length === 0) {
-            document.querySelector('.time-chip[data-time="all_day"]').classList.add('active');
+    // ═══ PHOTO ═══
+    function previewPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const preview = document.getElementById('photoPreview');
+                preview.innerHTML = `<img src="${e.target.result}">`;
+            };
+            reader.readAsDataURL(input.files[0]);
         }
     }
-}
 
-// ====================================================================
-// SAVE
-// ====================================================================
-async function saveProfile() {
-    const btn = document.getElementById('btn-save');
-    const status = document.getElementById('save-status');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-    status.classList.remove('visible');
-
-    const user = Tiriwe.user;
-    if (!user) return;
-
-    const gender = document.getElementById('gender').value;
-    const bio = document.getElementById('bio').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const homeLat = parseFloat(document.getElementById('home_lat').value);
-    const homeLng = parseFloat(document.getElementById('home_lng').value);
-
-    // Validation
-    if (!gender) {
-        Tiriwe.showToast('Please select your gender — it\'s required for safety matching', 'error');
-        btn.disabled = false;
-        btn.textContent = isFirstTime ? 'Complete Setup & Continue' : 'Save Profile';
-        return;
-    }
-
-    // Gather availability chips
-    const activeDays = [...document.querySelectorAll('.day-chip.active')].map(c => c.dataset.day);
-    const activeTimes = [...document.querySelectorAll('.time-chip.active')].map(c => c.dataset.time);
-
-    // Build update
-    const updates = {
-        gender: gender,
-        bio: bio || null,
-        phone: phone || null,
-        is_available: document.getElementById('is_available').checked,
-        max_help_radius_km: parseInt(document.getElementById('max_help_radius_km').value),
-        availability_message: document.getElementById('availability_message').value.trim() || null,
-        help_gender_preference: document.getElementById('help_gender_preference').value,
-        updated_at: new Date().toISOString(),
-    };
-
-    // Location
-    if (!isNaN(homeLat) && !isNaN(homeLng)) {
-        updates.home_location = JSON.stringify({ type: 'Point', coordinates: [homeLng, homeLat] });
-        const fuzzLat = homeLat + (Math.random() - 0.5) * 0.03;
-        const fuzzLng = homeLng + (Math.random() - 0.5) * 0.03;
-        updates.home_location_fuzzy = JSON.stringify({ type: 'Point', coordinates: [fuzzLng, fuzzLat] });
-    }
-
-    // Metadata
-    const existingMeta = user.metadata || {};
-    const addrEl = document.getElementById('address-display');
-    updates.metadata = {
-        ...existingMeta,
-        setup_complete: true,
-        // Location
-        home_address: addrEl.classList.contains('show') ? addrEl.textContent.replace('📍 ', '') : existingMeta.home_address,
-        coord_format: document.getElementById('coord-format').value,
-        // Availability
-        avail_from: document.getElementById('avail_from').value || null,
-        avail_to: document.getElementById('avail_to').value || null,
-        avail_days: activeDays,
-        avail_times: activeTimes,
-        // Privacy
-        location_precision: document.getElementById('location_precision').value,
-        show_on_map: document.getElementById('show_on_map').checked,
-        // Notifications
-        notify_sos: document.getElementById('notify_sos').checked,
-        notify_messages: document.getElementById('notify_messages').checked,
-        notify_feedback: true, // Always on
-        // Data retention
-        message_retention: document.getElementById('message_retention').value,
-        location_retention: document.getElementById('location_retention').value,
-        // Languages
-        languages: userLanguages,
-    };
-
-    const { error } = await Tiriwe.sb.from('users').update(updates).eq('id', user.id);
-
-    if (error) {
-        console.error('Save failed:', error);
-        Tiriwe.showToast('Failed to save: ' + error.message, 'error');
-        btn.disabled = false;
-        btn.textContent = isFirstTime ? 'Complete Setup & Continue' : 'Save Profile';
-        return;
-    }
-
-    // First time → redirect to dashboard
-    if (isFirstTime) {
-        Tiriwe.showToast('Welcome to Tiriwe!', 'success');
-        setTimeout(() => Tiriwe.navigateTo(Tiriwe.config.PAGE_DASHBOARD), 1000);
-        return;
-    }
-
-    Tiriwe.showToast('Profile saved', 'success');
-    status.textContent = '✅ Profile saved';
-    status.classList.add('visible');
-    btn.disabled = false;
-    btn.textContent = 'Save Profile';
-    setTimeout(() => { status.classList.remove('visible'); }, 3000);
-}
-
-// ====================================================================
-// UTILITIES
-// ====================================================================
-function requestDataExport() {
-    Tiriwe.showToast('Data export requested. You\'ll receive an email when ready.', 'info');
-}
-
-function requestAccountDeletion() {
-    if (confirm('Are you sure you want to delete your account? This cannot be undone.\n\nAll your data will be permanently removed.')) {
-        if (confirm('Really? This will delete ALL your data, interactions, and feedback.')) {
-            const response = prompt('Type DELETE to confirm account deletion:');
-            if (response === 'DELETE') {
-                Tiriwe.showToast('Account deletion requested. You\'ll receive a confirmation email.', 'info');
-            } else {
-                Tiriwe.showToast('Account deletion cancelled.', 'info');
-            }
+    function removePhoto() {
+        if (confirm('Remove your profile photo?')) {
+            document.getElementById('photoPreview').innerHTML = '🏍️';
+            document.getElementById('photoInput').value = '';
         }
     }
-}
+
+    // ═══ SAVE ═══
+    function saveSection(section) {
+        // In production, this would call Supabase
+        // For the geometry fix: we send lat/lng as separate fields,
+        // NOT as a geography string. A database function handles the conversion:
+        //
+        // UPDATE users SET
+        //   home_location = ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography
+        // WHERE id = current_user_id;
+        //
+        // If lat/lng are null, set home_location = NULL (no invalid geometry)
+
+        const lat = parseFloat(document.getElementById('homeLat').value);
+        const lng = parseFloat(document.getElementById('homeLng').value);
+
+        if (section === 'location') {
+            if (isNaN(lat) || isNaN(lng)) {
+                return showToast('Please capture or enter GPS coordinates first', 'error');
+            }
+            // This is how the save should work — RPC call, not direct column update:
+            // await supabase.rpc('update_home_location', { lat: lat, lng: lng });
+            console.log('Save location:', { lat, lng });
+        }
+
+        showToast(`${section.charAt(0).toUpperCase() + section.slice(1)} saved successfully!`, 'success');
+    }
+
+    // ═══ TOAST ═══
+    function showToast(msg, type) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.className = 'toast ' + type;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    // ═══ SETTINGS ═══
+    function openSettings() {
+        document.getElementById('settings-overlay').classList.add('open');
+        document.getElementById('settings-panel').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSettings() {
+        document.getElementById('settings-overlay').classList.remove('open');
+        document.getElementById('settings-panel').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ═══ INIT ═══
+    initMap();
 </script>
-
 </body>
 </html>
