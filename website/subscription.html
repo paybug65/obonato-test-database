@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription — Tiriwe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/tiriwe-core.js"></script>
+    <style>
+        :root {
+            --green: #2E7D32; --green-light: #43A047; --green-dark: #1B5E20; --green-pale: #E8F5E9;
+            --orange: #FF9800; --orange-pale: #FFF3E0;
+            --red: #F44336; --purple: #7B1FA2; --purple-pale: #F3E5F5;
+            --gold: #F9A825; --gold-pale: #FFF8E1;
+            --white: #ffffff; --off-white: #f8fafc;
+            --text: #1e293b; --text-mid: #475569; --text-muted: #94a3b8;
+            --border: #e2e8f0; --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; }
+
+        .page-container { max-width: 720px; margin: 0 auto; padding: 32px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; margin-bottom: 20px; }
+        .back-link:hover { color: var(--green); }
+        .page-header { margin-bottom: 28px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p { color: var(--text-mid); font-size: 15px; margin-top: 4px; }
+
+        /* Current plan banner */
+        .current-plan {
+            background: linear-gradient(135deg, var(--green-dark), var(--green));
+            color: white; border-radius: var(--radius); padding: 28px 32px; margin-bottom: 28px;
+            display: flex; align-items: center; gap: 20px;
+        }
+        .plan-icon { font-size: 40px; }
+        .plan-details { flex: 1; }
+        .plan-name { font-size: 22px; font-weight: 800; }
+        .plan-desc { font-size: 14px; opacity: 0.9; margin-top: 4px; }
+        .plan-badge {
+            font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px;
+            background: rgba(255,255,255,0.2); display: inline-block; margin-top: 8px;
+        }
+
+        /* Plan cards */
+        .plan-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+        .plan-card {
+            background: white; border-radius: var(--radius); border: 2px solid var(--border);
+            padding: 28px; position: relative; transition: all 0.2s;
+        }
+        .plan-card.active { border-color: var(--green); box-shadow: 0 0 0 3px rgba(46,125,50,0.1); }
+        .plan-card.premium { border-color: var(--gold); }
+        .plan-card-label {
+            position: absolute; top: -10px; right: 16px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            padding: 3px 10px; border-radius: 4px;
+        }
+        .label-current { background: var(--green-pale); color: var(--green); }
+        .label-coming { background: var(--gold-pale); color: var(--gold); }
+        .plan-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+        .plan-card .plan-price { font-size: 28px; font-weight: 800; margin: 12px 0; }
+        .plan-card .plan-price span { font-size: 14px; font-weight: 500; color: var(--text-muted); }
+        .plan-card .plan-price.free { color: var(--green); }
+        .plan-card .plan-price.premium-price { color: var(--gold); }
+
+        .feature-list { list-style: none; padding: 0; margin: 16px 0; }
+        .feature-list li {
+            padding: 8px 0; font-size: 13px; display: flex; align-items: flex-start; gap: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .feature-list li:last-child { border-bottom: none; }
+        .feature-check { flex-shrink: 0; font-size: 14px; }
+        .feature-check.yes { color: var(--green); }
+        .feature-check.no { color: var(--text-muted); }
+        .feature-check.premium { color: var(--gold); }
+
+        .btn { padding: 12px 24px; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center; }
+        .btn-primary { background: var(--green); color: white; }
+        .btn-primary:hover { background: var(--green-dark); }
+        .btn-primary:disabled { background: #A5D6A7; cursor: not-allowed; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #F57F17); color: white; }
+        .btn-gold:disabled { background: #E0E0E0; color: var(--text-muted); cursor: not-allowed; }
+
+        /* Info section */
+        .info-section {
+            background: white; border-radius: var(--radius); border: 1px solid var(--border);
+            padding: 24px; margin-bottom: 24px;
+        }
+        .info-section h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+        .info-section p { font-size: 13px; color: var(--text-mid); line-height: 1.7; }
+
+        .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 60vh; flex-direction: column; gap: 16px; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 600px) {
+            .plan-cards { grid-template-columns: 1fr; }
+            .page-container { padding: 16px 16px 80px; }
+            .current-plan { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<nav id="tiriwe-nav"></nav>
+
+<div class="page-container" id="loading-screen">
+    <div class="loading-screen">
+        <div class="loading-spinner"></div>
+        <div style="color:var(--text-muted); font-size:14px;">Loading subscription...</div>
+    </div>
+</div>
+
+<div class="page-container" id="main-content" style="display:none;">
+
+    <a href="settings.html" class="back-link">← Back to Settings</a>
+
+    <div class="page-header">
+        <h1>Subscription</h1>
+        <p>Your plan and available upgrades.</p>
+    </div>
+
+    <!-- Current plan banner -->
+    <div class="current-plan">
+        <div class="plan-icon">🌿</div>
+        <div class="plan-details">
+            <div class="plan-name">Free Plan</div>
+            <div class="plan-desc">You have access to all core safety features. The essentials are always free.</div>
+            <div class="plan-badge">Active since <span id="member-since">—</span></div>
+        </div>
+    </div>
+
+    <!-- Plan comparison -->
+    <div class="plan-cards">
+
+        <!-- Free -->
+        <div class="plan-card active">
+            <span class="plan-card-label label-current">Current Plan</span>
+            <h3>🌿 Free</h3>
+            <div class="plan-price free">$0 <span>/ forever</span></div>
+            <ul class="feature-list">
+                <li><span class="feature-check yes">✓</span> SOS alerts (all 3 tiers)</li>
+                <li><span class="feature-check yes">✓</span> Community help requests</li>
+                <li><span class="feature-check yes">✓</span> Mandatory feedback system</li>
+                <li><span class="feature-check yes">✓</span> Identity verification</li>
+                <li><span class="feature-check yes">✓</span> In Case of Emergency profile</li>
+                <li><span class="feature-check yes">✓</span> Transport register</li>
+                <li><span class="feature-check yes">✓</span> Basic messaging</li>
+                <li><span class="feature-check no">—</span> <span style="color:var(--text-muted);">Travel planning</span></li>
+                <li><span class="feature-check no">—</span> <span style="color:var(--text-muted);">Route matching</span></li>
+                <li><span class="feature-check no">—</span> <span style="color:var(--text-muted);">Business recommendations</span></li>
+                <li><span class="feature-check no">—</span> <span style="color:var(--text-muted);">Advanced location history</span></li>
+            </ul>
+            <button class="btn btn-primary" disabled>Current Plan</button>
+        </div>
+
+        <!-- Premium -->
+        <div class="plan-card premium">
+            <span class="plan-card-label label-coming">Coming Soon</span>
+            <h3>⭐ Premium</h3>
+            <div class="plan-price premium-price">TBC <span>/ month</span></div>
+            <ul class="feature-list">
+                <li><span class="feature-check yes">✓</span> Everything in Free</li>
+                <li><span class="feature-check premium">★</span> Travel planning & itineraries</li>
+                <li><span class="feature-check premium">★</span> Route matching with travelers</li>
+                <li><span class="feature-check premium">★</span> Business recommendations</li>
+                <li><span class="feature-check premium">★</span> Advanced location history</li>
+                <li><span class="feature-check premium">★</span> Priority SOS notifications</li>
+                <li><span class="feature-check premium">★</span> Fuel & resource tracking</li>
+                <li><span class="feature-check premium">★</span> Offline maps integration</li>
+                <li><span class="feature-check premium">★</span> Extended message history</li>
+                <li><span class="feature-check premium">★</span> Push-to-talk comms</li>
+                <li><span class="feature-check premium">★</span> Satellite connectivity</li>
+            </ul>
+            <button class="btn btn-gold" disabled>Coming Soon</button>
+        </div>
+
+    </div>
+
+    <!-- Philosophy note -->
+    <div class="info-section">
+        <h3>🤝 Our Promise</h3>
+        <p>
+            Safety is never locked behind a paywall. SOS alerts, identity verification, emergency profiles, 
+            and the mandatory feedback system will <strong>always be free</strong>. Premium features enhance 
+            your travel experience — they don't gatekeep your safety.
+        </p>
+        <p style="margin-top:12px;">
+            Tiriwe exists because the community makes it work. Your subscription helps us keep the lights on 
+            and build new features that make traveling safer for everyone.
+        </p>
+    </div>
+
+    <!-- FAQ -->
+    <div class="info-section">
+        <h3>Frequently Asked Questions</h3>
+        <p><strong>When will Premium launch?</strong><br>We're focused on building and testing core features first. Premium will launch once the free tier is solid.</p>
+        <p style="margin-top:12px;"><strong>Will the price change?</strong><br>Early supporters will be locked in at the introductory price forever.</p>
+        <p style="margin-top:12px;"><strong>Can I cancel anytime?</strong><br>Yes. You keep your free tier access and all your data.</p>
+    </div>
+
+</div>
+
+<script>
+Tiriwe.ready().then(() => {
+    const user = Tiriwe.user;
+    if (!user) return;
+
+    // Member since
+    const created = user.created_at ? new Date(user.created_at) : new Date();
+    document.getElementById('member-since').textContent = created.toLocaleDateString('en-NZ', {
+        day: 'numeric', month: 'short', year: 'numeric'
+    });
+
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+});
+</script>
+
+</body>
+</html>

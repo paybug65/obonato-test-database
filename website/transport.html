@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transport Register — Tiriwe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/tiriwe-core.js"></script>
+    <style>
+        :root {
+            --green: #2E7D32; --green-light: #43A047; --green-dark: #1B5E20; --green-pale: #E8F5E9;
+            --orange: #FF9800; --orange-pale: #FFF3E0;
+            --red: #F44336; --red-pale: #FFEBEE;
+            --blue: #1565C0; --blue-pale: #E3F2FD;
+            --white: #ffffff; --off-white: #f8fafc;
+            --text: #1e293b; --text-mid: #475569; --text-muted: #94a3b8;
+            --border: #e2e8f0; --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; }
+
+        .page-container { max-width: 720px; margin: 0 auto; padding: 32px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; margin-bottom: 20px; }
+        .back-link:hover { color: var(--green); }
+        .page-header { margin-bottom: 28px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p { color: var(--text-mid); font-size: 15px; margin-top: 4px; }
+
+        /* Vehicle cards */
+        .vehicle-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+        .vehicle-card {
+            background: white; border-radius: var(--radius); border: 1px solid var(--border);
+            overflow: hidden; transition: all 0.2s;
+        }
+        .vehicle-card.primary { border-color: var(--green); }
+        .vehicle-card-hdr {
+            padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; user-select: none;
+        }
+        .vehicle-card-hdr:hover { background: var(--off-white); }
+        .vehicle-icon { font-size: 28px; flex-shrink: 0; }
+        .vehicle-summary { flex: 1; }
+        .vehicle-title { font-size: 15px; font-weight: 700; }
+        .vehicle-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .vehicle-badges { display: flex; gap: 6px; }
+        .v-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+        .v-badge.primary { background: var(--green-pale); color: var(--green); }
+        .vehicle-chevron { font-size: 14px; color: var(--text-muted); transition: transform 0.2s; }
+        .vehicle-card.open .vehicle-chevron { transform: rotate(180deg); }
+
+        .vehicle-card-body {
+            padding: 0 20px 20px; display: none;
+            border-top: 1px solid var(--border);
+        }
+        .vehicle-card.open .vehicle-card-body { display: block; padding-top: 20px; }
+
+        /* Forms */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-row.full { grid-template-columns: 1fr; }
+        .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-mid); margin-bottom: 6px; }
+        .form-group label .hint { font-weight: 400; color: var(--text-muted); }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+            font-family: inherit; font-size: 14px; transition: all 0.2s; background: var(--off-white);
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--green); background: white; box-shadow: 0 0 0 3px rgba(46,125,50,0.1); }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+
+        .btn { padding: 12px 24px; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--green); color: white; }
+        .btn-primary:hover { background: var(--green-dark); }
+        .btn-primary:disabled { background: #A5D6A7; cursor: not-allowed; }
+        .btn-secondary { background: var(--off-white); color: var(--text-mid); border: 1.5px solid var(--border); }
+        .btn-secondary:hover { background: white; border-color: var(--text-muted); }
+        .btn-danger { background: white; color: var(--red); border: 1.5px solid #FFCDD2; }
+        .btn-danger:hover { background: #FFF0F0; }
+        .btn-sm { padding: 8px 14px; font-size: 13px; }
+
+        .vehicle-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+
+        .add-vehicle-btn {
+            background: white; border: 2px dashed var(--border); border-radius: var(--radius);
+            padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s;
+            color: var(--text-muted); font-weight: 500; font-size: 14px; font-family: inherit;
+            width: 100;
+        }
+        .add-vehicle-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-pale); }
+
+        .empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+        .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state-title { font-size: 16px; font-weight: 600; color: var(--text-mid); margin-bottom: 6px; }
+        .empty-state-desc { font-size: 13px; line-height: 1.6; }
+
+        .save-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .save-status { font-size: 13px; color: var(--green); font-weight: 500; opacity: 0; transition: opacity 0.3s; }
+        .save-status.visible { opacity: 1; }
+
+        .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 60vh; flex-direction: column; gap: 16px; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 600px) {
+            .form-row, .form-row.triple { grid-template-columns: 1fr; }
+            .page-container { padding: 16px 16px 80px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav id="tiriwe-nav"></nav>
+
+<div class="page-container" id="loading-screen">
+    <div class="loading-screen">
+        <div class="loading-spinner"></div>
+        <div style="color:var(--text-muted); font-size:14px;">Loading transport register...</div>
+    </div>
+</div>
+
+<div class="page-container" id="main-content" style="display:none;">
+
+    <a href="settings.html" class="back-link">← Back to Settings</a>
+
+    <div class="page-header">
+        <h1>Transport Register</h1>
+        <p>Register your vehicles, motorcycles, bicycles & boats. Helps identify you on the road and assists in emergencies.</p>
+    </div>
+
+    <div class="vehicle-list" id="vehicle-list">
+        <!-- Dynamic vehicle cards -->
+    </div>
+
+    <div class="empty-state" id="empty-state">
+        <div class="empty-state-icon">🚗</div>
+        <div class="empty-state-title">No transport registered</div>
+        <div class="empty-state-desc">Add your vehicles, motorcycles, bicycles or boats so helpers can identify you.</div>
+    </div>
+
+    <button class="add-vehicle-btn" onclick="addVehicle()">+ Add Transport</button>
+
+    <div class="save-bar" style="margin-top:24px;">
+        <span class="save-status" id="save-status">✅ Saved</span>
+        <button class="btn btn-primary" id="btn-save" onclick="saveTransport()" style="padding:14px 32px; font-size:16px;">
+            Save Transport Register
+        </button>
+    </div>
+</div>
+
+<script>
+// ====================================================================
+// TRANSPORT CATEGORIES
+// ====================================================================
+const CATEGORIES = [
+    { value: 'car', label: 'Car', icon: '🚗' },
+    { value: 'motorcycle', label: 'Motorcycle', icon: '🏍️' },
+    { value: 'bicycle', label: 'Bicycle', icon: '🚲' },
+    { value: 'truck', label: 'Truck / Ute', icon: '🚛' },
+    { value: 'van', label: 'Van / Campervan', icon: '🚐' },
+    { value: 'rv', label: 'RV / Motorhome', icon: '🏕️' },
+    { value: 'boat', label: 'Boat / Yacht', icon: '⛵' },
+    { value: '4wd', label: '4WD / SUV', icon: '🚙' },
+    { value: 'scooter', label: 'Scooter / Moped', icon: '🛵' },
+    { value: 'other', label: 'Other', icon: '🚁' },
+];
+
+function getCategoryInfo(val) {
+    return CATEGORIES.find(c => c.value === val) || CATEGORIES[CATEGORIES.length-1];
+}
+
+let vehicles = [];
+
+// ====================================================================
+// INIT
+// ====================================================================
+Tiriwe.ready().then(() => {
+    const user = Tiriwe.user;
+    if (!user) return;
+
+    vehicles = (user.metadata && user.metadata.vehicles) || [];
+    renderVehicles();
+
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+});
+
+// ====================================================================
+// RENDER
+// ====================================================================
+function renderVehicles() {
+    const list = document.getElementById('vehicle-list');
+    const empty = document.getElementById('empty-state');
+    list.innerHTML = '';
+
+    if (vehicles.length === 0) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    vehicles.forEach((v, i) => {
+        const cat = getCategoryInfo(v.category);
+        const card = document.createElement('div');
+        card.className = 'vehicle-card' + (v.is_primary ? ' primary' : '');
+        card.id = 'vehicle-' + i;
+
+        const subtitle = [v.year, v.make, v.model, v.variant].filter(Boolean).join(' ') || 'No details yet';
+        const nickname = v.nickname ? ` "${esc(v.nickname)}"` : '';
+
+        card.innerHTML = `
+            <div class="vehicle-card-hdr" onclick="toggleCard(${i})">
+                <div class="vehicle-icon">${cat.icon}</div>
+                <div class="vehicle-summary">
+                    <div class="vehicle-title">${cat.label}${nickname}</div>
+                    <div class="vehicle-subtitle">${esc(subtitle)}</div>
+                </div>
+                <div class="vehicle-badges">
+                    ${v.is_primary ? '<span class="v-badge primary">Primary</span>' : ''}
+                </div>
+                <div class="vehicle-chevron">▼</div>
+            </div>
+            <div class="vehicle-card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select onchange="vehicles[${i}].category=this.value; renderVehicles()">
+                            ${CATEGORIES.map(c => `<option value="${c.value}" ${v.category===c.value?'selected':''}>${c.icon} ${c.label}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nickname <span class="hint">(optional)</span></label>
+                        <input value="${esc(v.nickname)}" onchange="vehicles[${i}].nickname=this.value" placeholder="e.g. Big Red">
+                    </div>
+                </div>
+                <div class="form-row triple">
+                    <div class="form-group">
+                        <label>Make</label>
+                        <input value="${esc(v.make)}" onchange="vehicles[${i}].make=this.value" placeholder="e.g. Toyota">
+                    </div>
+                    <div class="form-group">
+                        <label>Model</label>
+                        <input value="${esc(v.model)}" onchange="vehicles[${i}].model=this.value" placeholder="e.g. Hilux">
+                    </div>
+                    <div class="form-group">
+                        <label>Year</label>
+                        <input type="number" value="${v.year||''}" onchange="vehicles[${i}].year=this.value" placeholder="2024" min="1900" max="2030">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Variant / Trim <span class="hint">(optional)</span></label>
+                        <input value="${esc(v.variant)}" onchange="vehicles[${i}].variant=this.value" placeholder="e.g. SR5, Adventure">
+                    </div>
+                    <div class="form-group">
+                        <label>Colour <span class="hint">(optional)</span></label>
+                        <input value="${esc(v.colour)}" onchange="vehicles[${i}].colour=this.value" placeholder="e.g. White">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Registration Plate <span class="hint">(optional)</span></label>
+                        <input value="${esc(v.registration)}" onchange="vehicles[${i}].registration=this.value" placeholder="e.g. ABC123">
+                    </div>
+                    <div class="form-group">
+                        <label>Registration Country</label>
+                        <input value="${esc(v.reg_country)}" onchange="vehicles[${i}].reg_country=this.value" placeholder="e.g. New Zealand">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Notes <span class="hint">(identifying features, modifications, etc.)</span></label>
+                        <textarea onchange="vehicles[${i}].notes=this.value" placeholder="e.g. Roof rack, tow bar, dented left panel...">${esc(v.notes)}</textarea>
+                    </div>
+                </div>
+                <div class="vehicle-actions">
+                    ${!v.is_primary ? `<button class="btn btn-sm btn-secondary" onclick="setPrimary(${i})">★ Set as Primary</button>` : ''}
+                    <button class="btn btn-sm btn-danger" onclick="removeVehicle(${i})">Remove</button>
+                </div>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+// ====================================================================
+// ACTIONS
+// ====================================================================
+function addVehicle() {
+    vehicles.push({
+        category: 'car',
+        make: '', model: '', year: '', variant: '', colour: '',
+        nickname: '', registration: '', reg_country: '', notes: '',
+        is_primary: vehicles.length === 0
+    });
+    renderVehicles();
+    // Open the new card
+    setTimeout(() => toggleCard(vehicles.length - 1), 50);
+}
+
+function removeVehicle(idx) {
+    const wasPrimary = vehicles[idx].is_primary;
+    vehicles.splice(idx, 1);
+    // If we removed the primary, make the first one primary
+    if (wasPrimary && vehicles.length > 0) vehicles[0].is_primary = true;
+    renderVehicles();
+}
+
+function setPrimary(idx) {
+    vehicles.forEach((v, i) => v.is_primary = (i === idx));
+    renderVehicles();
+}
+
+function toggleCard(idx) {
+    const card = document.getElementById('vehicle-' + idx);
+    if (card) card.classList.toggle('open');
+}
+
+// ====================================================================
+// SAVE
+// ====================================================================
+async function saveTransport() {
+    const btn = document.getElementById('btn-save');
+    const status = document.getElementById('save-status');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    status.classList.remove('visible');
+
+    const user = Tiriwe.user;
+    if (!user) return;
+
+    const existingMeta = user.metadata || {};
+    const updates = {
+        metadata: { ...existingMeta, vehicles: vehicles },
+        updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await Tiriwe.sb.from('users').update(updates).eq('id', user.id);
+
+    if (error) {
+        Tiriwe.showToast('Failed to save: ' + error.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Save Transport Register';
+        return;
+    }
+
+    Tiriwe.showToast('Transport register saved', 'success');
+    status.textContent = '✅ Saved';
+    status.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Save Transport Register';
+    setTimeout(() => status.classList.remove('visible'), 3000);
+}
+
+function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+
+</body>
+</html>
