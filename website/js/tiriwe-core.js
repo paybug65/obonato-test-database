@@ -31,9 +31,12 @@
         PAGE_LANDING: 'index.html',
         PAGE_DASHBOARD: 'dashboard.html',
         PAGE_SETTINGS: 'settings.html',
+        PAGE_PROFILE: 'profile.html',
+        PAGE_EMERGENCY: 'emergency.html',
+        PAGE_TRANSPORT: 'transport.html',
+        PAGE_SUBSCRIPTION: 'subscription.html',
         PAGE_SOS: 'sos.html',
         PAGE_INTERACTIONS: 'interactions.html',
-        PAGE_PROFILE: 'profile.html',
 
         // Pages that don't require authentication
         PUBLIC_PAGES: ['index.html', ''],
