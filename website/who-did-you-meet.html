@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiriwe — Who Did You Meet?</title>
+<style>
+    :root {
+        --blue: #2563EB; --blue-pale: #EFF6FF;
+        --green: #2E7D32; --green-pale: #E8F5E9;
+        --orange: #F59E0B; --orange-pale: #FFF8E1;
+        --red: #DC2626; --red-pale: #FEF2F2;
+        --purple: #7C3AED; --purple-pale: #F3E8FF;
+        --text: #1E293B; --text-mid: #475569; --text-muted: #94A3B8;
+        --white: #FFFFFF; --grey-50: #F8FAFC; --grey-100: #F1F5F9;
+        --grey-200: #E2E8F0; --grey-300: #CBD5E1; --grey-400: #94A3B8;
+        --border: #E2E8F0;
+        --radius: 12px; --radius-sm: 8px;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+        --shadow-lg: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--grey-100); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+    /* Trigger button (simulates the notification) */
+    .trigger-bar {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+        background: var(--purple); color: white; padding: 12px 20px;
+        display: flex; align-items: center; justify-content: space-between;
+        cursor: pointer; transition: background 0.2s;
+    }
+    .trigger-bar:hover { background: #6D28D9; }
+    .trigger-bar-text { font-size: 14px; font-weight: 700; }
+    .trigger-bar-sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+    .trigger-badge { background: white; color: var(--purple); font-size: 11px; font-weight: 800; padding: 4px 12px; border-radius: 12px; }
+
+    /* Modal overlay */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+        display: none; align-items: center; justify-content: center;
+        z-index: 100; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    /* Modal */
+    .modal {
+        background: var(--white); border-radius: 16px; width: 100%; max-width: 440px;
+        max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+        animation: modalIn 0.3s ease-out;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    /* Modal header */
+    .modal-header {
+        padding: 20px 20px 16px; text-align: center;
+        border-bottom: 1px solid var(--grey-100);
+    }
+    .modal-emoji { font-size: 40px; margin-bottom: 8px; }
+    .modal-title { font-size: 20px; font-weight: 800; }
+    .modal-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Event card */
+    .event-card {
+        margin: 14px 16px 0; padding: 12px 14px;
+        background: var(--green-pale); border-radius: var(--radius-sm);
+        border: 1px solid rgba(46,125,50,0.15);
+    }
+    .event-card-title { font-size: 13px; font-weight: 700; }
+    .event-card-details { font-size: 11px; color: var(--text-mid); margin-top: 4px; }
+
+    /* Nudge bar */
+    .nudge-bar {
+        margin: 12px 16px 0; padding: 8px 12px;
+        background: var(--purple-pale); border-radius: var(--radius-sm);
+        border: 1px solid rgba(124,58,237,0.15);
+        font-size: 11px; color: var(--purple); font-weight: 600;
+        display: flex; align-items: center; gap: 6px;
+    }
+
+    /* Attendee grid */
+    .attendee-grid {
+        padding: 14px 16px; display: grid;
+        grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+
+    /* Attendee card */
+    .attendee {
+        padding: 12px 8px; border-radius: var(--radius);
+        border: 2px solid var(--grey-200); background: var(--white);
+        text-align: center; cursor: pointer; transition: all 0.2s;
+        position: relative;
+    }
+    .attendee:hover { border-color: var(--grey-300); background: var(--grey-50); }
+    .attendee.selected { border-color: var(--green); background: var(--green-pale); }
+    .attendee.selected .attendee-check { display: flex; }
+    .attendee.mutual-hint { border-color: var(--purple); }
+    .attendee.mutual-hint::before {
+        content: "They confirmed you! 🤝"; position: absolute; top: -8px; left: 50%;
+        transform: translateX(-50%); font-size: 8px; font-weight: 700;
+        background: var(--purple); color: white; padding: 1px 6px;
+        border-radius: 6px; white-space: nowrap; z-index: 2;
+    }
+
+    .attendee-avatar {
+        width: 52px; height: 52px; border-radius: 50%;
+        margin: 0 auto 6px; display: flex; align-items: center;
+        justify-content: center; font-size: 24px; color: white;
+        position: relative;
+    }
+    .attendee-check {
+        display: none; position: absolute; bottom: -2px; right: -2px;
+        width: 20px; height: 20px; border-radius: 50%;
+        background: var(--green); color: white; font-size: 11px;
+        align-items: center; justify-content: center;
+        border: 2px solid var(--white);
+    }
+    .attendee-name { font-size: 10px; font-weight: 700; line-height: 1.2; }
+    .attendee-badge { font-size: 8px; color: var(--orange); font-weight: 700; }
+
+    /* Counter */
+    .select-counter {
+        padding: 0 16px; font-size: 12px; color: var(--text-muted);
+        font-weight: 600; display: flex; align-items: center; justify-content: space-between;
+    }
+    .select-counter a { font-size: 11px; color: var(--blue); cursor: pointer; text-decoration: none; }
+    .select-counter a:hover { text-decoration: underline; }
+
+    /* Footer */
+    .modal-footer {
+        padding: 14px 16px 16px; border-top: 1px solid var(--grey-100);
+        display: flex; gap: 8px;
+    }
+    .btn { padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; transition: all 0.15s; flex: 1; text-align: center; }
+    .btn-primary { background: var(--green); color: white; }
+    .btn-primary:hover { background: #1B5E20; }
+    .btn-primary:disabled { background: var(--grey-300); cursor: not-allowed; }
+    .btn-secondary { background: var(--grey-100); color: var(--text-mid); }
+    .btn-secondary:hover { background: var(--grey-200); }
+    .btn-sm { padding: 6px 12px; font-size: 11px; flex: none; }
+
+    /* Confirmation screen */
+    .confirm-screen { display: none; padding: 24px 20px; text-align: center; }
+    .confirm-screen.show { display: block; }
+    .confirm-emoji { font-size: 48px; margin-bottom: 12px; }
+    .confirm-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .confirm-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+
+    /* Mutual celebration */
+    .mutual-card {
+        padding: 12px; background: var(--purple-pale); border-radius: var(--radius-sm);
+        border: 1px solid rgba(124,58,237,0.2); margin-bottom: 12px;
+    }
+    .mutual-card-title { font-size: 12px; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+    .mutual-card-text { font-size: 11px; color: var(--text-mid); }
+    .mutual-avatars {
+        display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0;
+    }
+    .mutual-avatars .a {
+        width: 40px; height: 40px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; color: white;
+    }
+    .mutual-arrow { font-size: 18px; color: var(--purple); }
+
+    /* Action buttons after confirm */
+    .post-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .action-row { display: flex; gap: 8px; }
+    .action-btn {
+        flex: 1; padding: 10px; border-radius: var(--radius-sm);
+        border: 1px solid var(--border); background: var(--white);
+        text-align: center; cursor: pointer; transition: all 0.15s;
+    }
+    .action-btn:hover { background: var(--grey-50); border-color: var(--grey-300); }
+    .action-btn-icon { font-size: 20px; margin-bottom: 4px; }
+    .action-btn-label { font-size: 10px; font-weight: 700; }
+    .action-btn-sub { font-size: 9px; color: var(--text-muted); }
+
+    /* Skip prompt */
+    .skip-note { font-size: 10px; color: var(--text-muted); text-align: center; margin: 0 16px 14px; }
+    .skip-note a { color: var(--blue); cursor: pointer; }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+        .attendee-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .attendee { padding: 10px 6px; }
+        .attendee-avatar { width: 44px; height: 44px; font-size: 20px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- Notification bar trigger -->
+<div class="trigger-bar" onclick="openModal()">
+    <div>
+        <div class="trigger-bar-text">🎉 Community BBQ — Kaikoura has ended!</div>
+        <div class="trigger-bar-sub">Tell us who you met · 2 people already confirmed meeting you</div>
+    </div>
+    <div class="trigger-badge">Tap to open</div>
+</div>
+
+<!-- Info card in the center when modal closed -->
+<div id="info-card" style="text-align:center;max-width:380px;">
+    <div style="font-size:40px;margin-bottom:12px;">🤝</div>
+    <div style="font-size:18px;font-weight:800;margin-bottom:8px;">Who Did You Meet?</div>
+    <div style="font-size:13px;color:var(--text-mid);line-height:1.6;">
+        This pop-up appears after an event completes for all attendees who RSVP'd "Going".<br><br>
+        Tap the purple notification bar at the top to open the flow.
+    </div>
+</div>
+
+<!-- ═══ MODAL: Who Did You Meet? ═══ -->
+<div class="modal-overlay" id="meet-modal" onclick="if(event.target===this) closeModal()">
+    <div class="modal">
+
+        <!-- SCREEN 1: Select who you met -->
+        <div id="screen-select">
+            <div class="modal-header">
+                <div class="modal-emoji">🤝</div>
+                <div class="modal-title">Who did you meet?</div>
+                <div class="modal-sub">Tap everyone you met in person at this event</div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-card-title">🍖 Community BBQ — Kaikoura Lookout</div>
+                <div class="event-card-details">📅 Saturday 15 Feb, 3:00 PM · 📍 Kaikoura Peninsula · 👥 12 attended</div>
+            </div>
+
+            <div class="nudge-bar">
+                <span>🤝</span> 2 people already confirmed meeting you — confirm back to verify!
+            </div>
+
+            <div style="padding:12px 16px 4px;">
+                <div class="select-counter">
+                    <span id="select-count">0 selected</span>
+                    <a onclick="selectAll()">Select all</a>
+                </div>
+            </div>
+
+            <div class="attendee-grid" id="attendee-grid">
+                <!-- Organiser (mutual hint - they confirmed you) -->
+                <div class="attendee mutual-hint" onclick="toggleAttendee(this)" data-id="brave">
+                    <div class="attendee-avatar" style="background:#8D6E63;">🏔️
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">BraveMountain156</div>
+                    <div class="attendee-badge">★ Organiser</div>
+                </div>
+
+                <!-- Mutual hint - they confirmed you -->
+                <div class="attendee mutual-hint" onclick="toggleAttendee(this)" data-id="kind">
+                    <div class="attendee-avatar" style="background:#26A69A;">🐨
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">KindValley891</div>
+                </div>
+
+                <!-- Regular attendees -->
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="calm">
+                    <div class="attendee-avatar" style="background:#AB47BC;">🚴
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">CalmOcean483</div>
+                </div>
+
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="strong">
+                    <div class="attendee-avatar" style="background:#2E7D32;">🧗
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">StrongPeak321</div>
+                </div>
+
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="quiet">
+                    <div class="attendee-avatar" style="background:#FF7043;">🏍️
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">QuietRiver778</div>
+                </div>
+
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="trail">
+                    <div class="attendee-avatar" style="background:#5C6BC0;">🛶
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">TrailDust114</div>
+                </div>
+
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="gear">
+                    <div class="attendee-avatar" style="background:#8D6E63;">🔧
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">GearHead007</div>
+                </div>
+
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="swift">
+                    <div class="attendee-avatar" style="background:#F44336;">🦊
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">SwiftTrail099</div>
+                </div>
+
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="bold">
+                    <div class="attendee-avatar" style="background:#00796B;">🦅
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">BoldPeak442</div>
+                </div>
+
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="wild">
+                    <div class="attendee-avatar" style="background:#5C6BC0;">🦁
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">WildMeadow234</div>
+                </div>
+
+                <div class="attendee" onclick="toggleAttendee(this)" data-id="free">
+                    <div class="attendee-avatar" style="background:#E91E63;">🦋
+                        <div class="attendee-check">✓</div>
+                    </div>
+                    <div class="attendee-name">FreeSpirit901</div>
+                </div>
+            </div>
+
+            <div class="skip-note">
+                Can't remember everyone? That's ok — confirm who you're sure about.<br>
+                <a onclick="dismissPrompt()">Remind me later</a> · <a onclick="skipAll()">I didn't meet anyone</a>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Later</button>
+                <button class="btn btn-primary" id="confirm-btn" disabled onclick="showConfirmation()">Confirm (0)</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: Confirmation + mutual celebrations + actions -->
+        <div class="confirm-screen" id="screen-confirm">
+            <div class="confirm-emoji">🎉</div>
+            <div class="confirm-title">Meetings confirmed!</div>
+            <div class="confirm-sub" id="confirm-summary">You confirmed meeting 6 people at Community BBQ — Kaikoura</div>
+
+            <!-- Mutual confirmations -->
+            <div class="mutual-card" id="mutual-section">
+                <div class="mutual-card-title">🤝 2 Mutual Confirmations!</div>
+                <div class="mutual-card-text">Both sides confirmed — these are verified in-person meetings</div>
+                <div class="mutual-avatars">
+                    <div class="a" style="background:#8D6E63;">🏔️</div>
+                    <div class="mutual-arrow">⟷</div>
+                    <div class="a" style="background:var(--blue);">🏍️</div>
+                </div>
+                <div style="font-size:10px;font-weight:600;">BraveMountain156 <span style="color:var(--green);">✓ Verified meeting</span></div>
+                <div class="mutual-avatars" style="margin-top:8px;">
+                    <div class="a" style="background:#26A69A;">🐨</div>
+                    <div class="mutual-arrow">⟷</div>
+                    <div class="a" style="background:var(--blue);">🏍️</div>
+                </div>
+                <div style="font-size:10px;font-weight:600;">KindValley891 <span style="color:var(--green);">✓ Verified meeting</span></div>
+            </div>
+
+            <!-- Waiting for confirmation -->
+            <div style="padding:10px;background:var(--grey-50);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">⏳ Waiting for confirmation from 4 others</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">
+                    <span style="padding:2px 8px;background:var(--orange-pale);border-radius:10px;font-size:9px;font-weight:600;">🚴 CalmOcean483</span>
+                    <span style="padding:2px 8px;background:var(--orange-pale);border-radius:10px;font-size:9px;font-weight:600;">🧗 StrongPeak321</span>
+                    <span style="padding:2px 8px;background:var(--orange-pale);border-radius:10px;font-size:9px;font-weight:600;">🏍️ QuietRiver778</span>
+                    <span style="padding:2px 8px;background:var(--orange-pale);border-radius:10px;font-size:9px;font-weight:600;">🛶 TrailDust114</span>
+                </div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:6px;">They'll be prompted to confirm — you'll get notified when they do</div>
+            </div>
+
+            <!-- Post-meeting actions -->
+            <div style="font-size:12px;font-weight:700;margin-bottom:8px;text-align:left;">What would you like to do?</div>
+            <div class="post-actions">
+                <div class="action-row">
+                    <div class="action-btn" onclick="showToast('Friend requests sent to 2 verified meetings')">
+                        <div class="action-btn-icon">🤝</div>
+                        <div class="action-btn-label">Add Friends</div>
+                        <div class="action-btn-sub">Send friend requests to verified meetings</div>
+                    </div>
+                    <div class="action-btn" onclick="showToast('Opening conversation with BraveMountain156')">
+                        <div class="action-btn-icon">💬</div>
+                        <div class="action-btn-label">Message</div>
+                        <div class="action-btn-sub">Start a conversation with someone you met</div>
+                    </div>
+                </div>
+                <div class="action-row">
+                    <div class="action-btn" onclick="showToast('Private note saved')">
+                        <div class="action-btn-icon">📝</div>
+                        <div class="action-btn-label">Add Notes</div>
+                        <div class="action-btn-sub">Private notes about people you met</div>
+                    </div>
+                    <div class="action-btn" onclick="showToast('Event added to diary with meeting details')">
+                        <div class="action-btn-icon">📔</div>
+                        <div class="action-btn-label">Save to Diary</div>
+                        <div class="action-btn-sub">Record this event in your travel diary</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <button class="btn btn-primary" onclick="closeModal()" style="width:100%;">Done</button>
+            </div>
+
+            <div style="font-size:9px;color:var(--text-muted);margin-top:10px;">
+                Event meetings do not count toward helper credits or milestones.<br>
+                Verified meetings build trust and unlock friend requests.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:white;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:600;z-index:200;display:none;box-shadow:var(--shadow-md);"></div>
+
+<script>
+    function openModal() {
+        document.getElementById('meet-modal').classList.add('open');
+        document.getElementById('screen-select').style.display = 'block';
+        document.getElementById('screen-confirm').classList.remove('show');
+        document.getElementById('info-card').style.display = 'none';
+    }
+    function closeModal() {
+        document.getElementById('meet-modal').classList.remove('open');
+        document.getElementById('info-card').style.display = 'block';
+    }
+
+    function toggleAttendee(el) {
+        el.classList.toggle('selected');
+        updateCount();
+    }
+
+    function updateCount() {
+        var selected = document.querySelectorAll('.attendee.selected').length;
+        document.getElementById('select-count').textContent = selected + ' selected';
+        var btn = document.getElementById('confirm-btn');
+        btn.disabled = selected === 0;
+        btn.textContent = 'Confirm (' + selected + ')';
+    }
+
+    function selectAll() {
+        document.querySelectorAll('.attendee').forEach(function(a) { a.classList.add('selected'); });
+        updateCount();
+    }
+
+    function showConfirmation() {
+        var selected = document.querySelectorAll('.attendee.selected');
+        var count = selected.length;
+        var mutuals = 0;
+        selected.forEach(function(a) { if (a.classList.contains('mutual-hint')) mutuals++; });
+
+        document.getElementById('confirm-summary').textContent =
+            'You confirmed meeting ' + count + ' people at Community BBQ — Kaikoura';
+
+        // Show/hide mutual section
+        document.getElementById('mutual-section').style.display = mutuals > 0 ? 'block' : 'none';
+
+        document.getElementById('screen-select').style.display = 'none';
+        document.getElementById('screen-confirm').classList.add('show');
+    }
+
+    function dismissPrompt() {
+        closeModal();
+        showToast('We\'ll remind you again tomorrow');
+    }
+
+    function skipAll() {
+        closeModal();
+        showToast('No worries — prompt dismissed');
+    }
+
+    function showToast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(function() { t.style.display = 'none'; }, 3000);
+    }
+</script>
+</body>
+</html>
