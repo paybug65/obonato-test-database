@@ -315,36 +315,57 @@
 
             <!-- Summary -->
             <div style="padding:12px;background:var(--green-pale);border-radius:var(--radius-sm);border:1px solid rgba(46,125,50,0.15);margin-bottom:14px;">
-                <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:4px;">✅ Confirmations sent</div>
-                <div style="font-size:11px;color:var(--text-mid);line-height:1.5;">We'll notify the people you selected. When they confirm meeting you too, it becomes a <strong>verified in-person meeting</strong> — building trust for both of you.</div>
+                <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:4px;">✅ Confirmations saved</div>
+                <div style="font-size:11px;color:var(--text-mid);line-height:1.5;">Your selections are saved privately. When someone you selected also confirms meeting you, it becomes a <strong>verified in-person meeting</strong> — and you'll both be notified.</div>
             </div>
 
             <!-- Post-meeting actions -->
             <div style="font-size:12px;font-weight:700;margin-bottom:8px;text-align:left;">What would you like to do?</div>
             <div class="post-actions">
+                <!-- Add Friends -->
                 <div class="action-row">
-                    <div class="action-btn" onclick="showToast('Friend requests sent to people you met')">
+                    <div class="action-btn" id="act-friends" onclick="toggleAction('friends')">
                         <div class="action-btn-icon">🤝</div>
                         <div class="action-btn-label">Add Friends</div>
                         <div class="action-btn-sub">Send friend requests to people you met</div>
                     </div>
-                    <div class="action-btn" onclick="showToast('Opening conversation with BraveMountain156')">
+                    <div class="action-btn" id="act-message" onclick="toggleAction('message')">
                         <div class="action-btn-icon">💬</div>
                         <div class="action-btn-label">Message</div>
                         <div class="action-btn-sub">Start a conversation with someone you met</div>
                     </div>
                 </div>
+
+                <!-- Friends panel (hidden) -->
+                <div id="panel-friends" style="display:none;padding:12px;background:var(--grey-50);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                    <div style="font-size:11px;font-weight:700;margin-bottom:8px;">Select who to send friend requests to:</div>
+                    <div id="friends-list"></div>
+                    <button onclick="sendFriendRequests()" style="margin-top:8px;width:100%;padding:8px;background:var(--green);color:white;border:none;border-radius:var(--radius-sm);font-size:11px;font-weight:700;cursor:pointer;">Send Friend Requests</button>
+                </div>
+
+                <!-- Message panel (hidden) -->
+                <div id="panel-message" style="display:none;padding:12px;background:var(--grey-50);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                    <div style="font-size:11px;font-weight:700;margin-bottom:8px;">Who would you like to message?</div>
+                    <div id="message-list"></div>
+                </div>
+
                 <div class="action-row">
-                    <div class="action-btn" onclick="showToast('Private note saved')">
+                    <div class="action-btn" id="act-notes" onclick="toggleAction('notes')">
                         <div class="action-btn-icon">📝</div>
                         <div class="action-btn-label">Add Notes</div>
                         <div class="action-btn-sub">Private notes about people you met</div>
                     </div>
-                    <div class="action-btn" onclick="showToast('Event added to diary with meeting details')">
+                    <div class="action-btn" id="act-diary" onclick="saveToDiary()">
                         <div class="action-btn-icon">📔</div>
                         <div class="action-btn-label">Save to Diary</div>
                         <div class="action-btn-sub">Record this event in your travel diary</div>
                     </div>
+                </div>
+
+                <!-- Notes panel (hidden) -->
+                <div id="panel-notes" style="display:none;padding:12px;background:var(--grey-50);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                    <div style="font-size:11px;font-weight:700;margin-bottom:8px;">Private notes (only you can see these):</div>
+                    <div id="notes-list"></div>
                 </div>
             </div>
 
@@ -365,6 +386,22 @@
 <div id="toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:white;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:600;z-index:200;display:none;box-shadow:var(--shadow-md);"></div>
 
 <script>
+    // Attendee data store
+    var attendeeData = {
+        brave: { name: 'BraveMountain156', img: 'https://i.pravatar.cc/104?img=12', color: '#8D6E63' },
+        kind: { name: 'KindValley891', img: 'https://i.pravatar.cc/104?img=32', color: '#26A69A' },
+        calm: { name: 'CalmOcean483', img: 'https://i.pravatar.cc/104?img=53', color: '#AB47BC' },
+        strong: { name: 'StrongPeak321', img: 'https://i.pravatar.cc/104?img=59', color: '#2E7D32' },
+        quiet: { name: 'QuietRiver778', img: 'https://i.pravatar.cc/104?img=14', color: '#FF7043' },
+        trail: { name: 'TrailDust114', img: 'https://i.pravatar.cc/104?img=68', color: '#5C6BC0' },
+        gear: { name: 'GearHead007', img: 'https://i.pravatar.cc/104?img=7', color: '#8D6E63' },
+        swift: { name: 'SwiftTrail099', img: 'https://i.pravatar.cc/104?img=22', color: '#F44336' },
+        bold: { name: 'BoldPeak442', emoji: '🦅', color: '#00796B' },
+        wild: { name: 'WildMeadow234', img: 'https://i.pravatar.cc/104?img=47', color: '#5C6BC0' },
+        free: { name: 'FreeSpirit901', img: 'https://i.pravatar.cc/104?img=44', color: '#E91E63' }
+    };
+    var selectedIds = [];
+
     function openModal() {
         document.getElementById('meet-modal').classList.add('open');
         document.getElementById('screen-select').style.display = 'block';
@@ -397,12 +434,131 @@
     function showConfirmation() {
         var selected = document.querySelectorAll('.attendee.selected');
         var count = selected.length;
+        selectedIds = [];
+        selected.forEach(function(a) { selectedIds.push(a.getAttribute('data-id')); });
 
         document.getElementById('confirm-summary').textContent =
-            'You confirmed meeting ' + count + ' people at Community BBQ — Kaikoura';
+            'You confirmed meeting ' + count + (count === 1 ? ' person' : ' people') + ' at Community BBQ — Kaikoura';
+
+        // Build action panels from selected attendees
+        buildFriendsList();
+        buildMessageList();
+        buildNotesList();
 
         document.getElementById('screen-select').style.display = 'none';
         document.getElementById('screen-confirm').classList.add('show');
+    }
+
+    function makeAvatar(id, size) {
+        var d = attendeeData[id];
+        var s = size || 28;
+        if (d.img) {
+            return '<div style="width:'+s+'px;height:'+s+'px;border-radius:50%;overflow:hidden;flex-shrink:0;"><img src="'+d.img+'" style="width:100%;height:100%;object-fit:cover;"></div>';
+        }
+        return '<div style="width:'+s+'px;height:'+s+'px;border-radius:50%;background:'+d.color+';display:flex;align-items:center;justify-content:center;font-size:'+(s*0.45)+'px;color:white;flex-shrink:0;">'+d.emoji+'</div>';
+    }
+
+    function buildFriendsList() {
+        var html = '';
+        selectedIds.forEach(function(id) {
+            var d = attendeeData[id];
+            html += '<div id="fr-'+id+'" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">' +
+                makeAvatar(id, 28) +
+                '<span style="flex:1;font-size:11px;font-weight:600;">'+d.name+'</span>' +
+                '<button onclick="sendOneFriend(\''+id+'\')" id="fr-btn-'+id+'" style="padding:4px 10px;background:var(--blue);color:white;border:none;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;">Add Friend</button>' +
+                '</div>';
+        });
+        document.getElementById('friends-list').innerHTML = html;
+    }
+
+    function sendOneFriend(id) {
+        var btn = document.getElementById('fr-btn-' + id);
+        btn.textContent = '✓ Sent';
+        btn.style.background = 'var(--green)';
+        btn.disabled = true;
+        showToast('Friend request sent to ' + attendeeData[id].name);
+    }
+
+    function sendFriendRequests() {
+        selectedIds.forEach(function(id) {
+            var btn = document.getElementById('fr-btn-' + id);
+            if (btn && !btn.disabled) {
+                btn.textContent = '✓ Sent';
+                btn.style.background = 'var(--green)';
+                btn.disabled = true;
+            }
+        });
+        showToast('Friend requests sent to ' + selectedIds.length + ' people');
+    }
+
+    function buildMessageList() {
+        var html = '';
+        selectedIds.forEach(function(id) {
+            var d = attendeeData[id];
+            html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openMessage(\''+id+'\')">' +
+                makeAvatar(id, 28) +
+                '<span style="flex:1;font-size:11px;font-weight:600;">'+d.name+'</span>' +
+                '<span style="font-size:10px;color:var(--blue);font-weight:600;">Message →</span>' +
+                '</div>';
+        });
+        document.getElementById('message-list').innerHTML = html;
+    }
+
+    function openMessage(id) {
+        showToast('Opening conversation with ' + attendeeData[id].name);
+    }
+
+    function buildNotesList() {
+        var html = '';
+        selectedIds.forEach(function(id) {
+            var d = attendeeData[id];
+            html += '<div style="margin-bottom:10px;">' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' +
+                makeAvatar(id, 22) +
+                '<span style="font-size:10px;font-weight:700;">'+d.name+'</span>' +
+                '</div>' +
+                '<div style="display:flex;gap:6px;">' +
+                '<input id="note-'+id+'" type="text" placeholder="e.g. Red GS rider, knows Lewis Pass" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:10px;font-family:inherit;">' +
+                '<button onclick="saveNote(\''+id+'\')" style="padding:6px 10px;background:var(--green);color:white;border:none;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;">Save</button>' +
+                '</div></div>';
+        });
+        document.getElementById('notes-list').innerHTML = html;
+    }
+
+    function saveNote(id) {
+        var val = document.getElementById('note-' + id).value;
+        if (!val.trim()) { showToast('Type a note first'); return; }
+        document.getElementById('note-' + id).style.borderColor = 'var(--green)';
+        document.getElementById('note-' + id).style.background = 'var(--green-pale)';
+        showToast('Note saved for ' + attendeeData[id].name);
+    }
+
+    function saveToDiary() {
+        var btn = document.getElementById('act-diary');
+        btn.style.borderColor = 'var(--green)';
+        btn.style.background = 'var(--green-pale)';
+        btn.querySelector('.action-btn-icon').textContent = '✅';
+        btn.querySelector('.action-btn-label').textContent = 'Saved!';
+        btn.querySelector('.action-btn-sub').textContent = 'Community BBQ added to your diary';
+        btn.onclick = null;
+        showToast('Event added to diary with ' + selectedIds.length + ' people you met');
+    }
+
+    function toggleAction(type) {
+        var panels = ['friends', 'message', 'notes'];
+        panels.forEach(function(p) {
+            var panel = document.getElementById('panel-' + p);
+            var btn = document.getElementById('act-' + p);
+            if (p === type && panel.style.display === 'none') {
+                panel.style.display = 'block';
+                btn.style.borderColor = 'var(--blue)';
+                btn.style.background = 'var(--blue-pale)';
+            } else {
+                panel.style.display = 'none';
+                btn.style.borderColor = '';
+                btn.style.background = '';
+            }
+        });
     }
 
     function dismissPrompt() {
