@@ -1,233 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log It — Tiriwe</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --blue: #1F4788; --blue-dark: #162f5c; --blue-light: #2a5ba8; --blue-pale: #e8effa;
-            --green: #2E7D32; --green-light: #43A047; --green-pale: #E8F5E9;
-            --orange: #F59E0B; --orange-pale: #FFF8E1;
-            --red: #DC2626; --red-pale: #FEF2F2;
-            --purple: #7B1FA2; --purple-pale: #F3E5F5;
-            --white: #ffffff; --off-white: #d5dfe9;
-            --grey-50: #f8fafc; --grey-100: #f1f5f9; --grey-200: #e2e8f0;
-            --grey-300: #cbd5e1; --grey-400: #94a3b8; --grey-500: #64748b;
-            --grey-600: #475569; --grey-700: #334155; --grey-800: #1e293b;
-            --text: #1e293b; --text-mid: #475569; --text-muted: #94a3b8;
-            --border: #e2e8f0; --radius: 14px; --radius-sm: 8px;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: var(--text); background: var(--off-white); line-height: 1.6; min-height: 100vh;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log It — Tiriwe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --blue: #1F4788; --blue-dark: #162f5c; --blue-light: #2a5ba8; --blue-pale: #e8effa;
+        --green: #2E7D32; --green-light: #43A047; --green-pale: #E8F5E9;
+        --orange: #F59E0B; --orange-pale: #FFF8E1;
+        --red: #DC2626; --red-pale: #FEF2F2;
+        --purple: #7B1FA2; --purple-pale: #F3E5F5;
+        --teal: #0D9488; --teal-pale: #CCFBF1;
+        --white: #ffffff; --off-white: #d5dfe9;
+        --grey-50: #f8fafc; --grey-100: #f1f5f9; --grey-200: #e2e8f0;
+        --grey-300: #cbd5e1; --grey-400: #94a3b8; --grey-500: #64748b;
+        --grey-600: #475569; --grey-700: #334155; --grey-800: #1e293b;
+        --text: #1e293b; --text-mid: #475569; --text-muted: #94a3b8;
+        --border: #e2e8f0; --radius: 14px; --radius-sm: 8px;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+        --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; min-height: 100vh; }
 
-        /* TOP BAR */
-        .top-bar { background: #e8edf3; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
-        .top-bar-upper { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; }
-        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--blue); font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; letter-spacing: -0.5px; }
-        .nav-brand svg { width: 30px; height: 30px; }
-        .nav-right { display: flex; align-items: center; gap: 12px; }
-        .nav-user { display: flex; align-items: center; gap: 8px; }
-        .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-light)); display: flex; align-items: center; justify-content: center; font-size: 15px; color: white; }
-        .nav-display-name { font-weight: 600; font-size: 13px; color: var(--text); }
-        .nav-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--grey-500); font-size: 16px; position: relative; }
-        .nav-btn:hover { background: var(--grey-100); color: var(--blue); }
-        .notif-badge { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; background: var(--red); color: white; font-size: 9px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
-        .tab-nav { display: flex; align-items: center; padding: 0 24px; overflow-x: auto; scrollbar-width: none; }
-        .tab-nav::-webkit-scrollbar { display: none; }
-        .tab-item { display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--grey-600); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; cursor: pointer; }
-        .tab-item:hover { color: var(--blue); background: var(--blue-pale); }
-        .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
-        .tab-icon { font-size: 16px; }
-        .tab-badge { background: var(--red); color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; min-width: 18px; text-align: center; }
+    /* TOP BAR */
+    .top-bar { background: #e8edf3; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+    .top-bar-upper { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--blue); font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; letter-spacing: -0.5px; }
+    .nav-brand svg { width: 30px; height: 30px; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-user { display: flex; align-items: center; gap: 8px; }
+    .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-light)); display: flex; align-items: center; justify-content: center; font-size: 15px; color: white; }
+    .nav-display-name { font-weight: 600; font-size: 13px; color: var(--text); }
+    .nav-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--grey-500); font-size: 16px; position: relative; }
+    .nav-btn:hover { background: var(--grey-100); color: var(--blue); }
+    .notif-badge { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; background: var(--red); color: white; font-size: 9px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+    .tab-nav { display: flex; align-items: center; padding: 0 24px; overflow-x: auto; scrollbar-width: none; }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-item { display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--grey-600); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; cursor: pointer; }
+    .tab-item:hover { color: var(--blue); background: var(--blue-pale); }
+    .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-icon { font-size: 16px; }
+    .tab-badge { background: var(--red); color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; min-width: 18px; text-align: center; }
 
-        /* PAGE HEADER */
-        .page-header {
-            background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 50%, var(--blue-light) 100%);
-            padding: 28px 24px; color: white; position: relative; overflow: hidden;
-        }
-        .page-header::before {
-            content: ''; position: absolute; top: -50%; right: -20%;
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        .page-header-content { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
-        .page-header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
-        .page-header p { font-size: 14px; opacity: 0.8; margin-top: 4px; }
+    /* PAGE HEADER */
+    .page-header { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 50%, var(--blue-light) 100%); padding: 28px 24px; color: white; position: relative; overflow: hidden; }
+    .page-header::before { content: ''; position: absolute; top: -50%; right: -20%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%); border-radius: 50%; }
+    .page-header-content { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+    .page-header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+    .page-header p { font-size: 14px; opacity: 0.8; margin-top: 4px; }
 
-        /* MAIN */
-        .main { max-width: 1100px; margin: 24px auto; padding: 0 24px 40px; }
-        .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; transition: box-shadow 0.2s; }
-        .card:hover { box-shadow: var(--shadow-md); }
-        .card + .card { margin-top: 18px; }
-        .card-hd { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--grey-100); }
-        .card-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
-        .card-link { font-size: 12px; color: var(--blue); cursor: pointer; font-weight: 600; text-decoration: none; }
-        .card-link:hover { text-decoration: underline; }
-        .card-body { padding: 16px 18px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    /* MAIN */
+    .main { max-width: 1100px; margin: 24px auto; padding: 0 24px 40px; }
+    .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; transition: box-shadow 0.2s; }
+    .card:hover { box-shadow: var(--shadow-md); }
+    .card + .card { margin-top: 18px; }
+    .card-hd { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--grey-100); }
+    .card-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+    .card-link { font-size: 12px; color: var(--blue); cursor: pointer; font-weight: 600; text-decoration: none; }
+    .card-link:hover { text-decoration: underline; }
+    .card-body { padding: 16px 18px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .section-head { font-size: 16px; font-weight: 700; margin: 28px 0 14px; display: flex; align-items: center; gap: 8px; }
 
-        /* LIST ITEMS */
-        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--grey-100); cursor: pointer; }
-        .list-item:last-child { border-bottom: none; }
-        .list-icon { width: 42px; height: 42px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; color: white; }
-        .list-info { flex: 1; min-width: 0; }
-        .list-title { font-weight: 600; font-size: 13px; }
-        .list-meta { font-size: 11px; color: var(--text-muted); }
-        .list-right { text-align: right; flex-shrink: 0; }
-        .list-action { padding: 6px 14px; background: var(--blue); color: white; border: none; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
-        .list-action:hover { background: var(--blue-light); }
+    /* CATEGORY GRID */
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
+    .cat-card { background: var(--white); border: 2px solid var(--border); border-radius: var(--radius); padding: 16px 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .cat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--blue); }
+    .cat-card.selected { border-color: var(--blue); background: var(--blue-pale); }
+    .cat-icon { font-size: 26px; margin-bottom: 4px; }
+    .cat-name { font-weight: 700; font-size: 11px; }
 
-        /* SEARCH BAR */
-        .search-bar { display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 18px; }
-        .search-bar input { border: none; outline: none; flex: 1; font-size: 14px; font-family: inherit; background: transparent; }
-        .search-icon { font-size: 18px; color: var(--grey-400); }
+    /* SEARCH & FILTER */
+    .search-bar { display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 12px; }
+    .search-bar input { border: none; outline: none; flex: 1; font-size: 13px; font-family: inherit; background: transparent; }
+    .filter-pills { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+    .filter-pill { padding: 5px 12px; border-radius: 16px; border: 1px solid var(--border); background: var(--white); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; color: var(--text-mid); }
+    .filter-pill:hover { border-color: var(--blue); color: var(--blue); }
+    .filter-pill.active { background: var(--blue); color: white; border-color: var(--blue); }
 
-        /* FILTER TABS */
-        .filter-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
-        .filter-tab { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--white); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text-mid); }
-        .filter-tab:hover { border-color: var(--blue); color: var(--blue); }
-        .filter-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+    /* LIST ITEMS */
+    .list-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--grey-100); cursor: pointer; transition: background 0.1s; }
+    .list-item:last-child { border-bottom: none; }
+    .list-item:hover { background: var(--grey-50); }
+    .list-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; color: white; }
+    .list-info { flex: 1; min-width: 0; }
+    .list-title { font-weight: 600; font-size: 13px; }
+    .list-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .list-rating { font-size: 10px; margin-top: 2px; }
+    .list-right { text-align: right; flex-shrink: 0; }
 
-        /* CATEGORY GRID */
-        .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-        .cat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .cat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--blue); }
-        .cat-icon { font-size: 28px; margin-bottom: 6px; }
-        .cat-name { font-weight: 700; font-size: 13px; }
+    /* FEED ITEMS (community logs) */
+    .feed-item { padding: 14px 18px; border-bottom: 1px solid var(--grey-100); }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .feed-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: white; flex-shrink: 0; }
+    .feed-user { font-size: 11px; font-weight: 700; }
+    .feed-time { font-size: 9px; color: var(--text-muted); margin-left: auto; }
+    .feed-place { display: flex; align-items: flex-start; gap: 10px; }
+    .feed-place-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; flex-shrink: 0; }
+    .feed-place-info { flex: 1; min-width: 0; }
+    .feed-place-name { font-size: 13px; font-weight: 700; }
+    .feed-place-desc { font-size: 11px; color: var(--text-mid); margin-top: 2px; }
+    .feed-place-meta { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+    .feed-tag { padding: 2px 8px; border-radius: 8px; font-size: 9px; font-weight: 600; }
+    .feed-photos { display: flex; gap: 4px; margin-top: 8px; }
+    .feed-photo { width: 64px; height: 64px; border-radius: var(--radius-sm); object-fit: cover; }
+    .feed-actions { display: flex; gap: 12px; margin-top: 8px; }
+    .feed-action { font-size: 10px; color: var(--text-muted); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 3px; }
+    .feed-action:hover { color: var(--blue); }
+    .feed-verified { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; background: var(--green-pale); border-radius: 6px; font-size: 8px; font-weight: 700; color: var(--green); }
 
-        /* BADGES */
-        .badge-v { color: var(--green); font-size: 11px; margin-left: 3px; }
-        .badge-s { color: var(--orange); font-size: 11px; margin-left: 3px; }
-        .online-dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,0.5); flex-shrink: 0; }
-        .unread-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
-        .sev { display: inline-flex; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-left: 4px; }
-        .sev-1 { background: var(--orange-pale); color: #b45309; }
-        .sev-2 { background: #FEF3C7; color: #92400e; }
-        .sev-3 { background: var(--red-pale); color: var(--red); }
+    /* LOG MODAL */
+    .log-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; z-index: 150; padding: 40px 20px; overflow-y: auto; }
+    .log-overlay.open { display: flex; }
+    .log-modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 500px; padding: 24px; box-shadow: var(--shadow-lg); animation: fadeUp 0.3s ease-out; }
+    .log-modal-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .log-modal-title { font-size: 18px; font-weight: 800; }
+    .log-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--grey-100); cursor: pointer; font-size: 16px; color: var(--grey-500); }
+    .log-cat-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .log-cat-pill { padding: 6px 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; background: var(--white); display: flex; align-items: center; gap: 4px; }
+    .log-cat-pill:hover { border-color: var(--grey-300); }
+    .log-cat-pill.active { border-color: var(--blue); background: var(--blue-pale); color: var(--blue); }
+    .log-field { margin-bottom: 14px; }
+    .log-label { font-size: 11px; font-weight: 700; color: var(--text-mid); display: block; margin-bottom: 4px; }
+    .log-label span { font-weight: 500; color: var(--text-muted); }
+    .log-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; transition: border-color 0.15s; }
+    .log-input:focus { outline: none; border-color: var(--blue); }
+    .log-textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; font-family: inherit; resize: vertical; min-height: 70px; line-height: 1.5; }
+    .log-textarea:focus { outline: none; border-color: var(--blue); }
+    .log-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .log-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; font-family: inherit; background: var(--white); cursor: pointer; }
+    .log-photo-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border: 2px dashed var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; font-weight: 600; color: var(--text-mid); transition: all 0.15s; }
+    .log-photo-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .log-rating { display: flex; gap: 6px; }
+    .log-rating-btn { flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; text-align: center; font-family: inherit; transition: all 0.15s; background: var(--white); }
+    .log-rating-btn:hover { border-color: var(--grey-300); }
+    .log-rating-btn.active-good { border-color: var(--green); background: var(--green-pale); }
+    .log-rating-btn.active-ok { border-color: var(--orange); background: var(--orange-pale); }
+    .log-rating-btn.active-bad { border-color: var(--red); background: var(--red-pale); }
+    .log-submit { width: 100%; padding: 12px; background: var(--green); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .log-submit:hover { background: #1B5E20; }
+    /* Category-specific field sections */
+    .cat-fields { display: none; }
+    .cat-fields.visible { display: block; }
 
-        /* MAP */
-        .map-box { width: 100%; height: 280px; background: linear-gradient(145deg, #dce6f5, #c5d4ea); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--blue); font-size: 13px; font-weight: 500; gap: 6px; border-radius: var(--radius); }
-        .map-box svg { opacity: 0.4; }
+    /* SETTINGS PANEL */
+    .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; transition: opacity 0.3s; }
+    .settings-overlay.open { display: block; opacity: 1; }
+    .settings-panel { position: fixed; top: 0; right: -380px; width: 360px; max-width: 90vw; height: 100vh; background: var(--white); box-shadow: var(--shadow-lg); z-index: 201; transition: right 0.3s ease; overflow-y: auto; }
+    .settings-panel.open { right: 0; }
+    .settings-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--white); z-index: 1; }
+    .settings-header h2 { font-size: 16px; font-weight: 700; }
+    .settings-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--grey-100); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--grey-500); }
+    .settings-section { padding: 12px 20px; }
+    .settings-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+    .settings-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; border-bottom: 1px solid var(--grey-100); text-decoration: none; color: var(--text); font-size: 13px; font-weight: 500; transition: color 0.15s; }
+    .settings-item:last-child { border-bottom: none; }
+    .settings-item:hover { color: var(--blue); }
+    .si-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+    .si-icon.green { background: var(--green-pale); } .si-icon.red { background: var(--red-pale); } .si-icon.blue { background: var(--blue-pale); } .si-icon.orange { background: var(--orange-pale); } .si-icon.purple { background: var(--purple-pale); } .si-icon.grey { background: var(--grey-100); }
+    .si-arrow { margin-left: auto; color: var(--grey-300); }
+    .si-badge { background: var(--orange); color: white; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: auto; }
+    .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .settings-logout:hover { background: #fecaca; }
 
-        /* SOS */
-        .sos-section { text-align: center; padding: 40px 20px; }
-        .sos-hold-btn {
-            width: 160px; height: 160px; border-radius: 50%;
-            background: linear-gradient(135deg, #dc2626, #991b1b);
-            border: 6px solid rgba(220,38,38,0.3);
-            color: white; font-size: 28px; font-weight: 800; font-family: inherit;
-            cursor: pointer; display: inline-flex; flex-direction: column;
-            align-items: center; justify-content: center; gap: 4px;
-            animation: sos-pulse 2s ease-in-out infinite;
-            transition: transform 0.2s;
-        }
-        .sos-hold-btn span { font-size: 11px; font-weight: 500; opacity: 0.8; }
-        .sos-hold-btn:hover { transform: scale(1.05); }
-        @keyframes sos-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
-            50% { box-shadow: 0 0 0 20px rgba(220,38,38,0); }
-        }
-        .sos-warning { background: var(--red-pale); border: 1px solid #fca5a5; border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #991b1b; display: flex; align-items: center; gap: 8px; }
+    @media (max-width: 768px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .cat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .main { padding: 0 16px 40px; }
+        .nav-display-name { display: none; }
+        .tab-item { padding: 10px 12px; font-size: 12px; }
+        .log-row { grid-template-columns: 1fr; }
+    }
 
-        /* TIER CARDS */
-        .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
-        .tier-card { background: var(--white); border: 2px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .tier-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-        .tier-card.t1 { border-color: var(--orange); }
-        .tier-card.t2 { border-color: #f59e0b; }
-        .tier-card.t3 { border-color: var(--red); }
-        .tier-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .tier-icon { font-size: 32px; margin-bottom: 8px; }
-        .tier-name { font-weight: 700; font-size: 15px; }
-        .tier-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-        /* TIMELINE */
-        .timeline-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--grey-100); }
-        .timeline-item:last-child { border-bottom: none; }
-        .timeline-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-        .timeline-dot.g { background: var(--green); }
-        .timeline-dot.o { background: var(--orange); }
-        .timeline-dot.b { background: var(--blue); }
-        .timeline-dot.r { background: var(--red); }
-        .timeline-content { flex: 1; }
-        .timeline-title { font-weight: 600; font-size: 13px; }
-        .timeline-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-        /* TRAVEL PLAN CARD */
-        .plan-card { background: linear-gradient(135deg, var(--green-pale), #c8e6c9); border: 1px solid #a5d6a7; border-radius: var(--radius); padding: 18px; margin-bottom: 18px; }
-        .plan-badge { display: inline-flex; padding: 2px 10px; background: var(--green); color: white; border-radius: 12px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
-        .plan-title { font-weight: 700; font-size: 16px; color: var(--text); }
-        .plan-meta { font-size: 12px; color: var(--text-mid); margin-top: 4px; }
-        .plan-progress { height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; margin-top: 12px; }
-        .plan-progress-bar { height: 100%; background: var(--green); border-radius: 3px; width: 35%; }
-        .plan-checkin { margin-top: 12px; padding: 10px 20px; background: var(--green); color: white; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
-        .plan-checkin:hover { background: var(--green-light); }
-
-        /* SETTINGS PANEL */
-        .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; transition: opacity 0.3s; }
-        .settings-overlay.open { display: block; opacity: 1; }
-        .settings-panel { position: fixed; top: 0; right: -380px; width: 360px; max-width: 90vw; height: 100vh; background: var(--white); box-shadow: var(--shadow-lg); z-index: 201; transition: right 0.3s ease; overflow-y: auto; }
-        .settings-panel.open { right: 0; }
-        .settings-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--white); z-index: 1; }
-        .settings-header h2 { font-size: 16px; font-weight: 700; }
-        .settings-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--grey-100); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--grey-500); }
-        .settings-section { padding: 12px 20px; }
-        .settings-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
-        .settings-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; border-bottom: 1px solid var(--grey-100); text-decoration: none; color: var(--text); font-size: 13px; font-weight: 500; transition: color 0.15s; }
-        .settings-item:last-child { border-bottom: none; }
-        .settings-item:hover { color: var(--blue); }
-        .si-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-        .si-icon.green { background: var(--green-pale); }
-        .si-icon.red { background: var(--red-pale); }
-        .si-icon.blue { background: var(--blue-pale); }
-        .si-icon.orange { background: var(--orange-pale); }
-        .si-icon.purple { background: var(--purple-pale); }
-        .si-icon.grey { background: var(--grey-100); }
-        .si-arrow { margin-left: auto; color: var(--grey-300); }
-        .si-badge { background: var(--orange); color: white; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-left: auto; }
-        .settings-logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 40px); margin: 12px 20px 20px; padding: 12px; background: var(--red-pale); color: var(--red); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
-        .settings-logout:hover { background: #fecaca; }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .grid-2 { grid-template-columns: 1fr; }
-            .tier-grid { grid-template-columns: 1fr; }
-            .cat-grid { grid-template-columns: repeat(2, 1fr); }
-            .main { padding: 0 16px 40px; }
-            .nav-display-name { display: none; }
-            .tab-item { padding: 10px 12px; font-size: 12px; }
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(14px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .main { animation: fadeUp 0.5s ease-out; }
-
-        
-    </style>
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .main { animation: fadeUp 0.5s ease-out; }
+</style>
 </head>
 <body>
 <header class="top-bar">
     <div class="top-bar-upper">
         <a href="dashboard.html" class="nav-brand">
-            <svg viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2.5"/>
-                <circle cx="11" cy="13" r="3" fill="currentColor"/>
-                <circle cx="21" cy="13" r="3" fill="currentColor"/>
-                <path d="M11 16 L16 22 L21 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            </svg>
+            <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2.5"/><circle cx="11" cy="13" r="3" fill="currentColor"/><circle cx="21" cy="13" r="3" fill="currentColor"/><path d="M11 16 L16 22 L21 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
             Tiriwe
         </a>
         <div class="nav-right">
@@ -257,196 +217,436 @@
 </section>
 
 <main class="main">
+
+    <!-- ═══ CATEGORY GRID ═══ -->
     <div class="cat-grid">
-        <div class="cat-card">
-            <div class="cat-icon">🏕️</div>
-            <div class="cat-name">Stay</div>
-        </div>
-        <div class="cat-card">
-            <div class="cat-icon">⛽</div>
-            <div class="cat-name">Fuel</div>
-        </div>
-        <div class="cat-card">
-            <div class="cat-icon">🍽️</div>
-            <div class="cat-name">Eat</div>
-        </div>
-        <div class="cat-card">
-            <div class="cat-icon">🔧</div>
-            <div class="cat-name">Workshop</div>
-        </div>
-        <div class="cat-card">
-            <div class="cat-icon">⚠️</div>
-            <div class="cat-name">Hazard</div>
-        </div>
-        <div class="cat-card">
-            <div class="cat-icon">⭐</div>
-            <div class="cat-name">Highlight</div>
-        </div>
-        <div class="cat-card" style="border-color:var(--purple);background:var(--purple-pale);" onclick="document.getElementById('events-section').scrollIntoView({behavior:'smooth'})">
-            <div class="cat-icon">📅</div>
-            <div class="cat-name">Event</div>
+        <div class="cat-card" onclick="openLog('stay')"><div class="cat-icon">🏕️</div><div class="cat-name">Stay</div></div>
+        <div class="cat-card" onclick="openLog('fuel')"><div class="cat-icon">⛽</div><div class="cat-name">Fuel</div></div>
+        <div class="cat-card" onclick="openLog('eat')"><div class="cat-icon">🍽️</div><div class="cat-name">Eat</div></div>
+        <div class="cat-card" onclick="openLog('workshop')"><div class="cat-icon">🔧</div><div class="cat-name">Workshop</div></div>
+        <div class="cat-card" onclick="openLog('hazard')"><div class="cat-icon">⚠️</div><div class="cat-name">Hazard</div></div>
+        <div class="cat-card" onclick="openLog('highlight')"><div class="cat-icon">⭐</div><div class="cat-name">Highlight</div></div>
+        <div class="cat-card" onclick="openLog('supplies')"><div class="cat-icon">🛒</div><div class="cat-name">Supplies</div></div>
+        <div class="cat-card" style="border-color:var(--purple);background:var(--purple-pale);" onclick="openCreateEvent()">
+            <div class="cat-icon">📅</div><div class="cat-name">Event</div>
             <div style="font-size:8px;color:var(--purple);font-weight:700;margin-top:2px;">EXPLORER+</div>
         </div>
+        <div class="cat-card" style="border-color:var(--blue);background:var(--blue-pale);" onclick="openTripModal()">
+            <div class="cat-icon">🗺️</div><div class="cat-name">Trip</div>
+        </div>
     </div>
 
-    <div class="card">
-        <div class="card-hd">
-            <div class="card-title">📝 Your Recent Logs</div>
-            <a class="card-link" href="#">View All →</a>
+
+    <!-- ═══ SEARCH & FILTER ═══ -->
+    <div class="search-bar">
+        <span style="font-size:16px;color:var(--grey-400);">🔍</span>
+        <input type="text" placeholder="Search nearby places..." id="search-input" oninput="filterLogs()">
+        <span style="font-size:10px;color:var(--text-muted);white-space:nowrap;">within 50 km</span>
+    </div>
+    <div class="filter-pills">
+        <button class="filter-pill active" data-cat="all" onclick="setFilter(this)">All</button>
+        <button class="filter-pill" data-cat="stay" onclick="setFilter(this)">🏕️ Stay</button>
+        <button class="filter-pill" data-cat="fuel" onclick="setFilter(this)">⛽ Fuel</button>
+        <button class="filter-pill" data-cat="eat" onclick="setFilter(this)">🍽️ Eat</button>
+        <button class="filter-pill" data-cat="workshop" onclick="setFilter(this)">🔧 Workshop</button>
+        <button class="filter-pill" data-cat="hazard" onclick="setFilter(this)">⚠️ Hazard</button>
+        <button class="filter-pill" data-cat="highlight" onclick="setFilter(this)">⭐ Highlight</button>
+        <button class="filter-pill" data-cat="supplies" onclick="setFilter(this)">🛒 Supplies</button>
+        <button class="filter-pill" data-cat="event" onclick="setFilter(this)">📅 Events</button>
+        <button class="filter-pill" data-cat="trip" onclick="setFilter(this)">🗺️ Trips</button>
+    </div>
+
+
+    <!-- ═══ TWO COLUMN LAYOUT ═══ -->
+    <div class="grid-2">
+        <div>
+            <!-- ═══ NEARBY COMMUNITY LOGS ═══ -->
+            <div class="card">
+                <div class="card-hd">
+                    <div class="card-title">🌍 Nearby Community Logs</div>
+                    <span style="font-size:10px;color:var(--text-muted);">Within 50 km · 34 places</span>
+                </div>
+
+                <!-- Feed 1 -->
+                <div class="feed-item" data-cat="eat">
+                    <div class="feed-header">
+                        <div class="feed-avatar" style="background:#5C6BC0;">🦁</div>
+                        <span class="feed-user">WildMeadow234</span>
+                        <span class="feed-verified">✓ GPS verified</span>
+                        <span class="feed-time">3 hours ago</span>
+                    </div>
+                    <div class="feed-place">
+                        <div class="feed-place-icon" style="background:var(--orange);">🍽️</div>
+                        <div class="feed-place-info">
+                            <div class="feed-place-name">Kaikoura Seafood BBQ</div>
+                            <div class="feed-place-desc">"Best crayfish in town. Cash only. The guy at the roadside stall near the seal colony. $25 for a half cray."</div>
+                            <div class="feed-place-meta">
+                                <span class="feed-tag" style="background:var(--green-pale);color:var(--green);">👍 Good</span>
+                                <span class="feed-tag" style="background:var(--grey-100);color:var(--grey-600);">📍 2.4 km</span>
+                                <span class="feed-tag" style="background:var(--orange-pale);color:#b45309;">💰 $25</span>
+                            </div>
+                            <div class="feed-actions">
+                                <span class="feed-action" onclick="this.textContent='👍 Helpful (4)';this.style.color='var(--green)'">👍 Helpful (3)</span>
+                                <span class="feed-action">📍 Navigate</span>
+                                <span class="feed-action">💬 Comment</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed 2 -->
+                <div class="feed-item" data-cat="hazard">
+                    <div class="feed-header">
+                        <div class="feed-avatar" style="background:#26A69A;">🐨</div>
+                        <span class="feed-user">KindValley891</span>
+                        <span class="feed-time">5 hours ago</span>
+                    </div>
+                    <div class="feed-place">
+                        <div class="feed-place-icon" style="background:var(--red);">⚠️</div>
+                        <div class="feed-place-info">
+                            <div class="feed-place-name">Slip on SH1 South of Kaikoura</div>
+                            <div class="feed-place-desc">"Rock fall on the coast road. Single lane, stop/go. About 15 min delay. Should be cleared by end of day."</div>
+                            <div class="feed-place-meta">
+                                <span class="feed-tag" style="background:var(--red-pale);color:var(--red);">🔴 Active hazard</span>
+                                <span class="feed-tag" style="background:var(--grey-100);color:var(--grey-600);">📍 8.1 km</span>
+                            </div>
+                            <div class="feed-actions">
+                                <span class="feed-action" onclick="this.textContent='👍 Helpful (7)';this.style.color='var(--green)'">👍 Helpful (6)</span>
+                                <span class="feed-action">⚠️ Still there</span>
+                                <span class="feed-action">✅ Cleared</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed 3 -->
+                <div class="feed-item" data-cat="stay">
+                    <div class="feed-header">
+                        <div class="feed-avatar" style="background:#8D6E63;">🏔️</div>
+                        <span class="feed-user">BraveMountain156</span>
+                        <span class="feed-verified">✓ GPS verified</span>
+                        <span class="feed-time">Yesterday</span>
+                    </div>
+                    <div class="feed-place">
+                        <div class="feed-place-icon" style="background:var(--green);">🏕️</div>
+                        <div class="feed-place-info">
+                            <div class="feed-place-name">Goose Bay Freedom Camp</div>
+                            <div class="feed-place-desc">"Flat gravel spots right by the ocean. Toilet but no water. Great for self-contained vans and bikepacking. Gets busy in summer — arrive before 3pm."</div>
+                            <div class="feed-place-meta">
+                                <span class="feed-tag" style="background:var(--green-pale);color:var(--green);">👍 Good</span>
+                                <span class="feed-tag" style="background:var(--grey-100);color:var(--grey-600);">📍 14 km</span>
+                                <span class="feed-tag" style="background:var(--teal-pale);color:var(--teal);">🚻 Toilet</span>
+                                <span class="feed-tag" style="background:var(--orange-pale);color:#b45309;">Free</span>
+                            </div>
+                            <div class="feed-photos">
+                                <img class="feed-photo" src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=128&h=128&fit=crop" alt="">
+                                <img class="feed-photo" src="https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=128&h=128&fit=crop" alt="">
+                            </div>
+                            <div class="feed-actions">
+                                <span class="feed-action" onclick="this.textContent='👍 Helpful (10)';this.style.color='var(--green)'">👍 Helpful (9)</span>
+                                <span class="feed-action">📍 Navigate</span>
+                                <span class="feed-action">💬 Comment (2)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed 4 -->
+                <div class="feed-item" data-cat="fuel">
+                    <div class="feed-header">
+                        <div class="feed-avatar" style="background:#E91E63;">🦋</div>
+                        <span class="feed-user">QuietRoad777</span>
+                        <span class="feed-verified">✓ GPS verified</span>
+                        <span class="feed-time">Yesterday</span>
+                    </div>
+                    <div class="feed-place">
+                        <div class="feed-place-icon" style="background:var(--blue);">⛽</div>
+                        <div class="feed-place-info">
+                            <div class="feed-place-name">Kaikoura Caltex</div>
+                            <div class="feed-place-desc">"Open 6am-10pm. 91 and 95. Card and cash. Air pump round the side."</div>
+                            <div class="feed-place-meta">
+                                <span class="feed-tag" style="background:var(--green-pale);color:var(--green);">👍 Good</span>
+                                <span class="feed-tag" style="background:var(--grey-100);color:var(--grey-600);">📍 1.2 km</span>
+                                <span class="feed-tag" style="background:var(--orange-pale);color:#b45309;">91: $2.89/L</span>
+                            </div>
+                            <div class="feed-actions">
+                                <span class="feed-action">👍 Helpful (4)</span>
+                                <span class="feed-action">📍 Navigate</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed 5 -->
+                <div class="feed-item" data-cat="workshop">
+                    <div class="feed-header">
+                        <div class="feed-avatar" style="background:#FF7043;">🦊</div>
+                        <span class="feed-user">SteadyTrack302</span>
+                        <span class="feed-time">2 days ago</span>
+                    </div>
+                    <div class="feed-place">
+                        <div class="feed-place-icon" style="background:var(--grey-600);">🔧</div>
+                        <div class="feed-place-info">
+                            <div class="feed-place-name">Kaikoura Motorcycle Services</div>
+                            <div class="feed-place-desc">"Dave sorted my chain and sprocket in a couple of hours. Knows BMWs and KTMs. Fair pricing. Ring ahead."</div>
+                            <div class="feed-place-meta">
+                                <span class="feed-tag" style="background:var(--green-pale);color:var(--green);">👍 Good</span>
+                                <span class="feed-tag" style="background:var(--grey-100);color:var(--grey-600);">📍 3.8 km</span>
+                                <span class="feed-tag" style="background:var(--blue-pale);color:var(--blue);">🏍️ Motorcycles</span>
+                            </div>
+                            <div class="feed-actions">
+                                <span class="feed-action" onclick="this.textContent='👍 Helpful (6)';this.style.color='var(--green)'">👍 Helpful (5)</span>
+                                <span class="feed-action">📍 Navigate</span>
+                                <span class="feed-action">💬 Comment (1)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed 6 -->
+                <div class="feed-item" data-cat="highlight">
+                    <div class="feed-header">
+                        <div class="feed-avatar" style="background:#7B1FA2;">🌊</div>
+                        <span class="feed-user">CoastalDrift445</span>
+                        <span class="feed-verified">✓ GPS verified</span>
+                        <span class="feed-time">3 days ago</span>
+                    </div>
+                    <div class="feed-place">
+                        <div class="feed-place-icon" style="background:var(--orange);">⭐</div>
+                        <div class="feed-place-info">
+                            <div class="feed-place-name">Ohau Point Seal Colony Lookout</div>
+                            <div class="feed-place-desc">"Hundreds of seals on the rocks below. Free to stop, 5 min walk from the car park. Best in morning light."</div>
+                            <div class="feed-place-meta">
+                                <span class="feed-tag" style="background:var(--green-pale);color:var(--green);">👍 Good</span>
+                                <span class="feed-tag" style="background:var(--grey-100);color:var(--grey-600);">📍 22 km</span>
+                                <span class="feed-tag" style="background:var(--orange-pale);color:#b45309;">Free</span>
+                            </div>
+                            <div class="feed-photos">
+                                <img class="feed-photo" src="https://images.unsplash.com/photo-1580289631012-65bfe7c6e2a0?w=128&h=128&fit=crop" alt="">
+                            </div>
+                            <div class="feed-actions">
+                                <span class="feed-action">👍 Helpful (12)</span>
+                                <span class="feed-action">📍 Navigate</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align:center;padding:10px 18px 14px;">
+                    <a href="#" style="font-size:11px;color:var(--blue);font-weight:600;text-decoration:none;">Load more nearby places ↓</a>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="list-item">
-                <div class="list-icon" style="background: var(--orange);">🍽️</div>
-                <div class="list-info">
-                    <div class="list-title">The Roast House</div>
-                    <div class="list-meta">Eat · Geraldine · "Great coffee and huge portions"</div>
+
+        <div>
+            <!-- ═══ YOUR RECENT LOGS ═══ -->
+            <div class="card">
+                <div class="card-hd">
+                    <div class="card-title">📝 Your Recent Logs</div>
+                    <a class="card-link" href="#">View All 23 →</a>
                 </div>
-                <div class="list-right">
-                    <div style="font-size:11px; color:var(--text-muted);">Yesterday</div>
+                <div class="list-item" data-cat="eat">
+                    <div class="list-icon" style="background:var(--orange);">🍽️</div>
+                    <div class="list-info">
+                        <div class="list-title">The Roast House</div>
+                        <div class="list-meta">Eat · Geraldine · "Great coffee and huge portions"</div>
+                        <div class="list-rating">⭐⭐⭐⭐⭐ · 👍 Good</div>
+                    </div>
+                    <div class="list-right"><div style="font-size:10px;color:var(--text-muted);">Yesterday</div></div>
+                </div>
+                <div class="list-item" data-cat="stay">
+                    <div class="list-icon" style="background:var(--green);">🏕️</div>
+                    <div class="list-info">
+                        <div class="list-title">Lake Tekapo Freedom Camp</div>
+                        <div class="list-meta">Stay · Tekapo · "Flat ground, amazing stars, no facilities"</div>
+                        <div class="list-rating">⭐⭐⭐⭐ · 👍 Good</div>
+                    </div>
+                    <div class="list-right"><div style="font-size:10px;color:var(--text-muted);">2 days ago</div></div>
+                </div>
+                <div class="list-item" data-cat="hazard">
+                    <div class="list-icon" style="background:var(--red);">⚠️</div>
+                    <div class="list-info">
+                        <div class="list-title">Gravel on SH73 Corner</div>
+                        <div class="list-meta">Hazard · Arthur's Pass · "Loose gravel on sharp bend"</div>
+                    </div>
+                    <div class="list-right"><div style="font-size:10px;color:var(--text-muted);">4 days ago</div></div>
+                </div>
+                <div class="list-item" data-cat="fuel">
+                    <div class="list-icon" style="background:var(--blue);">⛽</div>
+                    <div class="list-info">
+                        <div class="list-title">Haast Z Station</div>
+                        <div class="list-meta">Fuel · Haast · "Last fuel before Fox Glacier. 7am-7pm"</div>
+                        <div class="list-rating">⭐⭐⭐ · 👌 OK</div>
+                    </div>
+                    <div class="list-right"><div style="font-size:10px;color:var(--text-muted);">1 week ago</div></div>
+                </div>
+                <div class="list-item" data-cat="highlight">
+                    <div class="list-icon" style="background:var(--orange);">⭐</div>
+                    <div class="list-info">
+                        <div class="list-title">Castle Hill Boulders</div>
+                        <div class="list-meta">Highlight · Canterbury · "Alien landscape, must stop"</div>
+                        <div class="list-rating">⭐⭐⭐⭐⭐ · 👍 Good</div>
+                    </div>
+                    <div class="list-right"><div style="font-size:10px;color:var(--text-muted);">1 week ago</div></div>
                 </div>
             </div>
-            <div class="list-item">
-                <div class="list-icon" style="background: var(--green);">🏕️</div>
-                <div class="list-info">
-                    <div class="list-title">Lake Tekapo Freedom Camp</div>
-                    <div class="list-meta">Stay · Tekapo · "Flat ground, amazing stars, no facilities"</div>
+
+            <!-- ═══ NEARBY MAP ═══ -->
+            <div class="card" style="margin-top:18px;">
+                <div class="card-hd">
+                    <div class="card-title">🗺️ Nearby Logged Places</div>
+                    <a class="card-link" href="#">Full Screen →</a>
                 </div>
-                <div class="list-right">
-                    <div style="font-size:11px; color:var(--text-muted);">2 days ago</div>
-                </div>
+                <svg viewBox="0 0 500 240" width="100%" height="240" style="display:block;">
+                    <defs>
+                        <pattern id="grid2" width="25" height="25" patternUnits="userSpaceOnUse">
+                            <path d="M 25 0 L 0 0 0 25" fill="none" stroke="rgba(31,71,136,0.06)" stroke-width="0.5"/>
+                        </pattern>
+                    </defs>
+                    <rect width="500" height="240" fill="url(#grid2)"/>
+                    <!-- Coast line -->
+                    <path d="M0,100 Q80,90 150,95 Q220,100 300,85 Q380,70 450,80 L500,75" fill="none" stroke="rgba(31,71,136,0.15)" stroke-width="2"/>
+                    <text x="420" y="60" font-size="8" fill="rgba(31,71,136,0.2)" font-weight="600">Pacific Ocean</text>
+                    <!-- SH1 road -->
+                    <path d="M50,140 Q150,120 250,130 Q350,140 450,125" fill="none" stroke="var(--grey-300)" stroke-width="2" stroke-dasharray="4,2"/>
+                    <text x="240" y="148" text-anchor="middle" font-size="7" fill="var(--grey-400)">SH1</text>
+
+                    <!-- You are here -->
+                    <circle cx="250" cy="120" r="8" fill="var(--blue)" stroke="white" stroke-width="2"/>
+                    <circle cx="250" cy="120" r="14" fill="none" stroke="var(--blue)" stroke-width="1" opacity="0.3">
+                        <animate attributeName="r" values="10;18;10" dur="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <text x="250" y="108" text-anchor="middle" font-size="8" fill="var(--blue)" font-weight="700">📍 You</text>
+
+                    <!-- Nearby places -->
+                    <circle cx="280" cy="105" r="5" fill="var(--orange)" stroke="white" stroke-width="1.5"/>
+                    <text x="290" y="100" font-size="7" fill="var(--orange)" font-weight="600">🍽️ Seafood BBQ</text>
+
+                    <circle cx="220" cy="95" r="5" fill="var(--blue)" stroke="white" stroke-width="1.5"/>
+                    <text x="215" y="88" font-size="7" fill="var(--blue)" font-weight="600" text-anchor="end">⛽ Caltex</text>
+
+                    <circle cx="310" cy="115" r="5" fill="var(--grey-600)" stroke="white" stroke-width="1.5"/>
+                    <text x="320" y="112" font-size="7" fill="var(--grey-600)" font-weight="600">🔧 Moto Services</text>
+
+                    <circle cx="180" cy="130" r="5" fill="var(--green)" stroke="white" stroke-width="1.5"/>
+                    <text x="175" y="143" font-size="7" fill="var(--green)" font-weight="600" text-anchor="end">🏕️ Goose Bay</text>
+
+                    <polygon points="195,118 198,124 192,124" fill="var(--red)" stroke="white" stroke-width="1"/>
+                    <text x="200" y="120" font-size="7" fill="var(--red)" font-weight="600">⚠️ Slip</text>
+
+                    <circle cx="140" cy="110" r="5" fill="var(--orange)" stroke="white" stroke-width="1.5"/>
+                    <text x="130" y="105" font-size="7" fill="var(--orange)" font-weight="600" text-anchor="end">⭐ Seal Colony</text>
+
+                    <!-- Legend -->
+                    <rect x="10" y="205" width="480" height="28" rx="6" fill="white" opacity="0.85"/>
+                    <text x="20" y="223" font-size="8" fill="var(--text-muted)">🏕️ Stay   ⛽ Fuel   🍽️ Eat   🔧 Workshop   ⚠️ Hazard   ⭐ Highlight   🛒 Supplies   📍 You</text>
+                </svg>
             </div>
-            <div class="list-item">
-                <div class="list-icon" style="background: var(--red);">⚠️</div>
-                <div class="list-info">
-                    <div class="list-title">Gravel on SH73 Corner</div>
-                    <div class="list-meta">Hazard · Arthur's Pass · "Loose gravel on sharp bend near Otira"</div>
-                </div>
-                <div class="list-right">
-                    <div style="font-size:11px; color:var(--text-muted);">4 days ago</div>
-                </div>
-            </div>
-            <div class="list-item">
-                <div class="list-icon" style="background: var(--blue);">⛽</div>
-                <div class="list-info">
-                    <div class="list-title">Haast Z Station</div>
-                    <div class="list-meta">Fuel · Haast · "Last fuel before Fox Glacier. Open 7am-7pm"</div>
-                </div>
-                <div class="list-right">
-                    <div style="font-size:11px; color:var(--text-muted);">1 week ago</div>
+
+            <!-- ═══ LOG STATS ═══ -->
+            <div class="card" style="margin-top:18px;">
+                <div class="card-hd"><div class="card-title">📊 Your Logging Stats</div></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 18px;">
+                    <div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--blue);">23</div><div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Places logged</div></div>
+                    <div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--green);">47</div><div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Helpful votes</div></div>
+                    <div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--orange);">12</div><div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">GPS verified</div></div>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- ═══ NEARBY EVENTS ═══ -->
-    <div id="events-section">
+    <div id="events-section" class="filterable-section" data-cat="event" style="margin-top:24px;">
+        <div class="section-head">📅 Nearby Events</div>
         <div class="card" style="overflow:visible;">
-            <div class="card-hd">
-                <div class="card-title">📅 Nearby Events</div>
-                <a class="card-link" href="#">View All →</a>
+
+            <!-- Event 1 -->
+            <div class="list-item" style="align-items:flex-start;padding:14px 18px;" onclick="openEventDetail('bbq')">
+                <div style="min-width:46px;text-align:center;">
+                    <div style="background:var(--green);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">SAT</div>
+                    <div style="font-size:20px;font-weight:800;margin-top:2px;">15</div>
+                    <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
+                </div>
+                <div class="list-info">
+                    <div class="list-title">🍖 Community BBQ — Kaikoura</div>
+                    <div class="list-meta" style="margin-top:3px;">📍 Kaikoura Peninsula Lookout · 3:00 PM</div>
+                    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;font-size:10px;">
+                        <span style="font-weight:600;color:var(--green);">✅ 12 going</span>
+                        <span style="color:var(--text-muted);">🤔 2 maybe</span>
+                        <span style="color:var(--text-muted);">💬 5</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
+                        <div style="width:18px;height:18px;border-radius:50%;background:#8D6E63;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🏔️</div>
+                        <span style="font-size:10px;color:var(--text-mid);">BraveMountain156</span>
+                        <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
+                    </div>
+                </div>
+                <div style="text-align:right;min-width:50px;">
+                    <div style="font-size:10px;color:var(--text-muted);font-weight:600;">12 km</div>
+                    <div style="margin-top:6px;padding:3px 8px;background:var(--green-pale);border-radius:8px;font-size:9px;font-weight:700;color:var(--green);">✅ Going</div>
+                </div>
             </div>
-            <div class="card-body" style="padding:0;">
 
-                <!-- Create Event button (Explorer+ only) -->
-                <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
-                    <button onclick="alert('Create Event form — Explorer+ feature')" style="width:100%;padding:10px;border:2px dashed var(--purple);border-radius:var(--radius-sm);background:var(--purple-pale);color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
-                        ＋ Create Event <span style="font-size:9px;background:var(--purple);color:white;padding:1px 6px;border-radius:6px;">EXPLORER+</span>
-                    </button>
+            <!-- Event 2 -->
+            <div class="list-item" style="align-items:flex-start;padding:14px 18px;border-top:1px solid var(--border);" onclick="openEventDetail('ride')">
+                <div style="min-width:46px;text-align:center;">
+                    <div style="background:var(--blue);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">SUN</div>
+                    <div style="font-size:20px;font-weight:800;margin-top:2px;">16</div>
+                    <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
                 </div>
-
-                <!-- Event 1: BBQ (matches messages page) -->
-                <div class="list-item" style="align-items:flex-start;padding:14px 16px;cursor:pointer;" onclick="alert('Open event detail: Community BBQ')">
-                    <div style="min-width:46px;text-align:center;">
-                        <div style="background:var(--green);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">SAT</div>
-                        <div style="font-size:20px;font-weight:800;margin-top:2px;">15</div>
-                        <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
+                <div class="list-info">
+                    <div class="list-title">🏍️ Molesworth Station Ride</div>
+                    <div class="list-meta" style="margin-top:3px;">📍 Blenheim i-SITE · 8:00 AM · Full day</div>
+                    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;font-size:10px;">
+                        <span style="font-weight:600;color:var(--green);">✅ 7 going</span>
+                        <span style="color:var(--text-muted);">🤔 4 maybe</span>
+                        <span style="color:var(--text-muted);">💬 12</span>
                     </div>
-                    <div class="list-info" style="min-width:0;flex:1;">
-                        <div class="list-title" style="display:flex;align-items:center;gap:6px;">
-                            🍖 Community BBQ — Kaikoura
-                        </div>
-                        <div class="list-meta" style="margin-top:3px;">📍 Kaikoura Peninsula Lookout · 3:00 PM</div>
-                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
-                            <span style="font-size:10px;font-weight:600;color:var(--green);">✅ 12 going</span>
-                            <span style="font-size:10px;color:var(--text-muted);">🤔 2 maybe</span>
-                            <span style="font-size:10px;color:var(--text-muted);">💬 5</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
-                            <div style="width:18px;height:18px;border-radius:50%;background:#8D6E63;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🏔️</div>
-                            <span style="font-size:10px;color:var(--text-mid);">BraveMountain156</span>
-                            <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
-                        </div>
-                    </div>
-                    <div style="text-align:right;min-width:50px;">
-                        <div style="font-size:10px;color:var(--text-muted);font-weight:600;">12 km</div>
-                        <div style="margin-top:6px;padding:3px 8px;background:var(--green-pale);border-radius:8px;font-size:9px;font-weight:700;color:var(--green);">✅ Going</div>
+                    <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
+                        <div style="width:18px;height:18px;border-radius:50%;background:#5C6BC0;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🦁</div>
+                        <span style="font-size:10px;color:var(--text-mid);">WildMeadow234</span>
+                        <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
                     </div>
                 </div>
+                <div style="text-align:right;min-width:50px;">
+                    <div style="font-size:10px;color:var(--text-muted);font-weight:600;">48 km</div>
+                    <button onclick="event.stopPropagation();this.textContent='✅ Going';this.style.background='var(--green-pale)';this.style.color='var(--green)';this.style.borderColor='var(--green)'" style="margin-top:6px;padding:3px 8px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-size:9px;font-weight:700;color:var(--text-mid);cursor:pointer;">RSVP</button>
+                </div>
+            </div>
 
-                <!-- Event 2: Group Ride -->
-                <div class="list-item" style="align-items:flex-start;padding:14px 16px;cursor:pointer;border-top:1px solid var(--border);" onclick="alert('Open event detail: Group Ride')">
-                    <div style="min-width:46px;text-align:center;">
-                        <div style="background:var(--blue);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">SUN</div>
-                        <div style="font-size:20px;font-weight:800;margin-top:2px;">16</div>
-                        <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
+            <!-- Event 3 -->
+            <div class="list-item" style="align-items:flex-start;padding:14px 18px;border-top:1px solid var(--border);" onclick="openEventDetail('safety')">
+                <div style="min-width:46px;text-align:center;">
+                    <div style="background:var(--orange);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">THU</div>
+                    <div style="font-size:20px;font-weight:800;margin-top:2px;">20</div>
+                    <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
+                </div>
+                <div class="list-info">
+                    <div class="list-title">🛡️ Te Araroa Trail Safety Briefing</div>
+                    <div class="list-meta" style="margin-top:3px;">📍 Kaikoura DOC Office · 5:30 PM</div>
+                    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;font-size:10px;">
+                        <span style="font-weight:600;color:var(--green);">✅ 4 going</span>
+                        <span style="color:var(--text-muted);">🤔 8 maybe</span>
+                        <span style="color:var(--text-muted);">💬 2</span>
                     </div>
-                    <div class="list-info" style="min-width:0;flex:1;">
-                        <div class="list-title" style="display:flex;align-items:center;gap:6px;">
-                            🏍️ Molesworth Station Ride
-                        </div>
-                        <div class="list-meta" style="margin-top:3px;">📍 Blenheim i-SITE, start 8:00 AM · Full day</div>
-                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
-                            <span style="font-size:10px;font-weight:600;color:var(--green);">✅ 7 going</span>
-                            <span style="font-size:10px;color:var(--text-muted);">🤔 4 maybe</span>
-                            <span style="font-size:10px;color:var(--text-muted);">💬 12</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
-                            <div style="width:18px;height:18px;border-radius:50%;background:#5C6BC0;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🦁</div>
-                            <span style="font-size:10px;color:var(--text-mid);">WildMeadow234</span>
-                            <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
-                        </div>
-                    </div>
-                    <div style="text-align:right;min-width:50px;">
-                        <div style="font-size:10px;color:var(--text-muted);font-weight:600;">48 km</div>
-                        <button onclick="event.stopPropagation();this.textContent='✅ Going';this.style.background='var(--green-pale)';this.style.color='var(--green)';this.style.borderColor='var(--green)'" style="margin-top:6px;padding:3px 8px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-size:9px;font-weight:700;color:var(--text-mid);cursor:pointer;">RSVP</button>
+                    <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
+                        <div style="width:18px;height:18px;border-radius:50%;background:#26A69A;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🐨</div>
+                        <span style="font-size:10px;color:var(--text-mid);">KindValley891</span>
+                        <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
                     </div>
                 </div>
-
-                <!-- Event 3: Safety Briefing -->
-                <div class="list-item" style="align-items:flex-start;padding:14px 16px;cursor:pointer;border-top:1px solid var(--border);" onclick="alert('Open event detail: Safety Briefing')">
-                    <div style="min-width:46px;text-align:center;">
-                        <div style="background:var(--orange);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">THU</div>
-                        <div style="font-size:20px;font-weight:800;margin-top:2px;">20</div>
-                        <div style="font-size:9px;color:var(--text-muted);font-weight:600;">FEB</div>
-                    </div>
-                    <div class="list-info" style="min-width:0;flex:1;">
-                        <div class="list-title" style="display:flex;align-items:center;gap:6px;">
-                            🛡️ Te Araroa Trail Safety Briefing
-                        </div>
-                        <div class="list-meta" style="margin-top:3px;">📍 Kaikoura DOC Office · 5:30 PM</div>
-                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
-                            <span style="font-size:10px;font-weight:600;color:var(--green);">✅ 4 going</span>
-                            <span style="font-size:10px;color:var(--text-muted);">🤔 8 maybe</span>
-                            <span style="font-size:10px;color:var(--text-muted);">💬 2</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:4px;margin-top:6px;">
-                            <div style="width:18px;height:18px;border-radius:50%;background:#26A69A;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">🐨</div>
-                            <span style="font-size:10px;color:var(--text-mid);">KindValley891</span>
-                            <span style="font-size:8px;color:var(--orange);font-weight:700;">★ Organiser</span>
-                        </div>
-                    </div>
-                    <div style="text-align:right;min-width:50px;">
-                        <div style="font-size:10px;color:var(--text-muted);font-weight:600;">3 km</div>
-                        <button onclick="event.stopPropagation();this.textContent='✅ Going';this.style.background='var(--green-pale)';this.style.color='var(--green)';this.style.borderColor='var(--green)'" style="margin-top:6px;padding:3px 8px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-size:9px;font-weight:700;color:var(--text-mid);cursor:pointer;">RSVP</button>
-                    </div>
+                <div style="text-align:right;min-width:50px;">
+                    <div style="font-size:10px;color:var(--text-muted);font-weight:600;">3 km</div>
+                    <button onclick="event.stopPropagation();this.textContent='✅ Going';this.style.background='var(--green-pale)';this.style.color='var(--green)';this.style.borderColor='var(--green)'" style="margin-top:6px;padding:3px 8px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-size:9px;font-weight:700;color:var(--text-mid);cursor:pointer;">RSVP</button>
                 </div>
-
             </div>
         </div>
 
-        <!-- Who did you meet prompt -->
-        <div class="card" style="border:2px solid var(--purple);overflow:visible;">
-            <div class="card-body" style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <!-- Who did you meet -->
+        <div class="card" style="border:2px solid var(--purple);margin-top:18px;">
+            <div style="padding:14px 18px;display:flex;align-items:center;gap:12px;">
                 <div style="font-size:28px;">🤝</div>
                 <div style="flex:1;">
                     <div style="font-size:13px;font-weight:700;color:var(--purple);">Who did you meet?</div>
@@ -456,12 +656,687 @@
             </div>
         </div>
 
-        <div style="text-align:center;padding:8px 0 20px;">
-            <span style="font-size:10px;color:var(--text-muted);">Showing events within 50 km · Explorer+ subscribers can create events</span>
+        <div style="text-align:center;padding:8px 0 0;"><span style="font-size:10px;color:var(--text-muted);">Showing events within 50 km · Explorer+ subscribers can create events</span></div>
+    </div>
+
+
+    <!-- ═══ TRAVEL PLANS ═══ -->
+    <div id="trips-section" class="filterable-section" data-cat="trip" style="margin-top:24px;">
+        <div class="section-head">🗺️ Travel Plans</div>
+
+        <div class="card" style="overflow:visible;">
+
+            <!-- Active trip -->
+            <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--green-pale);cursor:pointer;" onclick="window.location='diary.html'">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="display:inline-flex;padding:2px 8px;background:var(--green);color:white;border-radius:8px;font-size:9px;font-weight:700;">● ACTIVE</span>
+                    <span style="font-size:13px;font-weight:700;">🏍️ South Island Loop</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-mid);margin-top:4px;">Christchurch → Queenstown → Milford → West Coast → Christchurch</div>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+                    <span style="font-size:10px;font-weight:600;color:var(--green);">Day 4 of 12</span>
+                    <span style="font-size:10px;color:var(--text-muted);">487 km ridden</span>
+                    <span style="font-size:10px;color:var(--text-muted);">3 check-ins</span>
+                </div>
+                <div style="height:4px;background:rgba(0,0,0,0.1);border-radius:2px;margin-top:8px;">
+                    <div style="height:100%;width:33%;background:var(--green);border-radius:2px;"></div>
+                </div>
+                <div style="font-size:10px;color:var(--blue);font-weight:600;margin-top:6px;">View in Diary →</div>
+            </div>
+
+            <!-- Upcoming trip 1 -->
+            <div class="list-item" style="align-items:flex-start;padding:14px 18px;" onclick="openTripDetail('araroa')">
+                <div style="min-width:46px;text-align:center;">
+                    <div style="background:var(--blue);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">MAR</div>
+                    <div style="font-size:20px;font-weight:800;margin-top:2px;">1</div>
+                </div>
+                <div class="list-info">
+                    <div class="list-title">🏔️ Te Araroa — Northern Section</div>
+                    <div class="list-meta" style="margin-top:3px;">Auckland → Taupo · Walking · 14 days</div>
+                    <div style="display:flex;gap:8px;margin-top:6px;font-size:10px;">
+                        <span style="color:var(--text-muted);">Check-in: every 12h</span>
+                        <span style="color:var(--text-muted);">🔒 Private</span>
+                    </div>
+                </div>
+                <div style="text-align:right;min-width:60px;">
+                    <span style="padding:3px 8px;background:var(--blue-pale);border-radius:8px;font-size:9px;font-weight:700;color:var(--blue);">In 15 days</span>
+                </div>
+            </div>
+
+            <!-- Upcoming trip 2 -->
+            <div class="list-item" style="align-items:flex-start;padding:14px 18px;border-top:1px solid var(--border);" onclick="openTripDetail('boi')">
+                <div style="min-width:46px;text-align:center;">
+                    <div style="background:var(--blue);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">MAR</div>
+                    <div style="font-size:20px;font-weight:800;margin-top:2px;">20</div>
+                </div>
+                <div class="list-info">
+                    <div class="list-title">⛵ Bay of Islands Sailing</div>
+                    <div class="list-meta" style="margin-top:3px;">Russell → Cape Brett → Kerikeri · 5 days</div>
+                    <div style="display:flex;gap:8px;margin-top:6px;font-size:10px;">
+                        <span style="color:var(--text-muted);">Check-in: every 24h</span>
+                        <span style="color:var(--green);font-weight:600;">🌍 Public</span>
+                        <span style="padding:1px 6px;background:var(--green-pale);border-radius:6px;color:var(--green);font-weight:700;">🚗 Ride share · 2 seats</span>
+                    </div>
+                </div>
+                <div style="text-align:right;min-width:60px;">
+                    <span style="padding:3px 8px;background:var(--blue-pale);border-radius:8px;font-size:9px;font-weight:700;color:var(--blue);">In 34 days</span>
+                </div>
+            </div>
+
+            <!-- Completed trip -->
+            <div class="list-item" style="align-items:flex-start;padding:14px 18px;border-top:1px solid var(--border);opacity:0.7;">
+                <div style="min-width:46px;text-align:center;">
+                    <div style="background:var(--green);color:white;border-radius:10px;padding:4px 0;font-size:9px;font-weight:700;text-transform:uppercase;">JAN</div>
+                    <div style="font-size:20px;font-weight:800;margin-top:2px;">15</div>
+                </div>
+                <div class="list-info">
+                    <div class="list-title">🚴 Otago Rail Trail</div>
+                    <div class="list-meta" style="margin-top:3px;">Clyde → Middlemarch · 152 km · 4 days</div>
+                </div>
+                <div style="text-align:right;min-width:60px;">
+                    <span style="padding:3px 8px;background:var(--green-pale);border-radius:8px;font-size:9px;font-weight:700;color:var(--green);">✓ Done</span>
+                </div>
+            </div>
         </div>
     </div>
 </main>
 
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- LOG A PLACE MODAL                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="log-overlay" id="log-overlay" onclick="if(event.target===this) closeLog()">
+    <div class="log-modal">
+        <div class="log-modal-hd">
+            <div class="log-modal-title">📍 Log a Place</div>
+            <button class="log-close" onclick="closeLog()">✕</button>
+        </div>
+
+        <!-- Category selection -->
+        <div class="log-cat-pills">
+            <button class="log-cat-pill" data-cat="stay" onclick="selectLogCat(this)">🏕️ Stay</button>
+            <button class="log-cat-pill" data-cat="fuel" onclick="selectLogCat(this)">⛽ Fuel</button>
+            <button class="log-cat-pill" data-cat="eat" onclick="selectLogCat(this)">🍽️ Eat</button>
+            <button class="log-cat-pill" data-cat="workshop" onclick="selectLogCat(this)">🔧 Workshop</button>
+            <button class="log-cat-pill" data-cat="hazard" onclick="selectLogCat(this)">⚠️ Hazard</button>
+            <button class="log-cat-pill" data-cat="highlight" onclick="selectLogCat(this)">⭐ Highlight</button>
+            <button class="log-cat-pill" data-cat="supplies" onclick="selectLogCat(this)">🛒 Supplies</button>
+        </div>
+
+        <!-- Common fields -->
+        <div class="log-field">
+            <label class="log-label">Place Name *</label>
+            <input class="log-input" id="log-name" type="text" placeholder="e.g. Kaikoura Seafood BBQ">
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Location</label>
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--green-pale);border-radius:var(--radius-sm);font-size:11px;color:var(--green);font-weight:600;">
+                📍 Kaikoura (-42.4008, 173.6810) — auto-detected
+                <a href="#" onclick="event.preventDefault()" style="margin-left:auto;font-size:10px;color:var(--blue);font-weight:600;">Change</a>
+            </div>
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Description *</label>
+            <textarea class="log-textarea" id="log-desc" placeholder="What should other travelers know about this place?"></textarea>
+        </div>
+
+        <!-- ═══ CATEGORY-SPECIFIC FIELDS ═══ -->
+
+        <!-- STAY fields -->
+        <div class="cat-fields" id="fields-stay">
+            <div class="log-row">
+                <div class="log-field">
+                    <label class="log-label">Type</label>
+                    <select class="log-select">
+                        <option value="">Select...</option>
+                        <option>Freedom camp</option>
+                        <option>DOC campsite</option>
+                        <option>Holiday park</option>
+                        <option>Hostel / Backpackers</option>
+                        <option>Motel / Hotel</option>
+                        <option>Airbnb / Homestay</option>
+                        <option>Friend's place</option>
+                    </select>
+                </div>
+                <div class="log-field">
+                    <label class="log-label">Price</label>
+                    <input class="log-input" type="text" placeholder="e.g. Free, $15/night">
+                </div>
+            </div>
+            <div class="log-field">
+                <label class="log-label">Facilities <span>(select all that apply)</span></label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> 🚻 Toilet</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> 🚿 Shower</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> 💧 Water</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> 🔌 Power</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> 📶 WiFi</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> 🏕️ Flat ground</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- FUEL fields -->
+        <div class="cat-fields" id="fields-fuel">
+            <div class="log-row">
+                <div class="log-field">
+                    <label class="log-label">Brand</label>
+                    <select class="log-select">
+                        <option value="">Select...</option>
+                        <option>Z Energy</option>
+                        <option>BP</option>
+                        <option>Caltex</option>
+                        <option>Mobil</option>
+                        <option>GAS</option>
+                        <option>Allied</option>
+                        <option>Waitomo</option>
+                        <option>NPD</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="log-field">
+                    <label class="log-label">91 Price ($/L)</label>
+                    <input class="log-input" type="text" placeholder="e.g. 2.89">
+                </div>
+            </div>
+            <div class="log-row">
+                <div class="log-field">
+                    <label class="log-label">Hours</label>
+                    <input class="log-input" type="text" placeholder="e.g. 6am-10pm, 24hr">
+                </div>
+                <div class="log-field">
+                    <label class="log-label">Payment</label>
+                    <select class="log-select">
+                        <option value="">Select...</option>
+                        <option>Card & Cash</option>
+                        <option>Card only</option>
+                        <option>Cash only</option>
+                        <option>Pay at pump</option>
+                    </select>
+                </div>
+            </div>
+            <div class="log-field">
+                <label class="log-label">Available <span>(select all)</span></label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> 91</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> 95</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> Diesel</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> EV Charger</label>
+                    <label style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;font-size:10px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);"> Air pump</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- EAT fields -->
+        <div class="cat-fields" id="fields-eat">
+            <div class="log-row">
+                <div class="log-field">
+                    <label class="log-label">Cuisine / Type</label>
+                    <input class="log-input" type="text" placeholder="e.g. Seafood, Café, Bakery">
+                </div>
+                <div class="log-field">
+                    <label class="log-label">Price Range</label>
+                    <select class="log-select">
+                        <option value="">Select...</option>
+                        <option>$ · Budget</option>
+                        <option>$$ · Mid-range</option>
+                        <option>$$$ · Pricey</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKSHOP fields -->
+        <div class="cat-fields" id="fields-workshop">
+            <div class="log-row">
+                <div class="log-field">
+                    <label class="log-label">Speciality</label>
+                    <select class="log-select">
+                        <option value="">Select...</option>
+                        <option>Motorcycle mechanic</option>
+                        <option>Bicycle workshop</option>
+                        <option>General automotive</option>
+                        <option>Tyre shop</option>
+                        <option>Marine / Boat</option>
+                        <option>Parts supplier</option>
+                    </select>
+                </div>
+                <div class="log-field">
+                    <label class="log-label">Vehicles Serviced</label>
+                    <input class="log-input" type="text" placeholder="e.g. BMW, KTM, Honda">
+                </div>
+            </div>
+        </div>
+
+        <!-- HAZARD fields -->
+        <div class="cat-fields" id="fields-hazard">
+            <div class="log-row">
+                <div class="log-field">
+                    <label class="log-label">Hazard Type</label>
+                    <select class="log-select">
+                        <option value="">Select...</option>
+                        <option>Road damage / Pothole</option>
+                        <option>Gravel / Loose surface</option>
+                        <option>Slip / Landslide</option>
+                        <option>Flooding</option>
+                        <option>Ice / Frost</option>
+                        <option>Fallen tree</option>
+                        <option>Wildlife on road</option>
+                        <option>Road closed</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="log-field">
+                    <label class="log-label">Severity</label>
+                    <select class="log-select">
+                        <option value="">Select...</option>
+                        <option>⚠️ Caution — passable</option>
+                        <option>🔶 Significant — slow down</option>
+                        <option>🔴 Dangerous — avoid</option>
+                    </select>
+                </div>
+            </div>
+            <div class="log-field">
+                <label class="log-label">Expected Duration</label>
+                <select class="log-select">
+                    <option value="">Select...</option>
+                    <option>Hours</option>
+                    <option>Days</option>
+                    <option>Weeks</option>
+                    <option>Ongoing / Unknown</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- HIGHLIGHT fields -->
+        <div class="cat-fields" id="fields-highlight">
+            <div class="log-field">
+                <label class="log-label">What makes it special?</label>
+                <select class="log-select">
+                    <option value="">Select...</option>
+                    <option>Scenic viewpoint</option>
+                    <option>Wildlife</option>
+                    <option>Historic site</option>
+                    <option>Swimming spot</option>
+                    <option>Photo opportunity</option>
+                    <option>Hidden gem</option>
+                    <option>Must-ride road</option>
+                    <option>Other</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- SUPPLIES fields -->
+        <div class="cat-fields" id="fields-supplies">
+            <div class="log-row">
+                <div class="log-field">
+                    <label class="log-label">Type</label>
+                    <select class="log-select">
+                        <option value="">Select...</option>
+                        <option>Supermarket</option>
+                        <option>Gear / Outdoor shop</option>
+                        <option>Pharmacy</option>
+                        <option>Hardware store</option>
+                        <option>Water refill</option>
+                        <option>Gas bottle exchange</option>
+                    </select>
+                </div>
+                <div class="log-field">
+                    <label class="log-label">Hours</label>
+                    <input class="log-input" type="text" placeholder="e.g. 8am-6pm">
+                </div>
+            </div>
+        </div>
+
+        <!-- Photos -->
+        <div class="log-field">
+            <label class="log-label">Photos <span>(max 3)</span></label>
+            <label class="log-photo-btn">
+                📷 Add Photos (max 3)
+                <input type="file" multiple accept="image/*" style="display:none;" onchange="logPhotoCount(this)">
+            </label>
+            <span id="log-photo-status" style="font-size:10px;color:var(--text-muted);margin-top:4px;display:block;"></span>
+        </div>
+
+        <!-- Rating -->
+        <div class="log-field">
+            <label class="log-label">Rating *</label>
+            <div class="log-rating">
+                <button class="log-rating-btn" onclick="setLogRating(this,'good')">
+                    <div style="font-size:18px;">👍</div>
+                    <div style="font-size:10px;font-weight:700;margin-top:2px;">Good</div>
+                </button>
+                <button class="log-rating-btn" onclick="setLogRating(this,'ok')">
+                    <div style="font-size:18px;">👌</div>
+                    <div style="font-size:10px;font-weight:700;margin-top:2px;">OK</div>
+                </button>
+                <button class="log-rating-btn" onclick="setLogRating(this,'avoid')">
+                    <div style="font-size:18px;">👎</div>
+                    <div style="font-size:10px;font-weight:700;margin-top:2px;">Avoid</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- GPS verify note -->
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--grey-50);border-radius:var(--radius-sm);margin-bottom:16px;font-size:10px;color:var(--text-muted);">
+            📡 Your GPS location will be recorded to verify this log. <a href="#" onclick="event.preventDefault()" style="color:var(--blue);">Learn more</a>
+        </div>
+
+        <button class="log-submit" onclick="submitLog()">📍 Log This Place</button>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- EVENT DETAIL MODAL                          -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="log-overlay" id="event-overlay" onclick="if(event.target===this) closeEventDetail()">
+    <div class="log-modal" style="max-width:520px;" id="event-modal-content">
+        <!-- Populated by JS -->
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CREATE TRAVEL PLAN MODAL                    -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="log-overlay" id="trip-overlay" onclick="if(event.target===this) closeTripModal()">
+    <div class="log-modal" style="max-width:500px;">
+        <div class="log-modal-hd">
+            <div class="log-modal-title">🗺️ Create Travel Plan</div>
+            <button class="log-close" onclick="closeTripModal()">✕</button>
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Trip Title *</label>
+            <input class="log-input" id="trip-title" type="text" placeholder="e.g. South Island Loop, Te Araroa Section 3">
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Travel Mode</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="log-cat-pill active" data-mode="motorcycle" onclick="selectTripMode(this)">🏍️ Ride</button>
+                <button class="log-cat-pill" data-mode="bicycle" onclick="selectTripMode(this)">🚴 Cycle</button>
+                <button class="log-cat-pill" data-mode="walk" onclick="selectTripMode(this)">🥾 Walk</button>
+                <button class="log-cat-pill" data-mode="drive" onclick="selectTripMode(this)">🚗 Drive</button>
+                <button class="log-cat-pill" data-mode="sail" onclick="selectTripMode(this)">⛵ Sail</button>
+            </div>
+        </div>
+
+        <div class="log-row">
+            <div class="log-field">
+                <label class="log-label">Start Location *</label>
+                <input class="log-input" id="trip-start" type="text" placeholder="e.g. Christchurch">
+            </div>
+            <div class="log-field">
+                <label class="log-label">End Location *</label>
+                <input class="log-input" id="trip-end" type="text" placeholder="e.g. Queenstown">
+            </div>
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Route / Waypoints <span>(optional)</span></label>
+            <input class="log-input" type="text" placeholder="e.g. Geraldine → Tekapo → Twizel → Wanaka">
+        </div>
+
+        <div class="log-row">
+            <div class="log-field">
+                <label class="log-label">Start Date *</label>
+                <input class="log-input" id="trip-start-date" type="date">
+            </div>
+            <div class="log-field">
+                <label class="log-label">End Date *</label>
+                <input class="log-input" id="trip-end-date" type="date">
+            </div>
+        </div>
+
+        <div class="log-row">
+            <div class="log-field">
+                <label class="log-label">Check-in Interval</label>
+                <select class="log-select" id="trip-checkin">
+                    <option value="6">Every 6 hours</option>
+                    <option value="12">Every 12 hours</option>
+                    <option value="24" selected>Every 24 hours</option>
+                    <option value="48">Every 48 hours</option>
+                </select>
+            </div>
+            <div class="log-field">
+                <label class="log-label">Visibility</label>
+                <select class="log-select" id="trip-visibility">
+                    <option value="private">🔒 Private — only me & emergency contacts</option>
+                    <option value="friends">👥 Friends — friends can see my route</option>
+                    <option value="public">🌍 Public — visible to nearby travellers</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Rideshare -->
+        <div style="padding:12px;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:14px;transition:border-color 0.2s;" id="rideshare-section">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:16px;">🚗</span>
+                    <div>
+                        <div style="font-size:12px;font-weight:700;">Accept Ride Requests</div>
+                        <div style="font-size:10px;color:var(--text-muted);">Let others request to join your trip</div>
+                    </div>
+                </div>
+                <label style="position:relative;display:inline-block;width:40px;height:22px;">
+                    <input type="checkbox" id="trip-rideshare" onchange="toggleRideshare()" style="opacity:0;width:0;height:0;">
+                    <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--grey-300);border-radius:22px;transition:0.2s;" id="rideshare-toggle"></span>
+                    <span style="position:absolute;content:'';height:18px;width:18px;left:2px;bottom:2px;background:white;border-radius:50%;transition:0.2s;" id="rideshare-knob"></span>
+                </label>
+            </div>
+            <div id="rideshare-fields" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--grey-100);">
+                <div class="log-row">
+                    <div class="log-field" style="margin-bottom:0;">
+                        <label class="log-label">Seats Available</label>
+                        <select class="log-select" id="trip-seats">
+                            <option value="0">N/A (motorcycle/bicycle)</option>
+                            <option value="1">1 seat</option>
+                            <option value="2">2 seats</option>
+                            <option value="3">3 seats</option>
+                            <option value="4">4+ seats</option>
+                        </select>
+                    </div>
+                    <div class="log-field" style="margin-bottom:0;">
+                        <label class="log-label">Luggage Space</label>
+                        <select class="log-select" id="trip-luggage">
+                            <option value="none">None</option>
+                            <option value="small">Small bag only</option>
+                            <option value="medium">Backpack OK</option>
+                            <option value="large">Full luggage</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="log-field" style="margin-top:10px;margin-bottom:0;">
+                    <label class="log-label">Ride share note <span>(optional)</span></label>
+                    <input class="log-input" type="text" placeholder="e.g. Happy to detour slightly, fuel contribution appreciated">
+                </div>
+            </div>
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Description <span>(optional)</span></label>
+            <textarea class="log-textarea" placeholder="Any notes about your trip..."></textarea>
+        </div>
+
+        <!-- Emergency contacts note -->
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--orange-pale);border-radius:var(--radius-sm);margin-bottom:14px;">
+            <span style="font-size:16px;">⚠️</span>
+            <div style="font-size:10px;color:#92400e;">
+                <strong>Missed check-in alerts:</strong> If you miss a check-in, your emergency contacts will be notified after 2 consecutive misses. <a href="emergency.html" style="color:var(--blue);">Manage contacts →</a>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+            <button onclick="submitTrip()" class="log-submit" style="flex:1;">🗺️ Create Plan</button>
+            <button onclick="submitTrip('start')" style="flex:1;padding:12px;background:var(--green);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🚀 Create & Start Now</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- TRIP DETAIL MODAL                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="log-overlay" id="trip-detail-overlay" onclick="if(event.target===this) closeTripDetail()">
+    <div class="log-modal" style="max-width:520px;" id="trip-detail-content"></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CREATE EVENT MODAL                          -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="log-overlay" id="event-create-overlay" onclick="if(event.target===this) closeCreateEvent()">
+    <div class="log-modal" style="max-width:500px;">
+        <div class="log-modal-hd">
+            <div class="log-modal-title">📅 Create Event</div>
+            <button class="log-close" onclick="closeCreateEvent()">✕</button>
+        </div>
+
+        <!-- Explorer+ badge -->
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--purple-pale);border-radius:var(--radius-sm);margin-bottom:14px;font-size:10px;color:var(--purple);font-weight:600;">
+            ⭐ Explorer+ feature — included in your subscription
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Event Type</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="log-cat-pill active" data-etype="social" onclick="selectEventType(this)">🍖 Social / BBQ</button>
+                <button class="log-cat-pill" data-etype="ride" onclick="selectEventType(this)">🏍️ Group Ride</button>
+                <button class="log-cat-pill" data-etype="hike" onclick="selectEventType(this)">🥾 Group Hike</button>
+                <button class="log-cat-pill" data-etype="safety" onclick="selectEventType(this)">🛡️ Safety Briefing</button>
+                <button class="log-cat-pill" data-etype="workshop" onclick="selectEventType(this)">🔧 Workshop</button>
+                <button class="log-cat-pill" data-etype="other" onclick="selectEventType(this)">📌 Other</button>
+            </div>
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Event Title *</label>
+            <input class="log-input" id="event-title" type="text" placeholder="e.g. Community BBQ — Kaikoura">
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Location *</label>
+            <input class="log-input" id="event-location" type="text" placeholder="e.g. Kaikoura Peninsula Lookout">
+        </div>
+
+        <div class="log-row">
+            <div class="log-field">
+                <label class="log-label">Date *</label>
+                <input class="log-input" id="event-date" type="date">
+            </div>
+            <div class="log-field">
+                <label class="log-label">Time *</label>
+                <input class="log-input" id="event-time" type="time" value="15:00">
+            </div>
+        </div>
+
+        <div class="log-row">
+            <div class="log-field">
+                <label class="log-label">Duration</label>
+                <select class="log-select">
+                    <option>1 hour</option>
+                    <option>2 hours</option>
+                    <option selected>3-4 hours</option>
+                    <option>Half day</option>
+                    <option>Full day</option>
+                    <option>Multi-day</option>
+                </select>
+            </div>
+            <div class="log-field">
+                <label class="log-label">Max Attendees</label>
+                <select class="log-select">
+                    <option value="">No limit</option>
+                    <option>5</option>
+                    <option>10</option>
+                    <option>15</option>
+                    <option>20</option>
+                    <option>30</option>
+                    <option>50</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">Description *</label>
+            <textarea class="log-textarea" id="event-desc" placeholder="What should attendees know? What to bring? Meeting point details?"></textarea>
+        </div>
+
+        <div class="log-field">
+            <label class="log-label">What to Bring <span>(optional)</span></label>
+            <input class="log-input" type="text" placeholder="e.g. BYO meat & drinks, full tank, lunch & water">
+        </div>
+
+        <div class="log-row">
+            <div class="log-field">
+                <label class="log-label">Visibility</label>
+                <select class="log-select" id="event-visibility" onchange="toggleEventGroupPicker()">
+                    <option value="public">🌍 Public — all nearby users</option>
+                    <option value="friends">👥 Friends only</option>
+                    <option value="group">👪 Group members only</option>
+                </select>
+            </div>
+            <div class="log-field">
+                <label class="log-label">Visibility Radius</label>
+                <select class="log-select" id="event-radius">
+                    <option>25 km</option>
+                    <option selected>50 km</option>
+                    <option>100 km</option>
+                    <option>200 km</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Group picker (shown when visibility = group) -->
+        <div id="event-group-picker" style="display:none;margin-bottom:14px;">
+            <label class="log-label">Which Group? *</label>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;" onclick="selectEventGroup(this)">
+                    <input type="radio" name="event-group" value="si-riders" style="accent-color:var(--purple);">
+                    <span style="font-size:20px;">🏍️</span>
+                    <div style="flex:1;">
+                        <div style="font-size:12px;font-weight:700;">South Island Riders</div>
+                        <div style="font-size:10px;color:var(--text-muted);">42 members</div>
+                    </div>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;" onclick="selectEventGroup(this)">
+                    <input type="radio" name="event-group" value="kaikoura-locals" style="accent-color:var(--purple);">
+                    <span style="font-size:20px;">📍</span>
+                    <div style="flex:1;">
+                        <div style="font-size:12px;font-weight:700;">Kaikoura Locals & Helpers</div>
+                        <div style="font-size:10px;color:var(--text-muted);">18 members</div>
+                    </div>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;" onclick="selectEventGroup(this)">
+                    <input type="radio" name="event-group" value="te-araroa" style="accent-color:var(--purple);">
+                    <span style="font-size:20px;">🥾</span>
+                    <div style="flex:1;">
+                        <div style="font-size:12px;font-weight:700;">Te Araroa Through-Hikers 2026</div>
+                        <div style="font-size:10px;color:var(--text-muted);">156 members</div>
+                    </div>
+                </label>
+            </div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:6px;">Only members of the selected group will see this event</div>
+        </div>
+
+        <!-- Photo -->
+        <div class="log-field">
+            <label class="log-label">Cover Photo <span>(optional)</span></label>
+            <label class="log-photo-btn">
+                📷 Add Cover Photo
+                <input type="file" accept="image/*" style="display:none;">
+            </label>
+        </div>
+
+        <button onclick="submitEvent()" style="width:100%;padding:12px;background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📅 Create Event</button>
+    </div>
+</div>
+
+
+<!-- ═══ SETTINGS ═══ -->
 <div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
 <aside class="settings-panel" id="settings-panel">
     <div class="settings-header"><h2>⚙️ Settings</h2><button class="settings-close" onclick="closeSettings()">✕</button></div>
@@ -500,15 +1375,517 @@
 </aside>
 
 <script>
-    function openSettings() {
-        document.getElementById('settings-overlay').classList.add('open');
-        document.getElementById('settings-panel').classList.add('open');
+    // Settings
+    function openSettings() { document.getElementById('settings-overlay').classList.add('open'); document.getElementById('settings-panel').classList.add('open'); document.body.style.overflow='hidden'; }
+    function closeSettings() { document.getElementById('settings-overlay').classList.remove('open'); document.getElementById('settings-panel').classList.remove('open'); document.body.style.overflow=''; }
+
+    // Log modal
+    function openLog(cat) {
+        document.getElementById('log-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        // Pre-select category
+        if (cat) {
+            document.querySelectorAll('.log-cat-pill').forEach(function(p) {
+                p.classList.toggle('active', p.dataset.cat === cat);
+            });
+            showCatFields(cat);
+        }
+    }
+    function closeLog() {
+        document.getElementById('log-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    function selectLogCat(btn) {
+        document.querySelectorAll('.log-cat-pill').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        showCatFields(btn.dataset.cat);
+    }
+    function showCatFields(cat) {
+        document.querySelectorAll('.cat-fields').forEach(function(f) { f.classList.remove('visible'); });
+        var el = document.getElementById('fields-' + cat);
+        if (el) el.classList.add('visible');
+    }
+
+    // Rating
+    function setLogRating(btn, level) {
+        document.querySelectorAll('.log-rating-btn').forEach(function(b) { b.className = 'log-rating-btn'; });
+        btn.classList.add(level === 'good' ? 'active-good' : level === 'ok' ? 'active-ok' : 'active-bad');
+    }
+
+    // Photo count
+    function logPhotoCount(input) {
+        var n = Math.min(input.files.length, 3);
+        document.getElementById('log-photo-status').textContent = n + ' photo' + (n !== 1 ? 's' : '') + ' selected' + (input.files.length > 3 ? ' (max 3 — first 3 will be used)' : '');
+    }
+
+    // Submit log
+    function submitLog() {
+        var name = document.getElementById('log-name').value.trim();
+        var desc = document.getElementById('log-desc').value.trim();
+        if (!name) { document.getElementById('log-name').style.borderColor = 'var(--red)'; document.getElementById('log-name').focus(); return; }
+        if (!desc) { document.getElementById('log-desc').style.borderColor = 'var(--red)'; document.getElementById('log-desc').focus(); return; }
+
+        // Get active category
+        var catBtn = document.querySelector('.log-cat-pill.active');
+        if (!catBtn) { alert('Please select a category'); return; }
+        var cat = catBtn.dataset.cat;
+        var icons = {stay:'🏕️',fuel:'⛽',eat:'🍽️',workshop:'🔧',hazard:'⚠️',highlight:'⭐',supplies:'🛒'};
+        var colors = {stay:'var(--green)',fuel:'var(--blue)',eat:'var(--orange)',workshop:'var(--grey-600)',hazard:'var(--red)',highlight:'var(--orange)',supplies:'var(--teal)'};
+
+        // Add to "Your Recent Logs"
+        var listCard = document.querySelector('.card-title');
+        // Find the right card
+        var cards = document.querySelectorAll('.card');
+        cards.forEach(function(c) {
+            var hd = c.querySelector('.card-title');
+            if (hd && hd.textContent.includes('Your Recent Logs')) {
+                var firstItem = c.querySelector('.list-item');
+                var html = '<div class="list-item" data-cat="' + cat + '" style="animation:fadeUp 0.3s ease-out;">' +
+                    '<div class="list-icon" style="background:' + colors[cat] + ';">' + icons[cat] + '</div>' +
+                    '<div class="list-info">' +
+                    '<div class="list-title">' + name + '</div>' +
+                    '<div class="list-meta">' + cat.charAt(0).toUpperCase() + cat.slice(1) + ' · Kaikoura · "' + desc.substring(0,50) + (desc.length>50?'...':'') + '"</div>' +
+                    '<div class="list-rating">👍 Good</div>' +
+                    '</div>' +
+                    '<div class="list-right"><div style="font-size:10px;color:var(--text-muted);">Just now</div></div>' +
+                    '</div>';
+                if (firstItem) firstItem.insertAdjacentHTML('beforebegin', html);
+            }
+        });
+
+        closeLog();
+        // Reset form
+        document.getElementById('log-name').value = '';
+        document.getElementById('log-desc').value = '';
+        document.getElementById('log-name').style.borderColor = '';
+        document.getElementById('log-desc').style.borderColor = '';
+    }
+
+    // ═══ EVENT DETAIL MODAL ═══
+    var eventData = {
+        bbq: {
+            icon: '🍖', title: 'Community BBQ — Kaikoura', type: 'Social',
+            date: 'Saturday 15 February 2025 · 3:00 PM – 7:00 PM',
+            location: '📍 Kaikoura Peninsula Lookout',
+            organiser: 'BraveMountain156', organiserBg: '#8D6E63', organiserEmoji: '🏔️',
+            desc: 'Bring your own meat and drinks. We\'ll have a couple of portable BBQs set up at the lookout. All travellers welcome — cyclists, riders, walkers, anyone passing through. Great way to swap stories and tips for the road ahead.',
+            going: ['WildMeadow234','KindValley891','QuietRoad777','SteadyTrack302','CoastalDrift445','SwiftTrail099','BraveRiver472 (You)'],
+            maybe: ['FreeRoam128','DustTrail901'],
+            comments: [
+                {user:'WildMeadow234',bg:'#5C6BC0',emoji:'🦁',text:'I\'ll bring crayfish from the roadside guy!',time:'2 hours ago'},
+                {user:'KindValley891',bg:'#26A69A',emoji:'🐨',text:'Can someone grab extra charcoal? Happy to chip in.',time:'5 hours ago'},
+                {user:'BraveMountain156',bg:'#8D6E63',emoji:'🏔️',text:'All sorted — 2 BBQs, charcoal, and a tarp if the weather turns. See you there!',time:'Yesterday'}
+            ],
+            rsvp: 'going', dist: '12 km'
+        },
+        ride: {
+            icon: '🏍️', title: 'Molesworth Station Ride', type: 'Group Ride',
+            date: 'Sunday 16 February 2025 · 8:00 AM – 6:00 PM',
+            location: '📍 Blenheim i-SITE (meeting point)',
+            organiser: 'WildMeadow234', organiserBg: '#5C6BC0', organiserEmoji: '🦁',
+            desc: 'Full day ride through Molesworth Station — NZ\'s largest farm. Gravel road, stunning scenery, river crossings. Bring lunch, water, and a full tank. Suitable for adventure bikes and experienced riders. We\'ll ride at a relaxed pace with photo stops.',
+            going: ['SteadyTrack302','QuietRoad777','FreeRoam128','CoastalDrift445','DustTrail901','BraveMountain156','SwiftTrail099'],
+            maybe: ['BraveRiver472 (You)','KindValley891','GentleWind552','MountainAsh088'],
+            comments: [
+                {user:'SteadyTrack302',bg:'#FF7043',emoji:'🦊',text:'What tyre pressure are people running? I\'m thinking 1.8 bar.',time:'1 hour ago'},
+                {user:'WildMeadow234',bg:'#5C6BC0',emoji:'🦁',text:'1.6-1.8 should be fine. Road is mostly firm gravel. A couple of soft patches near the Acheron.',time:'3 hours ago'},
+                {user:'BraveMountain156',bg:'#8D6E63',emoji:'🏔️',text:'I did it last month — the river crossings are low. Should be sweet.',time:'Yesterday'}
+            ],
+            rsvp: null, dist: '48 km'
+        },
+        safety: {
+            icon: '🛡️', title: 'Te Araroa Trail Safety Briefing', type: 'Safety',
+            date: 'Thursday 20 February 2025 · 5:30 PM – 6:30 PM',
+            location: '📍 Kaikoura DOC Office',
+            organiser: 'KindValley891', organiserBg: '#26A69A', organiserEmoji: '🐨',
+            desc: 'Free safety briefing covering the Kaikoura section of Te Araroa. DOC ranger will cover: current track conditions, river safety, weather forecasting, hut bookings, and emergency procedures. Open to walkers, trail runners, and section hikers. Bring questions!',
+            going: ['FreeRoam128','GentleWind552','MountainAsh088','DustTrail901'],
+            maybe: ['BraveRiver472 (You)','QuietRoad777','WildMeadow234','SteadyTrack302','CoastalDrift445','SwiftTrail099','KindValley891','BraveMountain156'],
+            comments: [
+                {user:'FreeRoam128',bg:'#AB47BC',emoji:'🌺',text:'Will there be info on the new swing bridge section?',time:'Yesterday'},
+                {user:'KindValley891',bg:'#26A69A',emoji:'🐨',text:'Yes! The ranger confirmed they\'ll cover the new bridge and the reroute around the slip.',time:'Yesterday'}
+            ],
+            rsvp: null, dist: '3 km'
+        }
+    };
+
+    function openEventDetail(key) {
+        var e = eventData[key];
+        if (!e) return;
+        var el = document.getElementById('event-modal-content');
+
+        var goingHtml = e.going.map(function(u) {
+            var isYou = u.includes('(You)');
+            return '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600;' +
+                (isYou ? 'background:var(--green-pale);color:var(--green);' : 'background:var(--grey-100);color:var(--text-mid);') +
+                '">' + u + '</span>';
+        }).join(' ');
+
+        var maybeHtml = e.maybe.map(function(u) {
+            var isYou = u.includes('(You)');
+            return '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600;' +
+                (isYou ? 'background:var(--orange-pale);color:#b45309;' : 'background:var(--grey-100);color:var(--text-muted);') +
+                '">' + u + '</span>';
+        }).join(' ');
+
+        var commentsHtml = e.comments.map(function(c) {
+            return '<div style="display:flex;gap:8px;padding:10px 0;border-bottom:1px solid var(--grey-100);">' +
+                '<div style="width:24px;height:24px;border-radius:50%;background:' + c.bg + ';display:flex;align-items:center;justify-content:center;font-size:10px;color:white;flex-shrink:0;">' + c.emoji + '</div>' +
+                '<div style="flex:1;min-width:0;">' +
+                '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;font-weight:700;">' + c.user + '</span><span style="font-size:9px;color:var(--text-muted);">' + c.time + '</span></div>' +
+                '<div style="font-size:11px;color:var(--text-mid);margin-top:2px;">' + c.text + '</div>' +
+                '</div></div>';
+        }).join('');
+
+        var rsvpHtml = '';
+        if (e.rsvp === 'going') {
+            rsvpHtml = '<div style="display:flex;gap:6px;margin-top:14px;">' +
+                '<button style="flex:1;padding:10px;background:var(--green);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;">✅ Going</button>' +
+                '<button onclick="this.parentElement.querySelector(\'button\').textContent=\'🤔 Maybe\';this.parentElement.querySelector(\'button\').style.background=\'var(--orange)\'" style="padding:10px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;color:var(--text-mid);">Change RSVP</button>' +
+                '</div>';
+        } else {
+            rsvpHtml = '<div style="display:flex;gap:6px;margin-top:14px;">' +
+                '<button onclick="this.textContent=\'✅ Going\';this.style.background=\'var(--green)\';this.style.color=\'white\';this.style.borderColor=\'var(--green)\'" style="flex:1;padding:10px;background:var(--white);border:2px solid var(--green);border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;color:var(--green);">Going</button>' +
+                '<button onclick="this.textContent=\'🤔 Maybe\';this.style.background=\'var(--orange)\';this.style.color=\'white\';this.style.borderColor=\'var(--orange)\'" style="flex:1;padding:10px;background:var(--white);border:2px solid var(--orange);border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;color:var(--orange);">Maybe</button>' +
+                '<button style="padding:10px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;color:var(--text-muted);">Can\'t go</button>' +
+                '</div>';
+        }
+
+        el.innerHTML =
+            '<div class="log-modal-hd"><div class="log-modal-title">' + e.icon + ' Event Detail</div><button class="log-close" onclick="closeEventDetail()">✕</button></div>' +
+
+            // Title & type
+            '<div style="font-size:17px;font-weight:800;">' + e.icon + ' ' + e.title + '</div>' +
+            '<div style="display:inline-flex;padding:2px 8px;background:var(--blue-pale);border-radius:8px;font-size:10px;font-weight:700;color:var(--blue);margin-top:4px;">' + e.type + '</div>' +
+
+            // Date & location
+            '<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span>📅</span><span>' + e.date + '</span></div>' +
+            '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span>📍</span><span>' + e.location + '</span><a href="#" onclick="event.preventDefault()" style="font-size:10px;color:var(--blue);font-weight:600;">Navigate</a></div>' +
+            '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span>📏</span><span>' + e.dist + ' from you</span></div>' +
+            '</div>' +
+
+            // Organiser
+            '<div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;background:var(--grey-50);border-radius:var(--radius-sm);">' +
+            '<div style="width:28px;height:28px;border-radius:50%;background:' + e.organiserBg + ';display:flex;align-items:center;justify-content:center;font-size:13px;color:white;">' + e.organiserEmoji + '</div>' +
+            '<div><div style="font-size:11px;font-weight:700;">' + e.organiser + '</div><div style="font-size:9px;color:var(--orange);font-weight:700;">★ Organiser</div></div>' +
+            '<button style="margin-left:auto;padding:4px 12px;background:var(--blue);color:white;border:none;border-radius:12px;font-size:10px;font-weight:600;cursor:pointer;">💬 Message</button>' +
+            '</div>' +
+
+            // Description
+            '<div style="margin-top:14px;font-size:12px;color:var(--text-mid);line-height:1.7;">' + e.desc + '</div>' +
+
+            // RSVP buttons
+            rsvpHtml +
+
+            // Attendees
+            '<div style="margin-top:18px;">' +
+            '<div style="font-size:12px;font-weight:700;margin-bottom:6px;">✅ Going (' + e.going.length + ')</div>' +
+            '<div style="display:flex;gap:4px;flex-wrap:wrap;">' + goingHtml + '</div>' +
+            '</div>' +
+            '<div style="margin-top:10px;">' +
+            '<div style="font-size:12px;font-weight:700;margin-bottom:6px;">🤔 Maybe (' + e.maybe.length + ')</div>' +
+            '<div style="display:flex;gap:4px;flex-wrap:wrap;">' + maybeHtml + '</div>' +
+            '</div>' +
+
+            // Comments
+            '<div style="margin-top:18px;">' +
+            '<div style="font-size:12px;font-weight:700;margin-bottom:6px;">💬 Comments (' + e.comments.length + ')</div>' +
+            commentsHtml +
+            '<div style="display:flex;gap:8px;margin-top:10px;">' +
+            '<input type="text" placeholder="Add a comment..." style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;font-family:inherit;">' +
+            '<button style="padding:8px 14px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;">Send</button>' +
+            '</div>' +
+            '</div>';
+
+        document.getElementById('event-overlay').classList.add('open');
         document.body.style.overflow = 'hidden';
     }
-    function closeSettings() {
-        document.getElementById('settings-overlay').classList.remove('open');
-        document.getElementById('settings-panel').classList.remove('open');
+    function closeEventDetail() {
+        document.getElementById('event-overlay').classList.remove('open');
         document.body.style.overflow = '';
+    }
+
+    // ═══ TRIP DETAIL MODAL ═══
+    var tripData = {
+        araroa: {
+            icon: '🏔️', title: 'Te Araroa — Northern Section', mode: '🥾 Walking',
+            route: 'Auckland → Taupo',
+            waypoints: 'Auckland → Puhoi → Pakiri Beach → Mangawhai → Langs Beach → Waipu → Whangarei → Helena Bay → Russell → Kerikeri → Kaitaia → Cape Reinga (and back to Taupo via inland)',
+            start: '1 March 2026', end: '14 March 2026', days: '14 days',
+            checkin: 'Every 12 hours',
+            visibility: '🔒 Private — only me & emergency contacts',
+            desc: 'Northern section of Te Araroa. Starting with the urban Auckland sections then heading into the Northland bush tracks. Carrying full pack, expecting 20-25 km days. Will need to arrange food drops at Mangawhai and Russell.',
+            contacts: ['Sarah B. (Home)', 'Mike R. (Travel Buddy)'],
+            status: 'upcoming',
+            rideshare: false, seats: 0, luggage: '', rideshareNote: ''
+        },
+        boi: {
+            icon: '⛵', title: 'Bay of Islands Sailing', mode: '⛵ Sailing',
+            route: 'Russell → Cape Brett → Kerikeri',
+            waypoints: 'Russell → Urupukapuka Island → Cape Brett → Oke Bay → Kerikeri',
+            start: '20 March 2026', end: '24 March 2026', days: '5 days',
+            checkin: 'Every 24 hours',
+            visibility: '🌍 Public — visible to nearby travellers',
+            desc: 'Sailing trip around the Bay of Islands. Borrowing Dave\'s 32ft keelboat. Will anchor overnight in sheltered bays. Marine VHF Ch 16 monitoring throughout.',
+            contacts: ['Sarah B. (Home)', 'Dave W. (Boat Owner)'],
+            status: 'upcoming',
+            rideshare: true, seats: 2, luggage: 'small', rideshareNote: 'Room for 2 crew. Sailing experience helpful but not required. Share fuel costs.'
+        }
+    };
+
+    function openTripDetail(key) {
+        var t = tripData[key];
+        if (!t) return;
+        var el = document.getElementById('trip-detail-content');
+
+        var contactsHtml = t.contacts.map(function(c) {
+            return '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600;background:var(--red-pale);color:var(--red);">❤️ ' + c + '</span>';
+        }).join(' ');
+
+        var statusBadge = t.status === 'active' ?
+            '<span style="display:inline-flex;padding:3px 10px;background:var(--green);color:white;border-radius:8px;font-size:10px;font-weight:700;">● Active</span>' :
+            '<span style="display:inline-flex;padding:3px 10px;background:var(--blue-pale);color:var(--blue);border-radius:8px;font-size:10px;font-weight:700;">Upcoming</span>';
+
+        // Rideshare section
+        var rideshareHtml = '';
+        if (t.rideshare) {
+            var seatsText = t.seats > 0 ? t.seats + ' seat' + (t.seats > 1 ? 's' : '') + ' available' : 'No passenger seats';
+            var luggageText = {none:'No luggage space', small:'Small bag only', medium:'Backpack OK', large:'Full luggage'}[t.luggage] || '';
+            rideshareHtml =
+                '<div style="margin-top:16px;padding:14px;border:2px solid var(--green);border-radius:var(--radius-sm);background:var(--green-pale);">' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+                '<span style="font-size:16px;">🚗</span>' +
+                '<div style="font-size:13px;font-weight:800;color:var(--green);">Ride Share Available</div>' +
+                '</div>' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">' +
+                '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:600;background:white;color:var(--text-mid);">💺 ' + seatsText + '</span>' +
+                '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:600;background:white;color:var(--text-mid);">🎒 ' + luggageText + '</span>' +
+                '</div>' +
+                (t.rideshareNote ? '<div style="font-size:11px;color:var(--text-mid);margin-top:4px;">"' + t.rideshareNote + '"</div>' : '') +
+                '<button onclick="this.innerHTML=\'✅ Request Sent! Waiting for response...\';this.style.background=\'var(--green)\';this.style.color=\'white\';this.style.borderColor=\'var(--green)\';this.disabled=true" style="margin-top:10px;width:100%;padding:10px;background:white;border:2px solid var(--green);border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;color:var(--green);font-family:inherit;transition:all 0.15s;">🙋 Request a Ride</button>' +
+                '</div>';
+        }
+
+        el.innerHTML =
+            '<div class="log-modal-hd"><div class="log-modal-title">🗺️ Trip Detail</div><button class="log-close" onclick="closeTripDetail()">✕</button></div>' +
+
+            // Title & status
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<div style="font-size:17px;font-weight:800;">' + t.icon + ' ' + t.title + '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;">' +
+            statusBadge +
+            '<span style="display:inline-flex;padding:3px 10px;background:var(--grey-100);border-radius:8px;font-size:10px;font-weight:600;color:var(--text-mid);">' + t.mode + '</span>' +
+            (t.rideshare ? '<span style="display:inline-flex;padding:3px 10px;background:var(--green-pale);border-radius:8px;font-size:10px;font-weight:700;color:var(--green);">🚗 Ride share</span>' : '') +
+            '</div>' +
+
+            // Route
+            '<div style="margin-top:16px;padding:12px;background:var(--grey-50);border-radius:var(--radius-sm);">' +
+            '<div style="font-size:11px;font-weight:700;color:var(--text-mid);margin-bottom:4px;">Route</div>' +
+            '<div style="font-size:13px;font-weight:700;">' + t.route + '</div>' +
+            '<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">' + t.waypoints + '</div>' +
+            '</div>' +
+
+            // Dates & timing
+            '<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span>📅</span><span>' + t.start + ' → ' + t.end + ' <strong>(' + t.days + ')</strong></span></div>' +
+            '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span>⏰</span><span>Check-in: <strong>' + t.checkin + '</strong></span></div>' +
+            '<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span>👁️</span><span>' + t.visibility + '</span></div>' +
+            '</div>' +
+
+            // Description
+            '<div style="margin-top:14px;font-size:12px;color:var(--text-mid);line-height:1.7;">' + t.desc + '</div>' +
+
+            // Rideshare
+            rideshareHtml +
+
+            // Emergency contacts
+            '<div style="margin-top:16px;">' +
+            '<div style="font-size:12px;font-weight:700;margin-bottom:6px;">Emergency Contacts</div>' +
+            '<div style="display:flex;gap:4px;flex-wrap:wrap;">' + contactsHtml + '</div>' +
+            '</div>' +
+
+            // Missed check-in warning
+            '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--orange-pale);border-radius:var(--radius-sm);margin-top:14px;">' +
+            '<span style="font-size:14px;">⚠️</span>' +
+            '<div style="font-size:10px;color:#92400e;"><strong>Missed check-in:</strong> After 2 consecutive missed check-ins, emergency contacts will be notified automatically.</div>' +
+            '</div>' +
+
+            // Action buttons
+            '<div style="display:flex;gap:8px;margin-top:16px;">' +
+            '<button onclick="alert(\'Edit trip form coming soon\')" style="flex:1;padding:10px;background:var(--white);border:2px solid var(--blue);border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;color:var(--blue);font-family:inherit;">✏️ Edit Trip</button>' +
+            (t.status === 'upcoming' ?
+                '<button onclick="this.textContent=\'✅ Trip Started!\';this.style.background=\'#1B5E20\'" style="flex:1;padding:10px;background:var(--green);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🚀 Start Trip</button>' :
+                '<button onclick="window.location=\'diary.html\'" style="flex:1;padding:10px;background:var(--green);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📔 View in Diary</button>'
+            ) +
+            '</div>' +
+
+            // Delete
+            '<div style="text-align:center;margin-top:12px;">' +
+            '<button onclick="if(confirm(\'Delete this trip plan?\')) closeTripDetail()" style="background:none;border:none;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">Delete Trip</button>' +
+            '</div>';
+
+        document.getElementById('trip-detail-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeTripDetail() {
+        document.getElementById('trip-detail-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ═══ TRIP CREATE MODAL ═══
+    function openTripModal() {
+        document.getElementById('trip-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeTripModal() {
+        document.getElementById('trip-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    function selectTripMode(btn) {
+        btn.parentElement.querySelectorAll('.log-cat-pill').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+    }
+    function submitTrip(startNow) {
+        var title = document.getElementById('trip-title').value.trim();
+        var start = document.getElementById('trip-start').value.trim();
+        var end = document.getElementById('trip-end').value.trim();
+        if (!title) { document.getElementById('trip-title').style.borderColor='var(--red)'; document.getElementById('trip-title').focus(); return; }
+        if (!start) { document.getElementById('trip-start').style.borderColor='var(--red)'; document.getElementById('trip-start').focus(); return; }
+        if (!end) { document.getElementById('trip-end').style.borderColor='var(--red)'; document.getElementById('trip-end').focus(); return; }
+
+        closeTripModal();
+        if (startNow) {
+            alert('✅ Trip "' + title + '" created and started!\nYou can now check in from the Diary page.');
+        } else {
+            alert('✅ Trip "' + title + '" saved as upcoming.\nYou\'ll be reminded when it\'s time to start.');
+        }
+    }
+
+    // ═══ RIDESHARE TOGGLE ═══
+    function toggleRideshare() {
+        var cb = document.getElementById('trip-rideshare');
+        var fields = document.getElementById('rideshare-fields');
+        var toggle = document.getElementById('rideshare-toggle');
+        var knob = document.getElementById('rideshare-knob');
+        var section = document.getElementById('rideshare-section');
+        if (cb.checked) {
+            fields.style.display = 'block';
+            toggle.style.background = 'var(--green)';
+            knob.style.left = '20px';
+            section.style.borderColor = 'var(--green)';
+        } else {
+            fields.style.display = 'none';
+            toggle.style.background = 'var(--grey-300)';
+            knob.style.left = '2px';
+            section.style.borderColor = 'var(--border)';
+        }
+    }
+
+    // ═══ CREATE EVENT MODAL ═══
+    function openCreateEvent() {
+        document.getElementById('event-create-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeCreateEvent() {
+        document.getElementById('event-create-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    function selectEventType(btn) {
+        btn.parentElement.querySelectorAll('.log-cat-pill').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+    }
+    function toggleEventGroupPicker() {
+        var vis = document.getElementById('event-visibility').value;
+        var picker = document.getElementById('event-group-picker');
+        var radius = document.getElementById('event-radius');
+        if (vis === 'group') {
+            picker.style.display = 'block';
+            radius.parentElement.style.display = 'none';
+        } else {
+            picker.style.display = 'none';
+            radius.parentElement.style.display = '';
+        }
+    }
+    function selectEventGroup(label) {
+        document.querySelectorAll('#event-group-picker label').forEach(function(l) {
+            l.style.borderColor = 'var(--border)';
+            l.style.background = '';
+        });
+        label.style.borderColor = 'var(--purple)';
+        label.style.background = 'var(--purple-pale)';
+    }
+    function submitEvent() {
+        var title = document.getElementById('event-title').value.trim();
+        var loc = document.getElementById('event-location').value.trim();
+        var desc = document.getElementById('event-desc').value.trim();
+        if (!title) { document.getElementById('event-title').style.borderColor='var(--red)'; document.getElementById('event-title').focus(); return; }
+        if (!loc) { document.getElementById('event-location').style.borderColor='var(--red)'; document.getElementById('event-location').focus(); return; }
+        if (!desc) { document.getElementById('event-desc').style.borderColor='var(--red)'; document.getElementById('event-desc').focus(); return; }
+
+        closeCreateEvent();
+        alert('✅ Event "' + title + '" created!\nIt will be visible to nearby travellers.');
+        document.getElementById('event-title').value = '';
+        document.getElementById('event-location').value = '';
+        document.getElementById('event-desc').value = '';
+    }
+
+    // ═══ FILTER & SEARCH ═══
+    var activeFilter = 'all';
+    function setFilter(btn) {
+        document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        activeFilter = btn.dataset.cat;
+        filterLogs();
+    }
+    function filterLogs() {
+        var query = document.getElementById('search-input').value.toLowerCase();
+        var isPlaceCat = ['all','stay','fuel','eat','workshop','hazard','highlight','supplies'].indexOf(activeFilter) !== -1;
+        var isEvent = activeFilter === 'event';
+        var isTrip = activeFilter === 'trip';
+
+        // Show/hide community feed items (places only)
+        document.querySelectorAll('.feed-item').forEach(function(item) {
+            var catMatch = (activeFilter === 'all') || item.dataset.cat === activeFilter;
+            var textMatch = !query || item.textContent.toLowerCase().includes(query);
+            item.style.display = (catMatch && textMatch && isPlaceCat) ? '' : 'none';
+        });
+
+        // Show/hide your recent log items (places only)
+        document.querySelectorAll('.list-item[data-cat]').forEach(function(item) {
+            // Skip items inside events/trips sections
+            if (item.closest('#events-section') || item.closest('#trips-section')) return;
+            var catMatch = (activeFilter === 'all') || item.dataset.cat === activeFilter;
+            var textMatch = !query || item.textContent.toLowerCase().includes(query);
+            item.style.display = (catMatch && textMatch && isPlaceCat) ? '' : 'none';
+        });
+
+        // Show/hide whole sections based on filter
+        var gridContainer = document.querySelector('.grid-2');
+        var evSection = document.getElementById('events-section');
+        var trSection = document.getElementById('trips-section');
+        var mapCard = document.querySelector('.card-title');
+
+        if (activeFilter === 'all') {
+            // Show everything
+            if (gridContainer) gridContainer.style.display = '';
+            if (evSection) evSection.style.display = '';
+            if (trSection) trSection.style.display = '';
+        } else if (isEvent) {
+            if (gridContainer) gridContainer.style.display = 'none';
+            if (evSection) evSection.style.display = '';
+            if (trSection) trSection.style.display = 'none';
+        } else if (isTrip) {
+            if (gridContainer) gridContainer.style.display = 'none';
+            if (evSection) evSection.style.display = 'none';
+            if (trSection) trSection.style.display = '';
+        } else {
+            // Place category filter
+            if (gridContainer) gridContainer.style.display = '';
+            if (evSection) evSection.style.display = 'none';
+            if (trSection) trSection.style.display = 'none';
+        }
     }
 </script>
 </body>
